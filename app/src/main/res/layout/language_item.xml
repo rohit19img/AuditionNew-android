@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_margin="10dp"
+    android:layout_height="wrap_content">
+
+
+
+        <RelativeLayout
+            android:id="@+id/langHoldCard"
+            android:background="@drawable/card_rummy_design"
+            android:padding="5dp"
+            android:layout_width="wrap_content"
+            android:minWidth="150dp"
+            android:layout_height="60dp"
+            android:orientation="vertical"
+            >
+
+            <TextView
+                android:gravity="center"
+                android:letterSpacing="0.1"
+                android:id="@+id/lang_E"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textColor="@color/textColorWhite"
+                android:text="Hindi"
+                android:textSize="14sp" />
+
+        </RelativeLayout>
+
+</RelativeLayout>

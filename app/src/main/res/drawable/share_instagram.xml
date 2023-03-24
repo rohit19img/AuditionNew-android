@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:left="@dimen/_2sdp"
+        android:top="@dimen/_2sdp">
+        <shape>
+            <solid android:color="#8C3AAA" />
+            <size
+                android:width="@dimen/_50sdp"
+                android:height="@dimen/_50sdp" />
+        </shape>
+    </item>
+    <item
+        android:bottom="@dimen/_1sdp"
+        android:right="@dimen/_1sdp">
+        <shape>
+            <solid android:color="@color/black" />
+            <size
+                android:width="@dimen/_50sdp"
+                android:height="@dimen/_50sdp" />
+        </shape>
+    </item>
+    <item
+        android:bottom="@dimen/_2sdp"
+        android:right="@dimen/_2sdp">
+        <shape>
+            <gradient
+                android:angle="45"
+                android:centerColor="#4833F2"
+                android:startColor="#EC8A2B"
+                android:endColor="#DE1BC6" />
+            <size
+                android:width="@dimen/_50sdp"
+                android:height="@dimen/_50sdp" />
+        </shape>
+    </item>
+    <item
+        android:width="@dimen/_27sdp"
+        android:height="@dimen/_27sdp"
+        android:drawable="@drawable/ic_instagram"
+        android:gravity="center">
+
+    </item>
+</layer-list>

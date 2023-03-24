@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".screens.fragment.ContestFragment">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="@color/bgColorDarkRed">
+        <TextView
+            style="@style/textViewStyle"
+            android:gravity="start"
+            android:layout_gravity="start"
+            android:text="@string/challenges"
+            android:textColor="@color/textColorWhite"
+            android:textSize="16sp" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <RelativeLayout
+        android:layout_below="@id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_centerHorizontal="true"
+            app:tabIndicatorHeight="0dp"
+            android:background="@android:color/transparent"
+            android:backgroundTint="@color/white"
+            app:tabIndicatorColor="@color/textColorRed"
+            app:tabMode="auto"
+            app:tabTextAppearance="@style/TabText"
+            app:tabRippleColor="@color/textColorRed"
+            app:tabSelectedTextColor="@color/textColorRed"
+            app:tabTextColor="@color/Gray" />
+    </RelativeLayout>
+
+
+</RelativeLayout>

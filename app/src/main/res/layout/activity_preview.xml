@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/videoExoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        app:resize_mode="fill"
+        app:surface_type="texture_view"
+        app:keep_content_on_player_reset="true"
+        app:use_controller="false"
+        app:show_buffering="never"
+
+         />
+
+    <ImageView
+        android:id="@+id/backPressIC"
+        style="@style/imageButtonStyle"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="0dp"
+        android:padding="5dp"
+        android:paddingStart="0dp"
+        android:src="@drawable/back_arrow_ic" />
+
+    <TextView
+        style="@style/textViewStyle"
+        android:layout_width="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="5dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Next Step"
+        android:textColor="@color/white"
+        android:background="@drawable/bg_edittext_normal"
+        />
+
+
+</RelativeLayout>

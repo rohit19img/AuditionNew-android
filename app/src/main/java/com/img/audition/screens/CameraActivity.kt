@@ -1,27 +1,27 @@
 package com.img.audition.screens
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.ContentValues
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCapture.OutputFileOptions
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
 import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
-import androidx.concurrent.futures.await
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.util.Consumer
@@ -33,10 +33,11 @@ import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.screens.fragment.MusicListFragment
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
-import com.img.audition.R
 
 @UnstableApi class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
 
@@ -216,16 +217,20 @@ import com.img.audition.R
     }
 
     private fun startRecording() {
+
+        val file = File(getNewFilePath())
+
         val name = "audition-recording-" +
                 SimpleDateFormat(FILENAME_FORMAT, Locale.US)
                     .format(System.currentTimeMillis()) + ".mp4"
 
         val contentValues = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, name)
+            put(MediaStore.Video.Media.DISPLAY_NAME, file.path)
         }
 
+
         val mediaStoreOutputOptions = MediaStoreOutputOptions
-            .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+            .Builder(contentResolver, Uri.fromFile(file))
             .setContentValues(contentValues)
             .build()
         val videoCapture = this.videoCapture ?: return
@@ -327,5 +332,30 @@ import com.img.audition.R
     fun closeBottomSheet() {
         val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
         behavior.state = BottomSheetBehavior.STATE_HIDDEN
+    }
+
+    fun getNewFilePath():String{
+        val newPath = File(getVideoFilePath())
+        Log.i("path_test","getVideoFilePath : ${getVideoFilePath()}")
+        myApplication.printLogD(newPath.absolutePath,"New Path")
+
+        if(!File(getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/").exists())
+            File(getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/").mkdir()
+
+
+        if (!(newPath.exists())){
+            try {
+                newPath.createNewFile()
+            } catch (e: IOException) {
+                myApplication.printLogE(e.toString(),TAG)
+            }
+        }
+        Log.i("path_test","new path : ${newPath.path}")
+
+        return newPath.path
+    }
+
+    fun getVideoFilePath(): String {
+        return   getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/" + SimpleDateFormat("yyyyMM_dd-HHmmss").format(Date()) + "cameraRecorder.mp4"
     }
 }

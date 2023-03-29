@@ -1,19 +1,15 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.img.audition.databinding.ActivityHomeBinding
 import com.img.audition.databinding.ActivityPreviewBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import com.img.audition.videoWork.VideoCacheWork
 
 @UnstableApi class PreviewActivity : AppCompatActivity() {
 
@@ -44,17 +40,27 @@ import com.img.audition.videoWork.VideoCacheWork
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
+
+
+            viewBinding.backPressIC.setOnClickListener {
+                onBackPressed()
+            }
+
+            viewBinding.sendToUploadBtn.setOnClickListener {
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.VideoFilePath,videoUri)
+                sendToUploadVideoActivity(bundle)
+            }
         }else{
             myApplication.printLogD("File Path Null",TAG)
         }
 
 
-        viewBinding.backPressIC.setOnClickListener {
-            onBackPressed()
-        }
+    }
 
-        viewBinding.sendToUploadBtn.setOnClickListener {
-
-        }
+    private fun sendToUploadVideoActivity(bundle: Bundle) {
+        val intent = Intent(this@PreviewActivity,UploadVideoActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
     }
 }

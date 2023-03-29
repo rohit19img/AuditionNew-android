@@ -61,17 +61,7 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
         alertDialog.show()
     }
 
-    fun getAndroidFolder(): String? {
-        val m = packageManager
-        var packageLocation = packageName
-        try {
-            val p: PackageInfo = m.getPackageInfo(packageLocation, 0)
-            packageLocation = p.applicationInfo.dataDir
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.w("check", "Error Package name not found ", e)
-        }
-        return packageLocation
-    }
+
 
     class DownloadImageTask(bmImage: ImageView) :
         AsyncTask<String?, Void?, Bitmap?>() {

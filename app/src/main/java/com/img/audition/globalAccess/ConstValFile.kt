@@ -6,9 +6,7 @@ class ConstValFile {
 
     companion object{
 
-        const val playStateStopped = "STOPPED"
-        const val playStatePlaying = "PLAYING"
-        const val playStatePause = "PAUSE"
+        const val VideoFileExt = ".mp4"
         const val UserName = "Username"
         const val PagePosition =  "PagePosition"
         const val RemoveFromWatch = "Remove From Watch Later"

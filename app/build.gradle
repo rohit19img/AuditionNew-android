@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.img.audition"
-        minSdk 23
+        minSdk 24
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -74,8 +74,6 @@ dependencies {
     //volley
     implementation 'com.android.volley:volley:1.2.1'
 
-
-
     //Android Media Player Exo
     implementation "androidx.media3:media3-exoplayer:1.0.0"
     implementation "androidx.media3:media3-exoplayer-dash:1.0.0"
@@ -95,10 +93,10 @@ dependencies {
     //crop image for pan and bank verification
     implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
 
-    //
+    //dimens sdp and dp
     implementation 'com.intuit.sdp:sdp-android:1.1.0'
-
-
+    //Ffmpeg
+    implementation 'com.arthenica:ffmpeg-kit-full:5.1'
 
 
 

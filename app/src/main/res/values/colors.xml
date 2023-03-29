@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="float_transaparent">#00ffffff</color>
 
     <color name="icon_color_black">#1a1a1a</color>
     <color name="textColorWhite">#FFFFFFFF</color>

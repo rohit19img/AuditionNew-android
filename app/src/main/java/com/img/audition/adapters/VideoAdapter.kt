@@ -59,6 +59,9 @@ import retrofit2.Response
     private val myApplication by lazy {
         MyApplication(context.applicationContext)
     }
+
+    var Ar = arrayOf(-1,0)
+
     var cPos = 0
     inner class VideoViewHolder(itemView: VideoLayoutBinding) : RecyclerView.ViewHolder(itemView.root) {
         val playerViewExo = itemView.videoExoView
@@ -105,9 +108,12 @@ import retrofit2.Response
     }
 
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
+
         holder.apply {
             val list = videoList[position]
             myApplication.printLogD("onBindViewHolder: ${list.file}","videoUrl")
+
+            itemView.setBackgroundColor(context.getColor(R.color.float_transaparent))
 
             if (list.likeStatus!!){
                 likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.liked_ic))
@@ -601,7 +607,6 @@ import retrofit2.Response
             playerViewExo.player!!.seekTo(0)
             playerViewExo.player!!.pause()
             playerViewExo.player!!.stop()
-
         }
         super.onViewDetachedFromWindow(holder)
     }
@@ -618,11 +623,36 @@ import retrofit2.Response
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     val visiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+//                    var lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+
+
+                    var lastPosition = Ar[0]
+                    Ar[0] = Ar[1]
+                    Ar[1] = visiblePosition
+
+                    Log.i("positionTest","visible : $visiblePosition")
+                    Log.i("positionTest","last : $lastPosition")
+
+                    if (visiblePosition >= 0) {
+                        val holder_current: VideoViewHolder =
+                            recyclerView.findViewHolderForAdapterPosition(visiblePosition) as VideoViewHolder
+                        holder_current.exoPlayer.seekTo(0)
+                        holder_current.exoPlayer.playWhenReady = true
+                    }
+
+                    if (lastPosition >= 0) {
+                        val holder_previous: VideoViewHolder =
+                            recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
+                        holder_previous.exoPlayer.seekTo(0)
+                        if (holder_previous.exoPlayer.isPlaying)
+                            holder_previous.exoPlayer.stop()
+                        holder_previous.exoPlayer.playWhenReady = false
+                    }
                     if (visiblePosition >= 0) {
                         cPos = visiblePosition
-
-                        notifyDataSetChanged()
+//                        notifyDataSetChanged()
                     }
+
                 }
             })
         }
@@ -633,6 +663,14 @@ import retrofit2.Response
     override fun getItemCount(): Int {
         return videoList.size
     }
+//
+//    override fun getItemId(position: Int): Long {
+//        return position.toLong()
+//    }
+////
+//    override fun setHasStableIds(hasStableIds: Boolean) {
+//        super.setHasStableIds(hasStableIds)
+//    }
 
     fun sendToLoginScreen(){
         val intent = Intent(context, LoginActivity::class.java)

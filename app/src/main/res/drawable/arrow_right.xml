@@ -1,36 +1,10 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item>
-        <shape>
-            <solid android:color="@android:color/transparent"/>
-            <size android:width="2dp" android:height="50dp"/>
-        </shape>
-    </item>
-
-    <item android:bottom="20dp">
-        <rotate
-            android:fromDegrees="-45"
-            android:toDegrees="45">
-            <shape android:shape="rectangle">
-                <solid android:color="@android:color/white"/>
-                <corners
-                    android:radius="1dp"
-                    android:bottomRightRadius="0dp"
-                    android:bottomLeftRadius="0dp"/>
-            </shape>
-        </rotate>
-    </item>
-
-    <item android:top="20dp">
-        <rotate
-            android:fromDegrees="45"
-            android:toDegrees="45">
-            <shape android:shape="rectangle">
-                <solid android:color="@android:color/white"/>
-                <corners
-                    android:radius="1dp"
-                    android:topRightRadius="0dp"
-                    android:topLeftRadius="0dp"/>
-            </shape>
-        </rotate>
-    </item>
-</layer-list>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="?attr/colorControlNormal">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M375,720L332,677L530,479L332,281L375,238L616,479L375,720Z"/>
+</vector>

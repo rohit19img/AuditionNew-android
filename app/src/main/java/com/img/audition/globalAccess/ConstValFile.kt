@@ -6,6 +6,11 @@ class ConstValFile {
 
     companion object{
 
+        const val playStateStopped = "STOPPED"
+        const val playStatePlaying = "PLAYING"
+        const val playStatePause = "PAUSE"
+        const val UserName = "Username"
+        const val PagePosition =  "PagePosition"
         const val RemoveFromWatch = "Remove From Watch Later"
         const val WatchLater = "Watch Later"
         const val VideoPosition  = "VideoPosition"
@@ -34,6 +39,7 @@ class ConstValFile {
         const val UserFollowStatus = "followStatus"
         const val Bundle = "bundle"
         const val Following = "Following"
+        const val Unfollow = "Unfollow"
         const val Follow = "Follow"
         const val MobileVerified = "MobileVerified"
         const val PanVerified = "PanVerified"

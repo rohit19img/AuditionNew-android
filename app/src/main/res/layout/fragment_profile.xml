@@ -138,6 +138,7 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
+                        android:id="@+id/followListBtn"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -156,6 +157,7 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/followingListBtn"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -231,7 +233,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/messageBtn"
+                android:id="@+id/editProfileBtn"
                 style="@style/textViewStyle1"
                 android:background="@drawable/cardview_look"
                 android:backgroundTint="@color/bgColorDarkRed"
@@ -257,19 +259,13 @@
         </LinearLayout>
 
 
-        <com.facebook.shimmer.ShimmerFrameLayout
+       <!-- <include
             android:layout_below="@id/editProLy"
-            android:id="@+id/shimmerVideoView"
+            layout="@layout/user_videoitem_view_shimer"
             android:background="@color/bgColorWhite"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            >
-
-            <include
-                layout="@layout/user_videoitem_view_shimer"
-                />
-
-        </com.facebook.shimmer.ShimmerFrameLayout>
+            />-->
 
 
         <ImageView
@@ -283,7 +279,6 @@
             android:layout_below="@+id/editProLy"
             />
         <androidx.recyclerview.widget.RecyclerView
-            android:visibility="gone"
             android:layout_below="@+id/editProLy"
             android:background="@color/bgColorWhite"
             tools:listitem="@layout/video_item_view"

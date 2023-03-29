@@ -100,13 +100,45 @@ data class UserVerificationData(
     @SerializedName("mobile_verify"        ) var mobileVerify       : Int?    = null,
     @SerializedName("email_verify"         ) var emailVerify        : Int?    = null,
     @SerializedName("bank_verify"          ) var bankVerify         : Int?    = null,
-    @SerializedName("pan_verify"           ) var panVerify          : Int?    = null,
+    @SerializedName("pan_verify"           ) var pan_verify          : Int?    = null,
     @SerializedName("profile_image_verify" ) var profileImageVerify : Int?    = null,
     @SerializedName("image"                ) var image              : String? = null,
     @SerializedName("email"                ) var email              : String? = null,
-    @SerializedName("mobile"               ) var mobile             : Int?    = null,
+    @SerializedName("mobile"               ) var mobile             : String?    = null,
     @SerializedName("pan_comment"          ) var panComment         : String? = null,
     @SerializedName("bank_comment"         ) var bankComment        : String? = null
 )
 
-class WatchLaterResponse()
+data class FollowerFollowingListResponse(
+    @SerializedName("message" ) var message : String?         = null,
+    @SerializedName("success" ) var success : Boolean?        = null,
+    @SerializedName("data"    ) var data    : ArrayList<FollowerFollowingListData> = arrayListOf()
+)
+
+data class FollowerFollowingListData(
+    @SerializedName("_id"             ) var Id             : String?                  = null,
+    @SerializedName("email"           ) var email          : String?                  = null,
+    @SerializedName("followers_count" ) var followersCount : Int?                     = null,
+    @SerializedName("following_count" ) var followingCount : Int?                     = null,
+    @SerializedName("followingList"   ) var followingList  : ArrayList<FollowingList> = arrayListOf(),
+    @SerializedName("followerList"    ) var followerList   : ArrayList<FollowerList>        = arrayListOf()
+)
+
+data class FollowingList(
+    @SerializedName("_id"             ) var Id             : String? = null,
+    @SerializedName("image"           ) var image          : String? = null,
+    @SerializedName("name"            ) var name           : String? = null,
+    @SerializedName("email"           ) var email          : String? = null,
+    @SerializedName("following_count" ) var followingCount : Int?    = null,
+    @SerializedName("audition_id"     ) var auditionId     : String? = null
+)
+
+data class FollowerList(
+    @SerializedName("_id"             ) var Id             : String? = null,
+    @SerializedName("image"           ) var image          : String? = null,
+    @SerializedName("name"            ) var name           : String? = null,
+    @SerializedName("email"           ) var email          : String? = null,
+    @SerializedName("followers_count" ) var followersCount : Int?    = null,
+    @SerializedName("audition_id"     ) var auditionId     : String? = null,
+    @SerializedName("follow_status"     ) var followStatus     : Boolean? = false
+)

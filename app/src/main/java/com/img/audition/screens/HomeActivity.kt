@@ -56,12 +56,12 @@ import com.img.audition.screens.fragment.*
 
         appPermission.checkPermissions()
 
-        loadFragment(VideoFragment())
+        loadFragment(VideoFragment(this@HomeActivity))
 
         viewBinding.bottomNav.setOnItemSelectedListener {
             when(it.itemId){
                 R.id.home -> {
-                    loadFragment(VideoFragment())
+                    loadFragment(VideoFragment(this@HomeActivity))
                     true
                 }
                 R.id.search->{
@@ -73,7 +73,7 @@ import com.img.audition.screens.fragment.*
                 }
                 R.id.createVideo->{
                     startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
-                    true
+                    false
                 }R.id.profile ->{
                         if (!(sessionManager.isUserLoggedIn())){
                             sendToLoginScreen()
@@ -83,7 +83,7 @@ import com.img.audition.screens.fragment.*
                     true
                 }
                 else -> {
-                    loadFragment(VideoFragment())
+                    loadFragment(VideoFragment(this@HomeActivity))
                     true
                 }
             }

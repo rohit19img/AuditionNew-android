@@ -70,8 +70,14 @@ interface ApiInterface {
     fun getAllLiveContest(@Header(APITags.AUTHORIZATION)Auth: String?) : Call<GetLiveContestDataResponse>
 
     @GET(APITags.WatchLater)
-    fun saveIntoWatchLater(@Header("Authorization") Auth: String?, @Path("id") id: String?): Call<CommonResponse>
+    fun saveIntoWatchLater(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommonResponse>
 
-    @GET()
-    fun remove_watch_later(@Header("Authorization") Auth: String?, @Path("id") id: String?): Call<CommonResponse>
+    @GET(APITags.RemoveWatchLater)
+    fun remove_watch_later(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommonResponse>
+
+    @GET(APITags.FollowFollowingList)
+    fun getFollowFollowingList(@Header(APITags.AUTHORIZATION) Auth: String?): Call<FollowerFollowingListResponse>
+
+    @GET(APITags.GetMusicList)
+    fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
 }

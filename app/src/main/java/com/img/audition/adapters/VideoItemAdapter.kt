@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.VideoItemViewBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -34,8 +36,10 @@ import com.img.audition.screens.CommanVideoPlayActivity
     override fun onBindViewHolder(holder: VideoItemHolder, position: Int) {
         holder.apply {
             val list = videoData[position]
-            val thumnail = retriveVideoFrameFromVideo(list.file)
-            videoThumbnail.setImageBitmap(thumnail)
+
+            Glide.with(context).load(list.file)
+                .diskCacheStrategy(DiskCacheStrategy.ALL).into(videoThumbnail)
+
             videoViewCount.text = list.views.toString()
 
 
@@ -51,24 +55,4 @@ import com.img.audition.screens.CommanVideoPlayActivity
 
     }
 
-    @Throws(Throwable::class)
-    fun retriveVideoFrameFromVideo(videoPath: String?): Bitmap? {
-        var bitmap: Bitmap? = null
-        var mediaMetadataRetriever: MediaMetadataRetriever? = null
-        try {
-            mediaMetadataRetriever = MediaMetadataRetriever()
-            mediaMetadataRetriever.setDataSource(
-                videoPath,
-                HashMap()
-            )
-            //   mediaMetadataRetriever.setDataSource(videoPath);
-            bitmap = mediaMetadataRetriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw Throwable("Exception in retriveVideoFrameFromVideo(String videoPath)" + e.message)
-        } finally {
-            mediaMetadataRetriever?.release()
-        }
-        return bitmap
-    }
 }

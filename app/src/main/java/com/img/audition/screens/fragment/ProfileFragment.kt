@@ -23,13 +23,12 @@ import com.img.audition.dataModel.CommonResponse
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.FragmentProfileBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
-import com.img.audition.screens.OtherUserProfileActivity
-import com.img.audition.screens.SplashActivity
-import com.img.audition.screens.WalletActivity
+import com.img.audition.screens.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -58,11 +57,12 @@ class ProfileFragment : Fragment() {
     lateinit var userImageView: ImageView
     lateinit var noVideoImage: ImageView
     lateinit var menuButton: ImageView
-    lateinit var shimmerVideoView: ShimmerFrameLayout
     lateinit var drawerLayout:DrawerLayout
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentProfileBinding.inflate(inflater,container,false)
+
+
         userName = view.userName
         userBio = view.userBio
         userVideoRecycle = view.userVideoRecycle
@@ -71,13 +71,22 @@ class ProfileFragment : Fragment() {
         followCount = view.followCount
         likeCount = view.likeCount
         userImageView = view.userImageView
-        shimmerVideoView = view.shimmerVideoView
         noVideoImage = view.noVideo
         menuButton = view.line3Menu
         drawerLayout = view.drawerLayout
 
-        shimmerVideoView.startShimmer()
 
+        return view.root
+    }
+
+    override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view1, savedInstanceState)
+
+//        shimmerVideoView.startShimmer()
+
+        view.editProfileBtn.setOnClickListener {
+            senToEditProfile()
+        }
         menuButton.setOnClickListener {
             if (drawerLayout.isDrawerOpen(GravityCompat.END)) {
                 drawerLayout.closeDrawer(GravityCompat.END)
@@ -91,7 +100,19 @@ class ProfileFragment : Fragment() {
         }
 
         view.verify.setOnClickListener {
+            sendToVerificationActivity()
+        }
 
+        view.followListBtn.setOnClickListener {
+            val userName = view.userName.text.toString()
+            view.followListBtn.isSelected = false
+            sendToFollowFollowingListActivity(0,userName)
+        }
+
+        view.followingListBtn.setOnClickListener {
+            val userName = view.userName.text.toString()
+            view.followingListBtn.isSelected = false
+            sendToFollowFollowingListActivity(1,userName)
         }
 
         view.wallet.setOnClickListener {
@@ -120,7 +141,24 @@ class ProfileFragment : Fragment() {
 
         }
 
-        return view.root
+    }
+    private fun sendToVerificationActivity() {
+        val intent = Intent(requireContext(),VerificationActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun senToEditProfile() {
+        val intent = Intent(requireContext(),EditProfileActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun sendToFollowFollowingListActivity(pagePos:Int,userName:String) {
+        val bundle = Bundle()
+        bundle.putInt(ConstValFile.PagePosition,pagePos)
+        bundle.putString(ConstValFile.UserName,userName)
+        val intent = Intent(requireContext(),FollowFollowingListActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
     }
 
     private fun sendToWalletActivity() {
@@ -173,14 +211,14 @@ class ProfileFragment : Fragment() {
                     if (videoData.size>0) {
                         val videoItemAdapter = VideoItemAdapter(requireContext(), videoData)
                         userVideoRecycle.adapter = videoItemAdapter
-                        shimmerVideoView.stopShimmer()
+                      /*  shimmerVideoView.stopShimmer()
                         shimmerVideoView.hideShimmer()
-                        shimmerVideoView.visibility = View.GONE
+                        shimmerVideoView.visibility = View.GONE*/
                         userVideoRecycle.visibility = View.VISIBLE
                     }else{
                         myApplication.printLogD("No Video Data",TAG)
-                        shimmerVideoView.stopShimmer()
-                        shimmerVideoView.hideShimmer()
+                    /*    shimmerVideoView.stopShimmer()
+                        shimmerVideoView.hideShimmer()*/
                         noVideoImage.visibility = View.VISIBLE
                     }
                 }else{

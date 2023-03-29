@@ -1,5 +1,7 @@
 package com.img.audition.screens.fragment
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
@@ -10,24 +12,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.android.volley.*
+import com.android.volley.Response.ErrorListener
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE
 import com.canhub.cropper.CropImage.activity
 import com.canhub.cropper.CropImage.getActivityResult
 import com.canhub.cropper.CropImageView
 import com.canhub.cropper.CropImageView.Guidelines
+import com.img.audition.R
+import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentPanValidationBinding
 import com.img.audition.globalAccess.MyApplication
-import com.img.audition.network.APITags
-import com.img.audition.network.ApiInterface
-import com.img.audition.network.RetrofitClient
-import com.img.audition.network.SessionManager
+import com.img.audition.network.*
+import org.json.JSONException
+import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 
 class PanValidationFragment : Fragment() {
@@ -35,6 +49,8 @@ class PanValidationFragment : Fragment() {
     val TAG = "PanValidationFragment"
     var imagepath = ""
     var dob: String = ""
+    var requestQueue: RequestQueue? = null
+
     private lateinit var _viewBinding : FragmentPanValidationBinding
     private val view get() = _viewBinding!!
     private val sessionManager by lazy {
@@ -49,11 +65,14 @@ class PanValidationFragment : Fragment() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        requestQueue = Volley.newRequestQueue(activity)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentPanValidationBinding.inflate(inflater,container,false)
+
+        AllVerify()
+
         view.dob.setOnClickListener {
             pickDate(view.dob)
         }
@@ -65,6 +84,7 @@ class PanValidationFragment : Fragment() {
         view.btnUpload.setOnClickListener {
             selectImage()
         }
+
 
         return view.root
     }
@@ -83,8 +103,57 @@ class PanValidationFragment : Fragment() {
         }
     }
 
-    private fun VerifyPanDetails() {
-        TODO("Not yet implemented")
+    fun VerifyPanDetails() {
+        try {
+            val url = APITags.APIBASEURL + "panrequest"
+            val strRequest: VolleyMultipartRequest = object : VolleyMultipartRequest(
+                Method.POST, url,
+                Response.Listener<NetworkResponse?> {
+                    sessionManager.setPANVerified("0")
+                    view.panVerified.setText("Your PAN Card details are sent for verification.")
+                    view.invalidRequest.setVisibility(View.GONE)
+                    view.cardVerified.setVisibility(View.VISIBLE)
+                    view.cardNotVerified.setVisibility(View.GONE)
+                    view.comment.setVisibility(View.GONE)
+                    PANDetails()
+                },
+                ErrorListener { error -> Log.i("ErrorResponce", error.toString()) }) {
+                override fun getParams(): Map<String, String>? {
+                    val map = HashMap<String, String>()
+                    map["panname"] = view.name.getText().toString()
+                    map["pannumber"] = view.panNumber.getText().toString()
+                    map["dob"] = dob
+                    map["typename"] = "pancard"
+                    Log.d("map", map.toString())
+                    return map
+                }
+
+                @Throws(AuthFailureError::class)
+                override fun getHeaders(): Map<String, String?>? {
+                    val params: MutableMap<String, String?> = HashMap()
+                    params["Authorization"] = sessionManager.getToken()
+                    Log.i("Header", params.toString())
+                    return params
+                }
+
+                override fun getByteData(): Map<String, DataPart>? {
+                    val params: MutableMap<String, DataPart> = HashMap()
+                    params["image"] =
+                        DataPart("BANK_Image.jpg", convertToByte(imagepath), "image/jpg")
+                    Log.i("data", params.toString())
+                    return params
+                }
+            }
+            strRequest.setShouldCache(false)
+            strRequest.retryPolicy = DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+            requestQueue!!.add<NetworkResponse>(strRequest)
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
     }
 
 
@@ -143,4 +212,201 @@ class PanValidationFragment : Fragment() {
         }
         mDatePicker.show()
     }
+
+
+    fun convertToByte(path: String?): ByteArray? {
+        Log.i("path", path!!)
+        val file = File(path)
+        Log.i("length", file.length().toString())
+        if (file.exists()) {
+            Log.i("file", "exists")
+        } else Log.i("file", " not exists")
+        val b = ByteArray(file.length().toInt())
+        try {
+            val fileInputStream = FileInputStream(file)
+            fileInputStream.read(b)
+            //            for (int i = 0; i < b.length; i++) {
+//                System.out.print((char)b[i]);
+//            }
+        } catch (e: FileNotFoundException) {
+            println("File Not Found.")
+            e.printStackTrace()
+        } catch (e1: IOException) {
+            println("Error Reading The File.")
+            e1.printStackTrace()
+        }
+        return b
+    }
+
+    fun PANDetails() {
+        try {
+            val url = APITags.APIBASEURL + "panDetails"
+            Log.i("url", url)
+            val strRequest: StringRequest = object : StringRequest(
+                Method.GET, url,
+                Response.Listener<String> { response ->
+                    try {
+                        Log.i("Response is", response)
+                        val json = JSONObject(response)
+                        val jsonObject = json.getJSONObject("data")
+                       if (jsonObject!=null){
+                           val panName = jsonObject.getString("panname")
+                           if (panName != "") {
+                               view.panname.setText(panName)
+                           }
+                           val pannumber = jsonObject.getString("pannumber")
+                           if (pannumber != "") {
+                               view.number.setText(pannumber)
+                           }
+                           val pandob = jsonObject.getString("pandob")
+                           if (pandob != "") {
+                               view.pandob.setText(pandob)
+                           }
+                           val panImage = jsonObject.getString("image")
+                           if (panImage != "") {
+                               Glide.with(requireContext()).load(panImage).into(view.pancard)
+                           }
+                       }
+
+                        if (jsonObject.has("comment")) view.comment.setText(jsonObject.getString("comment"))
+                        view.cardDetails.setVisibility(View.VISIBLE)
+                    } catch (je: JSONException) {
+                        je.printStackTrace()
+                        val d = AlertDialog.Builder(
+                            activity, AlertDialog.THEME_DEVICE_DEFAULT_DARK
+                        )
+                        d.setTitle("Something went wrong")
+                        d.setCancelable(false)
+                        d.setMessage("Something went wrong, Please try again")
+                        d.setPositiveButton(
+                            "Retry"
+                        ) { dialog, which -> PANDetails() }
+                        d.setNegativeButton(
+                            "Cancel"
+                        ) { dialog, which -> (requireActivity() as Activity).finish() }
+                        try {
+                            d.show()
+                        } catch (f: java.lang.Exception) {
+                            f.printStackTrace()
+                        }
+                    }
+                },
+                ErrorListener { error ->
+                    Log.i("ErrorResponce", error.toString())
+                    val networkResponse = error.networkResponse
+                    if (networkResponse != null) {
+                        // HTTP Status Code: 401 Unauthorized
+                    } else {
+                        val d = AlertDialog.Builder(
+                            activity, AlertDialog.THEME_DEVICE_DEFAULT_DARK
+                        )
+                        d.setTitle("Something went wrong")
+                        d.setCancelable(false)
+                        d.setMessage("Something went wrong, Please try again")
+                        d.setPositiveButton(
+                            "Retry"
+                        ) { dialog, which -> PANDetails() }
+                        d.setNegativeButton(
+                            "Cancel"
+                        ) { dialog, which -> (requireActivity() as Activity).finish() }
+                        try {
+                            d.show()
+                        } catch (f: java.lang.Exception) {
+                            f.printStackTrace()
+                        }
+                    }
+                }) {
+                @Throws(AuthFailureError::class)
+                override fun getHeaders(): Map<String, String> {
+                    val params: MutableMap<String, String> = HashMap()
+                    //                        params.put("Content-Type", "application/json; charset=UTF-8");
+                    params["Authorization"] = sessionManager.getToken()!!
+                    Log.i("Header", params.toString())
+                    return params
+                }
+            }
+            strRequest.setShouldCache(false)
+            strRequest.retryPolicy = DefaultRetryPolicy(
+                0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+            requestQueue!!.add(strRequest)
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun AllVerify() {
+        val allVerifyReq = apiInterface.getAllVerificationsData(sessionManager.getToken())
+        allVerifyReq.enqueue(object : Callback<UserVerificationResponse> {
+            override fun onResponse(
+                call: Call<UserVerificationResponse>,
+                response: retrofit2.Response<UserVerificationResponse>
+            ) {
+                Log.i("pan_verify","pan verify : ${response.body()!!.data!!.pan_verify}")
+
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                    val data = response.body()!!.data
+
+                    if (data!=null){
+                        val mobile_verify = data.mobileVerify
+                        val bank_verify = data.bankVerify
+                        val pan_verify = data.pan_verify
+
+
+                        if(mobile_verify == 1){
+                            sessionManager.setBankVerified(bank_verify.toString())
+                            sessionManager.setPANVerified(pan_verify.toString())
+
+                            if (pan_verify == 0) {
+                                view.panVerified.setText("Your PAN Card details are sent for verification.")
+                                view.cardVerified.setVisibility(View.VISIBLE)
+                                view.invalidRequest.setVisibility(View.GONE)
+                                view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
+                                view.cardNotVerified.setVisibility(View.GONE)
+                                PANDetails()
+                            } else if (pan_verify == 1) {
+                                view.invalidRequest.setVisibility(View.GONE)
+                                view.cardNotVerified.setVisibility(View.GONE)
+                                view.cardVerified.setVisibility(View.VISIBLE)
+                                view.panicon.setImageResource(R.drawable.ic_credit_card_green)
+                                PANDetails()
+                            } else if (pan_verify == -1) {
+                                view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
+                                view.invalidRequest.visibility = View.GONE
+                                view.cardVerified.setVisibility(View.GONE)
+                                view.cardNotVerified.setVisibility(View.VISIBLE)
+                            } else {
+                                view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
+                                view.invalidRequest.setVisibility(View.GONE)
+                                view.cardNotVerified.setVisibility(View.VISIBLE)
+                                view.comment.setVisibility(View.VISIBLE)
+                                view.panVerified.setText("Your PAN Card details are Rejected.")
+                                view.panVerified.setTextColor(ContextCompat.getColor(requireContext(), R.color.bgColorRed))
+                                view.cardVerified.setVisibility(View.VISIBLE)
+                                PANDetails()
+                            }
+                        } else {
+                            view.invalidRequest.visibility = View.VISIBLE
+                            view.cardNotVerified.setVisibility(View.GONE)
+                            view.comment.setVisibility(View.GONE)
+                            view.cardVerified.setVisibility(View.GONE)
+                        }
+                    }
+
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
+                }
+            }
+
+            override fun onFailure(call: Call<UserVerificationResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+                Log.i("Exception",t.toString())
+                Log.i("Exception",t.message.toString())
+            }
+
+        })
+    }
+
 }

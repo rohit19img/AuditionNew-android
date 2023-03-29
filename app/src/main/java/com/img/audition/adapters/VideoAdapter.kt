@@ -48,11 +48,6 @@ import com.img.audition.videoWork.VideoItemPlayPause
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.sql.Time
-import java.sql.Timestamp
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 
 @UnstableApi class VideoAdapter(val context:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
@@ -119,6 +114,7 @@ import java.time.format.DateTimeFormatter
                 likeBtn.setColorFilter(context.resources.getColor(R.color.likeHeartRed))
             }else{
                 likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.like_ic))
+                likeBtn.setColorFilter(context.resources.getColor(R.color.white))
             }
             if (list.followStatus!!){
                 followBtn.text = ConstValFile.Following
@@ -306,11 +302,10 @@ import java.time.format.DateTimeFormatter
             }
         }
 
-        iv_share_report!!.setOnClickListener { view: View? ->
+        iv_share_report!!.setOnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(context.applicationContext, LoginActivity::class.java)
-                    context.startActivity(intent)
+                val intent = Intent(context.applicationContext, LoginActivity::class.java)
+                context.startActivity(intent)
             } else {
                /* context.startActivity(
                     Intent(context, VideoReport_Activity::class.java)
@@ -472,6 +467,7 @@ import java.time.format.DateTimeFormatter
     override fun onViewAttachedToWindow(holder: VideoViewHolder) {
         holder.apply {
 
+
             val list = videoList[position]
             val mediaItem = MediaItem.fromUri(list.file.toString())
             val videoMediaSource = mediaSource.createMediaSource(mediaItem)
@@ -480,9 +476,12 @@ import java.time.format.DateTimeFormatter
             exoPlayer.prepare()
 
             if (cPos>=0){
-                myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}",TAG)
+
                if (cPos == position){
+                   myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}","check 100")
+                   myApplication.printLogD("onViewAttachedToWindow: Url ${videoList[cPos].file}","check 100")
                    exoPlayer.seekTo(0)
+
                    exoPlayer.playWhenReady = true
                }else{
                    exoPlayer.seekTo(0)
@@ -492,6 +491,7 @@ import java.time.format.DateTimeFormatter
 
 
             playPauseVolumeBtn.setOnClickListener {
+                playPauseIc.visibility = View.GONE
                 if (exoPlayer.isPlaying){
                     exoPlayer.pause()
                     playPauseIc.visibility = View.VISIBLE
@@ -515,8 +515,11 @@ import java.time.format.DateTimeFormatter
                         ExoPlayer.STATE_BUFFERING ->{
                             myApplication.printLogD("STATE_BUFFERING",TAG)
                         }
+                        ExoPlayer.STATE_READY ->{
+                            myApplication.printLogD("STATE_READY",TAG)
+                        }
                         else -> {
-                            myApplication.printLogD(playbackState.toString(),TAG)
+                            myApplication.printLogD(playbackState.toString(),"currentState")
                         }
                     }
                 }
@@ -529,10 +532,11 @@ import java.time.format.DateTimeFormatter
 
     fun onActivityStateChanged() : VideoItemPlayPause{
         return object : VideoItemPlayPause{
-            override fun onPause(holder: VideoViewHolder) {
+            override fun onPause(holder: VideoViewHolder,cPos:Int) {
+                myApplication.printLogD("onPause: Position ${cPos}",TAG)
+
                 holder.apply {
                     if (cPos>=0){
-                        myApplication.printLogD("onPause: Position ${cPos}",TAG)
                         if (cPos == position){
                             exoPlayer.pause()
                             exoPlayer.playWhenReady = false
@@ -546,10 +550,11 @@ import java.time.format.DateTimeFormatter
                 }
             }
 
-            override fun onResume(holder: VideoViewHolder) {
-               holder.apply {
+            override fun onResume(holder: VideoViewHolder,cPos:Int) {
+                myApplication.printLogD("onResume: Position ${cPos}",TAG)
+
+                holder.apply {
                    if (cPos>=0){
-                       myApplication.printLogD("onResume: Position ${cPos}",TAG)
                        if (cPos == position){
                            exoPlayer.playWhenReady = true
                        }else{
@@ -562,12 +567,13 @@ import java.time.format.DateTimeFormatter
                }
             }
 
-            override fun onRestart(holder: VideoViewHolder) {}
+            override fun onRestart(holder: VideoViewHolder,cPos:Int) {}
 
-            override fun onStop(holder: VideoViewHolder) {
-               holder.apply {
+            override fun onStop(holder: VideoViewHolder,cPos:Int) {
+                myApplication.printLogD("onStop: Position ${cPos}",TAG)
+
+                holder.apply {
                    if (cPos>=0){
-                       myApplication.printLogD("onPause: Position ${cPos}",TAG)
                        if (cPos == position){
                            exoPlayer.playWhenReady = false
                            exoPlayer.seekTo(0)
@@ -589,8 +595,6 @@ import java.time.format.DateTimeFormatter
 
         }
 
-
-
     override fun onViewDetachedFromWindow(holder: VideoViewHolder) {
         holder.apply {
             playerViewExo.player!!.playWhenReady = false
@@ -606,7 +610,6 @@ import java.time.format.DateTimeFormatter
         super.onAttachedToRecyclerView(recyclerView)
         val layoutManager = recyclerView.layoutManager
         if (layoutManager is LinearLayoutManager && itemCount > 0){
-            val manager = layoutManager
             recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
@@ -614,14 +617,11 @@ import java.time.format.DateTimeFormatter
 
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
-                    val visiblePosition = manager.findFirstCompletelyVisibleItemPosition();
-                    if (visiblePosition>-1){
+                    val visiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+                    if (visiblePosition >= 0) {
                         cPos = visiblePosition
+
                         notifyDataSetChanged()
-                        val view = manager.findViewByPosition(visiblePosition)
-                        myApplication.printLogD("onScrolled: Play $visiblePosition",TAG)
-                    }else{
-                        myApplication.printLogD("onScrolled: Pause $visiblePosition",TAG)
                     }
                 }
             })
@@ -691,7 +691,6 @@ import java.time.format.DateTimeFormatter
         manager.enqueue(request)
         Toast.makeText(context, "Video Download started", Toast.LENGTH_SHORT).show()
     }
-
 
 }
 

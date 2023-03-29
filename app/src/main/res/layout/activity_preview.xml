@@ -34,6 +34,7 @@
 
     <TextView
         style="@style/textViewStyle"
+        android:id="@+id/sendToUploadBtn"
         android:layout_width="wrap_content"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"

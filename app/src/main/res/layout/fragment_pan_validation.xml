@@ -242,6 +242,7 @@
                             android:text="Your PAN card is rejected"/>
 
                         <TextView
+                            android:visibility="gone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="10dp"
@@ -315,7 +316,7 @@
                             android:src="@drawable/select_icon"
                             android:layout_marginTop="5dp"
                             android:id="@+id/img"
-                            app:tint="@color/white" />
+                          />
 
 
                         <TextView
@@ -410,7 +411,6 @@
                             android:text="Your 10 digit PAN card details"/>
 
                         <TextView
-
                             android:layout_marginStart="10dp"
                             android:layout_marginEnd="10dp"
                             android:textColorHint="@color/textHintColor"

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/spinnerText"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:text="this will be the size of text"
+    android:layout_margin="@dimen/_1sdp"
+    android:textColor="@color/textColorRed"
+    android:textSize="14sp">
+
+</TextView>

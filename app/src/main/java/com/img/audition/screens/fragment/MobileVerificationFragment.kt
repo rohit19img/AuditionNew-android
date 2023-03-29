@@ -38,6 +38,7 @@ class MobileVerificationFragment : Fragment() {
 
         AllVerify()
 
+
     }
 
     private fun AllVerify() {
@@ -52,7 +53,7 @@ class MobileVerificationFragment : Fragment() {
                     if (data!=null){
                         val mobile_verify = data.mobileVerify
                         val bank_verify = data.bankVerify
-                        val pan_verify = data.panVerify
+                        val pan_verify = data.pan_verify
                         if (mobile_verify == 1) {
                             sessionManager.setMobileVerified(true)
                             view.mobileVerified.visibility = View.VISIBLE
@@ -62,7 +63,6 @@ class MobileVerificationFragment : Fragment() {
                             view.mobileVerified.visibility = View.GONE
                             view.mobileVerify.visibility = View.VISIBLE
                         }
-
                         sessionManager.setBankVerified(bank_verify.toString())
                         sessionManager.setPANVerified(pan_verify.toString())
                     }

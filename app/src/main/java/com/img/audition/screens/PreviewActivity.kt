@@ -17,6 +17,7 @@ import com.img.audition.videoWork.VideoCacheWork
 
 @UnstableApi class PreviewActivity : AppCompatActivity() {
 
+    val TAG = "PreviewActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPreviewBinding.inflate(layoutInflater)
     }
@@ -39,14 +40,21 @@ import com.img.audition.videoWork.VideoCacheWork
         if (intent!=null){
 
             val videoUri = intent.getString(ConstValFile.VideoFilePath).toString()
-            myApplication.showToast(videoUri)
             val mediaItem = MediaItem.fromUri(videoUri)
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
         }else{
-            myApplication.showToast("File Path Null")
+            myApplication.printLogD("File Path Null",TAG)
         }
 
+
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
+
+        viewBinding.sendToUploadBtn.setOnClickListener {
+
+        }
     }
 }

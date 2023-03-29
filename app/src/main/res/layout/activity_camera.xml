@@ -116,6 +116,7 @@
             android:src="@drawable/ic_effect"/>
 
         <ImageView
+            android:visibility="gone"
             android:id="@+id/done"
             android:layout_width="45dp"
             android:layout_height="45dp"
@@ -126,6 +127,22 @@
             app:layout_constraintBottom_toBottomOf="@id/record_button"/>
 
         <ImageView
+            android:visibility="gone"
+            android:background="@drawable/round_shape"
+            android:backgroundTint="@color/bgColorWhite"
+            android:id="@+id/showPreviewBtn"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginRight="16dp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/record_button"
+            app:layout_constraintBottom_toBottomOf="@id/record_button"
+            android:contentDescription="get otp btn"
+            app:tint="@color/bgColorYellow"
+            android:src="@drawable/arrow_right" />
+
+        <ImageView
+            android:visibility="gone"
             android:id="@+id/delete"
             android:layout_width="28dp"
             android:layout_height="28dp"

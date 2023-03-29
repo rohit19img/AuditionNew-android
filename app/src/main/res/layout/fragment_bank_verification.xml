@@ -407,7 +407,6 @@
                             android:scaleType="fitXY"
                             android:layout_gravity="center"
                             android:layout_marginTop="5dp"
-                            app:tint="@color/white"
                             android:src="@drawable/select_image" />
 
                         <TextView
@@ -452,7 +451,7 @@
                             android:background="@drawable/et_design"
                             android:padding="10dp"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
                         <TextView
@@ -484,7 +483,7 @@
                             android:padding="10dp"
                             android:layout_marginTop="8dp"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
 
@@ -502,7 +501,7 @@
                             android:padding="10dp"
                             android:layout_marginTop="8dp"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
                         <EditText
@@ -519,7 +518,7 @@
                             android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890&amp;  qwertyuiopasdfghjklzxcvbnm"
                             android:hint="Bank Name*"
                             android:inputType="textCapCharacters"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
 
@@ -537,7 +536,7 @@
                             android:padding="10dp"
                             android:layout_marginTop="8dp"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
 
@@ -556,7 +555,7 @@
                             android:inputType="textCapCharacters"
                             android:maxLength="11"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
 
@@ -578,18 +577,12 @@
                             android:layout_marginLeft="10dp"
                             android:layout_marginTop="3dp"
                             android:layout_marginRight="10dp"
-                            android:background="@color/white"
+                            android:background="@drawable/et_design"
                             android:entries="@array/india_states"
-                            android:padding="10dp" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="1px"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginRight="10dp"
-                            android:layout_marginBottom="5dp"
-                            android:textColor="@color/textColorDarkRed"
-                            android:background="@color/white" />
+                           />
+
+
 
 
                     </LinearLayout>

@@ -1,43 +1,54 @@
 package com.img.audition.screens
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.hardware.camera2.CaptureRequest
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
+import androidx.concurrent.futures.await
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.util.Consumer
 import androidx.media3.common.util.UnstableApi
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.img.audition.cameraX.getNameString
 import com.img.audition.customView.RecordButton
 import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.screens.fragment.MusicListFragment
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import com.img.audition.R
 
 @UnstableApi class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
 
     private var maxVideoDuration:Long = 15 * 1000
-    private var minVideoDuration:Long = 10 * 1000
+    private var minVideoDuration:Long = 5 * 1000
     private val curreentVideoDuration = mutableListOf<Int>()
 
     private var videoFilePath = ""
 
     companion object {
+        private const val MUSIC_TAG = "music_tag"
+
         val TAG  = "MainActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -55,6 +66,8 @@ import java.util.concurrent.TimeUnit
     private lateinit var recordingState: VideoRecordEvent
     private var videoCapture: VideoCapture<Recorder>? = null
     private var currentRecording: Recording? = null
+
+
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCameraBinding.inflate(layoutInflater)
@@ -74,6 +87,10 @@ import java.util.concurrent.TimeUnit
         }
 
 
+        viewBinding.music.setOnClickListener {
+            showMusicSheet()
+        }
+
 
         viewBinding.done.visibility = View.INVISIBLE
         if (allPermissionsGranted()) {
@@ -83,6 +100,7 @@ import java.util.concurrent.TimeUnit
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
         viewBinding.recordButton.setOnGestureListener(this)
+
 
 
     }
@@ -127,6 +145,9 @@ import java.util.concurrent.TimeUnit
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
 
 
             // Preview
@@ -136,24 +157,39 @@ import java.util.concurrent.TimeUnit
                     it.setSurfaceProvider(viewBinding.previewView.surfaceProvider)
                 }
             val recorder = Recorder.Builder()
-                .setQualitySelector(
-                    QualitySelector.from(
-                        Quality.HIGHEST,
-                    FallbackStrategy.higherQualityOrLowerThan(Quality.SD)))
+                .setQualitySelector(QualitySelector.from(Quality.SD))
                 .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
 
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
 
             try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
 
-                // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview,videoCapture)
+                if (extensionsManager.isExtensionAvailable(cameraSelector,ExtensionMode.BOKEH)){
+                    cameraProvider.unbindAll()
+
+                    // Gets the bokeh enabled camera selector
+                    val bokehCameraSelector = extensionsManager
+                        .getExtensionEnabledCameraSelector(
+                            cameraSelector,
+                            ExtensionMode.FACE_RETOUCH
+                        )
+
+                    cameraProvider.bindToLifecycle(
+                        this, bokehCameraSelector, preview,videoCapture)
+                }else{
+                    cameraProvider.unbindAll()
+
+
+                    // Bind use cases to camera
+
+                    cameraProvider.bindToLifecycle(
+                        this, cameraSelector, preview,videoCapture)
+
+                }
+                // Unbind use cases before rebinding
 
             } catch(exc: Exception) {
                 myApplication.printLogE("Use case binding failed ${exc.toString()}",TAG)
@@ -231,13 +267,20 @@ import java.util.concurrent.TimeUnit
         viewBinding.done.setOnClickListener {
             viewBinding.done.isSelected = false
             currentRecording?.stop()
+            viewBinding.done.visibility = View.GONE
+            viewBinding.showPreviewBtn.visibility = View.VISIBLE
+        }
 
+        viewBinding.showPreviewBtn.setOnClickListener{
             if (event is VideoRecordEvent.Finalize){
                 videoFilePath = event.outputResults.outputUri.toString()
+                sendToVideoPreview(videoFilePath)
+                myApplication.printLogD(videoFilePath,"VideoFilePath")
+//                myApplication.showToast(videoFilePath)
             }
-            sendToVideoPreview(videoFilePath)
-            myApplication.showToast(videoFilePath)
         }
+
+
 
         myApplication.printLogD("updateUI: $size KB $time seconds",TAG)
 
@@ -255,13 +298,34 @@ import java.util.concurrent.TimeUnit
                     if (recording != null) {
                         recording.stop()
                         currentRecording = null
+                        myApplication.showToast("Video Max Duration Reached")
                     }
                 }
-                myApplication.showToast("Video Max Duration Reached")
+
             }
             viewBinding.lineView.setLoadingProgress(time * 1.0f / maxVideoDuration)
         }
     }
 
+    private fun showMusicSheet() {
+        var musicFragment = supportFragmentManager.findFragmentByTag(MUSIC_TAG)
+        if (musicFragment == null) {
+            musicFragment = MusicListFragment.newInstance()
 
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(viewBinding.frameContainer.id,musicFragment)
+            transaction.commit()
+        }
+        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
+        if (behavior.state != BottomSheetBehavior.STATE_EXPANDED) {
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        } else {
+            behavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+    }
+
+    fun closeBottomSheet() {
+        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
+        behavior.state = BottomSheetBehavior.STATE_HIDDEN
+    }
 }

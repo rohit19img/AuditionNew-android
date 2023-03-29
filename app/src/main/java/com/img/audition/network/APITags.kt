@@ -19,10 +19,11 @@ class APITags {
         const val LogoutUser = "logoutUser"
         const val VerifyMobileNumber = "verifyMobileNumber"
         const val AllVerify = "allverify"
-        const val GetPanDetails = "panDetails"
         const val GetAllLiveContest = "get_all_contest"
         const val WatchLater = "watch-later/{id}"
         const val RemoveWatchLater = "remove-watch-later/{id}"
+        const val FollowFollowingList = "getFollowerList"
+        const val GetMusicList = "get_music_Uploaded"
 
 
     }

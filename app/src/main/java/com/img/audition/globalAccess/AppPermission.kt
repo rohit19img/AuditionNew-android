@@ -9,12 +9,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class AppPermission(val activity: Activity,val permissionList: List<String>,val reqCode:Int) {
-    fun checkPermissions() {
+    fun checkPermissions():Boolean{
         if (isPermissionsGranted() != PackageManager.PERMISSION_GRANTED) {
             requestPermissions()
         } else {
+            return true
             Log.d("AppPermission", "Permissions already granted.")
         }
+       return false
     }
 
     private fun isPermissionsGranted(): Int {

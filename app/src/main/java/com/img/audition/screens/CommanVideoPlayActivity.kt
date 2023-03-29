@@ -56,7 +56,7 @@ import com.img.audition.videoWork.VideoItemPlayPause
         try {
             val cPos = viewBinding.videoViewpager2.currentItem
             val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
-            videoItemPlayPause.onPause(holder)
+            videoItemPlayPause.onPause(holder,cPos)
         }catch (e:Exception){
             myApplication.printLogE(e.message.toString(),TAG)
         }
@@ -68,7 +68,7 @@ import com.img.audition.videoWork.VideoItemPlayPause
         try {
             val cPos = viewBinding.videoViewpager2.currentItem
             val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
-            videoItemPlayPause.onPause(holder)
+            videoItemPlayPause.onPause(holder,cPos)
         }catch (e:Exception){
             myApplication.printLogE(e.message.toString(),TAG)
         }
@@ -79,7 +79,7 @@ import com.img.audition.videoWork.VideoItemPlayPause
         try {
             val cPos =  viewBinding.videoViewpager2.currentItem
             val holder: VideoAdapter.VideoViewHolder = ( viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
-            videoItemPlayPause.onResume(holder)
+            videoItemPlayPause.onResume(holder,cPos)
         }catch (e:Exception){
             myApplication.printLogE(e.message.toString(),TAG)
         }

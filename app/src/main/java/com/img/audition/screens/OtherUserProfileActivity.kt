@@ -1,14 +1,10 @@
 package com.img.audition.screens
 
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.PorterDuff
-import android.opengl.Visibility
-import android.os.AsyncTask
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
@@ -26,7 +22,6 @@ import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.net.URL
 
 
 class OtherUserProfileActivity : AppCompatActivity() {
@@ -64,6 +59,13 @@ class OtherUserProfileActivity : AppCompatActivity() {
 
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
+        }
+
+        viewBinding.copy.setOnClickListener {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("label",viewBinding.userID.text.toString())
+            clipboard.setPrimaryClip(clip)
+            myApplication.showToast("Id Copied..")
         }
 
     }

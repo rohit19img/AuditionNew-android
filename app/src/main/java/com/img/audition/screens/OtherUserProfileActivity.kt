@@ -2,6 +2,7 @@ package com.img.audition.screens
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -46,6 +47,9 @@ class OtherUserProfileActivity : AppCompatActivity() {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
+    lateinit var userID : String
+    lateinit var userimage : String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -55,7 +59,14 @@ class OtherUserProfileActivity : AppCompatActivity() {
         viewBinding.l1.startShimmer()
         viewBinding.shimmerVideoView.startShimmer()
 
-
+        viewBinding.messageBtn.setOnClickListener {
+            startActivity(
+                Intent(this@OtherUserProfileActivity,MessageActivity::class.java)
+                    .putExtra("name",viewBinding.userName.text.toString())
+                    .putExtra("userid",userID)
+                    .putExtra("image",userimage)
+            )
+        }
 
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
@@ -71,7 +82,7 @@ class OtherUserProfileActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
-        val userID =  bundle!!.getString(ConstValFile.USER_IDFORIntent)
+        userID = bundle!!.getString(ConstValFile.USER_IDFORIntent).toString()
         val followStatus =  bundle!!.getBoolean(ConstValFile.UserFollowStatus,false)
         getUserData(userID,followStatus)
 
@@ -126,8 +137,10 @@ class OtherUserProfileActivity : AppCompatActivity() {
                     viewBinding.followCount.text = userData.followersCount.toString()
                     viewBinding.followingCount.text = userData.followingCount.toString()
                     if (userData.image.toString().isNotEmpty()){
+                        userimage = userData.image.toString()
                         Glide.with(this@OtherUserProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into(viewBinding.userImageView)
                     }else{
+                        userimage = ""
                       viewBinding.userImageView.setImageResource(R.drawable.person_ic)
                     }
 

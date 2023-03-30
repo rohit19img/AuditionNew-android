@@ -87,4 +87,11 @@ interface ApiInterface {
     @GET(APITags.ReportVideo)
     fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommonResponse>
 
+    @GET("getChatHistory")
+    fun getChatHistory(
+        @Header("Authorization") Auth: String?,
+        @Query("receiverId") contestId: String?,
+        @Query("page") page_no: Int
+    ): Call<ChatsGetSet>
+
 }

@@ -46,14 +46,17 @@ class ReportCategoryAdapter(val context:Context,val categoryList: ArrayList<Repo
             catName.text = categoryList[position].name.toString()
 
             if (!(categoryList[position].isSelected)){
-                holder.reportCard.setBackground(context.getDrawable(R.drawable.cardview_look))
+                holder.reportCard.background = context.getDrawable(R.drawable.cardview_look)
                 holder.catName.setTextColor(context.getColor(R.color.textColorBlack))
             }else{
-                holder.reportCard.setBackground(context.getDrawable(R.drawable.card_rummy_design))
+                holder.reportCard.background = context.getDrawable(R.drawable.card_rummy_design)
                 holder.catName.setTextColor(context.getColor(R.color.white))
             }
+
             holder.itemView.setOnClickListener {
-                for (zz in categoryList) zz.isSelected = false
+                for (zz in categoryList) {
+                    zz.isSelected = false
+                }
                 categoryList[position].isSelected = true
                 notifyDataSetChanged()
             }

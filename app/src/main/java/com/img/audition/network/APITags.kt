@@ -24,6 +24,8 @@ class APITags {
         const val RemoveWatchLater = "remove-watch-later/{id}"
         const val FollowFollowingList = "getFollowerList"
         const val GetMusicList = "get_music_Uploaded"
+        const val GetReportCategory = "getReportCategory"
+        const val ReportVideo = "report_video"
 
 
     }

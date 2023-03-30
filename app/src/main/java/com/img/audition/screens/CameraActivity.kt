@@ -4,18 +4,15 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import com.img.audition.R
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCapture.OutputFileOptions
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
 import androidx.camera.extensions.ExtensionsManager
@@ -38,6 +35,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+
 
 @UnstableApi class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
 
@@ -76,6 +74,8 @@ import java.util.concurrent.TimeUnit
     private val myApplication by lazy {
         MyApplication(this@CameraActivity)
     }
+    private var lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
+    var mode = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -87,6 +87,23 @@ import java.util.concurrent.TimeUnit
             val contestType = contestIntent.getString(ConstValFile.TYPE_IMAGE)
         }
 
+        viewBinding.switchCamera.setOnClickListener {
+            if (lensFacing == CameraSelector.DEFAULT_FRONT_CAMERA)
+                lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
+            else if (lensFacing == CameraSelector.DEFAULT_BACK_CAMERA)
+                lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA
+            startCamera(mode)
+        }
+
+        viewBinding.flash.setOnClickListener {
+            mode = !mode
+            if (mode){
+                viewBinding.flash.setImageDrawable(ContextCompat.getDrawable(this@CameraActivity,R.drawable.ic_flash_on))
+            }else{
+                viewBinding.flash.setImageDrawable(ContextCompat.getDrawable(this@CameraActivity,R.drawable.ic_flash_off))
+            }
+            startCamera(mode)
+        }
 
         viewBinding.music.setOnClickListener {
             showMusicSheet()
@@ -95,7 +112,7 @@ import java.util.concurrent.TimeUnit
 
         viewBinding.done.visibility = View.INVISIBLE
         if (allPermissionsGranted()) {
-            startCamera()
+            startCamera(mode)
         } else {
             ActivityCompat.requestPermissions(
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
@@ -139,7 +156,7 @@ import java.util.concurrent.TimeUnit
 
     override fun onClick() {}
 
-    private fun startCamera() {
+    private fun startCamera(mode:Boolean) {
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
@@ -147,7 +164,7 @@ import java.util.concurrent.TimeUnit
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = lensFacing
 
 
 
@@ -170,27 +187,24 @@ import java.util.concurrent.TimeUnit
 
                 if (extensionsManager.isExtensionAvailable(cameraSelector,ExtensionMode.BOKEH)){
                     cameraProvider.unbindAll()
-
-                    // Gets the bokeh enabled camera selector
                     val bokehCameraSelector = extensionsManager
                         .getExtensionEnabledCameraSelector(
                             cameraSelector,
                             ExtensionMode.FACE_RETOUCH
                         )
-
-                    cameraProvider.bindToLifecycle(
+                    val cam = cameraProvider.bindToLifecycle(
                         this, bokehCameraSelector, preview,videoCapture)
+                    if ( cam.cameraInfo.hasFlashUnit() ) {
+                        cam.cameraControl.enableTorch(mode); // or false
+                    }
                 }else{
                     cameraProvider.unbindAll()
-
-
-                    // Bind use cases to camera
-
-                    cameraProvider.bindToLifecycle(
+                    val cam = cameraProvider.bindToLifecycle(
                         this, cameraSelector, preview,videoCapture)
-
-                }
-                // Unbind use cases before rebinding
+                    if ( cam.cameraInfo.hasFlashUnit() ) {
+                        cam.cameraControl.enableTorch(mode); // or false
+                    }
+                }// Unbind use cases before rebinding
 
             } catch(exc: Exception) {
                 myApplication.printLogE("Use case binding failed ${exc.toString()}",TAG)
@@ -209,7 +223,7 @@ import java.util.concurrent.TimeUnit
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera()
+                startCamera(mode)
             } else {
                 myApplication.showToast("Please Allow permission..")
             }
@@ -225,12 +239,11 @@ import java.util.concurrent.TimeUnit
                     .format(System.currentTimeMillis()) + ".mp4"
 
         val contentValues = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, file.path)
+            put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }
 
-
         val mediaStoreOutputOptions = MediaStoreOutputOptions
-            .Builder(contentResolver, Uri.fromFile(file))
+            .Builder(contentResolver,MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
             .setContentValues(contentValues)
             .build()
         val videoCapture = this.videoCapture ?: return
@@ -335,8 +348,8 @@ import java.util.concurrent.TimeUnit
     }
 
     fun getNewFilePath():String{
-        val newPath = File(getVideoFilePath())
-        Log.i("path_test","getVideoFilePath : ${getVideoFilePath()}")
+        val newPath = File(getVideoFolderPath())
+        Log.i("path_test","getVideoFilePath : ${getVideoFolderPath()}")
         myApplication.printLogD(newPath.absolutePath,"New Path")
 
         if(!File(getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/").exists())
@@ -355,7 +368,10 @@ import java.util.concurrent.TimeUnit
         return newPath.path
     }
 
-    fun getVideoFilePath(): String {
-        return   getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/" + SimpleDateFormat("yyyyMM_dd-HHmmss").format(Date()) + "cameraRecorder.mp4"
+    fun getVideoFolderPath(): String {
+        return   getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/" /*+ SimpleDateFormat("yyyyMM_dd-HHmmss").format(Date()) + "cameraRecorder.mp4"*/
     }
+
+
+
 }

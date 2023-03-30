@@ -72,7 +72,11 @@ import com.img.audition.screens.fragment.*
                     true
                 }
                 R.id.createVideo->{
-                    startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
+                    if (!(sessionManager.isUserLoggedIn())){
+                        sendToLoginScreen()
+                    }else{
+                        startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
+                    }
                     false
                 }R.id.profile ->{
                         if (!(sessionManager.isUserLoggedIn())){

@@ -19,3 +19,15 @@ data class FollowFollowingData(
     @SerializedName("otherUserFollowers" ) var otherUserFollowers : Int? = null
 )
 
+data class ReportCategoryResponse(
+    @SerializedName("message" ) var message : String?         = null,
+    @SerializedName("success" ) var success : Boolean?        = null,
+    @SerializedName("data"    ) var data    : ArrayList<ReportCategoryData> = arrayListOf()
+)
+
+data class ReportCategoryData(
+    @SerializedName("_id"  ) var Id   : String? = null,
+    @SerializedName("name" ) var name : String? = null,
+                             var isSelected :Boolean = false
+)
+

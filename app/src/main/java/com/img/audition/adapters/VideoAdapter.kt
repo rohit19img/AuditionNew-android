@@ -18,7 +18,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -43,6 +45,7 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.LoginActivity
 import com.img.audition.screens.OtherUserProfileActivity
+import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.VideoCacheWork
 import com.img.audition.videoWork.VideoItemPlayPause
 import retrofit2.Call
@@ -53,7 +56,7 @@ import retrofit2.Response
 @UnstableApi class VideoAdapter(val context:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
     val TAG = "VideoAdapter"
 
-
+    var Ar = arrayOf(-1,0)
     val  sessionManager = SessionManager(context.applicationContext)
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     private val myApplication by lazy {
@@ -307,13 +310,12 @@ import retrofit2.Response
                 val intent = Intent(context.applicationContext, LoginActivity::class.java)
                 context.startActivity(intent)
             } else {
-               /* context.startActivity(
-                    Intent(context, VideoReport_Activity::class.java)
-                        .putExtra("vid", list.get(i).get_id())
-                )*/
+                val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
 
-                myApplication.showToast("Report Video..")
+                val showReportDialog = VideoReportDialog(videoList[i].Id.toString())
+                showReportDialog.show(manager,showReportDialog.tag)
             }
+            dialog1.dismiss()
         }
 
         dialog1.show()
@@ -618,17 +620,40 @@ import retrofit2.Response
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     val visiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+//                    var lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+
+
+                    var lastPosition = Ar[0]
+                    Ar[0] = Ar[1]
+                    Ar[1] = visiblePosition
+
+                    Log.i("positionTest","visible : $visiblePosition")
+                    Log.i("positionTest","last : $lastPosition")
+
+                    if (visiblePosition >= 0) {
+                        val holder_current: VideoViewHolder =
+                            recyclerView.findViewHolderForAdapterPosition(visiblePosition) as VideoViewHolder
+                        holder_current.exoPlayer.seekTo(0)
+                        holder_current.exoPlayer.playWhenReady = true
+                    }
+
+                    if (lastPosition >= 0) {
+                        val holder_previous: VideoViewHolder =
+                            recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
+                        holder_previous.exoPlayer.seekTo(0)
+                        if (holder_previous.exoPlayer.isPlaying)
+                            holder_previous.exoPlayer.stop()
+                        holder_previous.exoPlayer.playWhenReady = false
+                    }
                     if (visiblePosition >= 0) {
                         cPos = visiblePosition
-
-                        notifyDataSetChanged()
+//                        notifyDataSetChanged()
                     }
+
                 }
             })
         }
     }
-
-
 
     override fun getItemCount(): Int {
         return videoList.size

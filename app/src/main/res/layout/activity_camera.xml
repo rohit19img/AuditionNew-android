@@ -49,6 +49,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_alignParentRight="true"
+            android:visibility="gone"
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
             app:layout_constraintRight_toRightOf="parent"
@@ -61,7 +62,7 @@
             android:layout_height="28dp"
             android:layout_alignParentRight="true"
             android:layout_marginRight="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="30dp"
             android:layout_below="@id/setting"
             app:layout_constraintRight_toRightOf="parent"
             android:background="@drawable/ic_camera_switch"
@@ -85,6 +86,7 @@
             android:layout_height="28dp"
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
+            android:visibility="gone"
             android:layout_alignParentRight="true"
             android:layout_below="@id/flash"
             app:layout_constraintRight_toRightOf="parent"
@@ -97,6 +99,7 @@
             android:layout_height="28dp"
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
+            android:visibility="gone"
             android:layout_alignParentRight="true"
             android:layout_below="@id/filter"
             app:layout_constraintRight_toRightOf="parent"
@@ -109,6 +112,7 @@
             android:layout_height="28dp"
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
+            android:visibility="gone"
             android:layout_alignParentRight="true"
             android:layout_below="@id/beauty"
             app:layout_constraintRight_toRightOf="parent"
@@ -210,7 +214,7 @@
                   android:textSize="15sp"/>
   -->
             <RadioButton
-                android:id="@+id/rate_half"
+                android:id="@+id/slow"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -222,7 +226,7 @@
                 android:textSize="15sp"/>
 
             <RadioButton
-                android:id="@+id/rate_origin"
+                android:id="@+id/standard"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -235,7 +239,7 @@
                 android:textSize="15sp"/>
 
             <RadioButton
-                android:id="@+id/rate_double"
+                android:id="@+id/fast"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"

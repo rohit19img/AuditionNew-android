@@ -80,4 +80,11 @@ interface ApiInterface {
 
     @GET(APITags.GetMusicList)
     fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
+
+    @GET(APITags.GetReportCategory)
+    fun getReportCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
+
+    @GET(APITags.ReportVideo)
+    fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommonResponse>
+
 }

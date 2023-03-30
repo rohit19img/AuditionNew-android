@@ -18,7 +18,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -43,6 +45,7 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.LoginActivity
 import com.img.audition.screens.OtherUserProfileActivity
+import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.VideoCacheWork
 import com.img.audition.videoWork.VideoItemPlayPause
 import retrofit2.Call
@@ -53,15 +56,12 @@ import retrofit2.Response
 @UnstableApi class VideoAdapter(val context:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
     val TAG = "VideoAdapter"
 
-
+    var Ar = arrayOf(-1,0)
     val  sessionManager = SessionManager(context.applicationContext)
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     private val myApplication by lazy {
         MyApplication(context.applicationContext)
     }
-
-    var Ar = arrayOf(-1,0)
-
     var cPos = 0
     inner class VideoViewHolder(itemView: VideoLayoutBinding) : RecyclerView.ViewHolder(itemView.root) {
         val playerViewExo = itemView.videoExoView
@@ -108,12 +108,9 @@ import retrofit2.Response
     }
 
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
-
         holder.apply {
             val list = videoList[position]
             myApplication.printLogD("onBindViewHolder: ${list.file}","videoUrl")
-
-            itemView.setBackgroundColor(context.getColor(R.color.float_transaparent))
 
             if (list.likeStatus!!){
                 likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.liked_ic))
@@ -313,13 +310,12 @@ import retrofit2.Response
                 val intent = Intent(context.applicationContext, LoginActivity::class.java)
                 context.startActivity(intent)
             } else {
-               /* context.startActivity(
-                    Intent(context, VideoReport_Activity::class.java)
-                        .putExtra("vid", list.get(i).get_id())
-                )*/
+                val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
 
-                myApplication.showToast("Report Video..")
+                val showReportDialog = VideoReportDialog(videoList[i].Id.toString())
+                showReportDialog.show(manager,showReportDialog.tag)
             }
+            dialog1.dismiss()
         }
 
         dialog1.show()
@@ -607,6 +603,7 @@ import retrofit2.Response
             playerViewExo.player!!.seekTo(0)
             playerViewExo.player!!.pause()
             playerViewExo.player!!.stop()
+
         }
         super.onViewDetachedFromWindow(holder)
     }
@@ -658,19 +655,9 @@ import retrofit2.Response
         }
     }
 
-
-
     override fun getItemCount(): Int {
         return videoList.size
     }
-//
-//    override fun getItemId(position: Int): Long {
-//        return position.toLong()
-//    }
-////
-//    override fun setHasStableIds(hasStableIds: Boolean) {
-//        super.setHasStableIds(hasStableIds)
-//    }
 
     fun sendToLoginScreen(){
         val intent = Intent(context, LoginActivity::class.java)

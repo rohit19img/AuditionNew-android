@@ -4,14 +4,13 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.os.AsyncTask
 import android.provider.Settings
 import android.util.Log
+import android.view.Gravity
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import java.net.URL
+
 
 class MyApplication(val context: Context) : Application(), LifecycleObserver {
 
@@ -34,7 +34,9 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
     }
 
     fun showToast(message:String){
-        Toast.makeText(context.applicationContext,message,Toast.LENGTH_SHORT).show()
+        val toast =  Toast.makeText(context.applicationContext,message,Toast.LENGTH_SHORT)
+        toast.setGravity(Gravity.CENTER, 0, 0)
+        toast.show()
     }
 
     fun printLogD(logMessage: String,TAG:String){

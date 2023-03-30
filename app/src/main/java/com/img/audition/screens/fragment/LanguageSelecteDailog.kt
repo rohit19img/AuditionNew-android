@@ -47,7 +47,7 @@ class LanguageSelecteDialog() : BottomSheetDialogFragment() {
             for (zz in listLang) {
                 if (zz.isSelected) language = zz.language!!
             }
-            if (language.equals("")){
+            if (language == ""){
                 myApplication.showToast("Please select Language..")
             }else{
                 sessionManager.setSelectedLanguage(language)

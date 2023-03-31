@@ -1,6 +1,9 @@
 package com.img.audition.videoWork
 
 import android.app.Application
+import android.util.Log
+import androidx.camera.camera2.Camera2Config
+import androidx.camera.core.CameraXConfig
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
@@ -11,7 +14,7 @@ import io.socket.client.Socket
 import java.io.File
 import java.net.URISyntaxException
 
-@UnstableApi class VideoCacheWork : Application() {
+@UnstableApi class VideoCacheWork : Application(), CameraXConfig.Provider {
     companion object{
         lateinit var simpleCache: SimpleCache
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
@@ -36,4 +39,11 @@ import java.net.URISyntaxException
         standaloneDatabaseProvider = StandaloneDatabaseProvider(this)
         simpleCache = SimpleCache(File(this.cacheDir, "videoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
     }
+
+    override fun getCameraXConfig(): CameraXConfig {
+        return CameraXConfig.Builder.fromConfig(Camera2Config.defaultConfig())
+            .setMinimumLoggingLevel(Log.ERROR).build()
+    }
+
+
 }

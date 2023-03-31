@@ -11,6 +11,7 @@
         android:layout_height="match_parent">
 
         <androidx.camera.view.PreviewView
+            app:scaleType="fitCenter"
             android:id="@+id/previewView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

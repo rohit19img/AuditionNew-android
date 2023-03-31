@@ -1,6 +1,7 @@
 package com.img.audition.screens.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,6 +55,7 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
         view.reportSubmitBtn.setOnClickListener {
             var reportCat = ""
             for (zz in listReport) {
+                Log.i("report_test","${zz.name} : ${zz.isSelected}")
                 if (zz.isSelected){
                     reportCat = zz.name!!
                     categoryID = zz.Id!!
@@ -63,6 +65,7 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
                 myApplication.showToast("Please select one of these options..")
             }else{
                 reportVideo(categoryID)
+                myApplication.showToast("Report Successfully..")
                 dismiss()
             }
         }
@@ -75,8 +78,8 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
         reportCatReq.enqueue(object : Callback<ReportCategoryResponse>{
             override fun onResponse(call: Call<ReportCategoryResponse>, response: Response<ReportCategoryResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val data = response.body()!!.data
-                    val adapter = ReportCategoryAdapter(requireContext(),data,vID)
+                    listReport = response.body()!!.data
+                    val adapter = ReportCategoryAdapter(requireContext(),listReport,vID)
                     view.reportCycle.adapter = adapter
                 }else{
                     myApplication.printLogE("No Data ${response.code()}",TAG)
@@ -96,11 +99,9 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
         reportVideoReq.enqueue(object :Callback<CommonResponse>{
             override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    myApplication.showToast("Report Successfully..")
-
-
+//                    myApplication.showToast("Report Successfully..")
                 }else{
-                    myApplication.printLogE("No Data ${response.code()}",TAG)
+//                    myApplication.printLogE("No Data ${response.code()}",TAG)
                 }
             }
             override fun onFailure(call: Call<CommonResponse>, t: Throwable) {

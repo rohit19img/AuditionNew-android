@@ -48,6 +48,9 @@ import com.img.audition.screens.OtherUserProfileActivity
 import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.VideoCacheWork
 import com.img.audition.videoWork.VideoItemPlayPause
+import io.socket.client.Socket
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -63,6 +66,9 @@ import retrofit2.Response
         MyApplication(context.applicationContext)
     }
     var cPos = 0
+
+    var mSocket: Socket = VideoCacheWork.mSocket!!
+
     inner class VideoViewHolder(itemView: VideoLayoutBinding) : RecyclerView.ViewHolder(itemView.root) {
         val playerViewExo = itemView.videoExoView
         val likeBtn = itemView.likeButton
@@ -94,10 +100,7 @@ import retrofit2.Response
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
         var exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
         //
-
-
     }
-
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -132,6 +135,7 @@ import retrofit2.Response
             }else{
                 caption.visibility = View.GONE
             }
+
             likeBtn.setOnClickListener {
                 if (list.likeStatus!!){
                     likeBtn.isSelected = false
@@ -491,6 +495,16 @@ import retrofit2.Response
                }
             }
 
+            val jsonObject = JSONObject()
+            try {
+                jsonObject.put("userId", sessionManager.getUserSelfID())
+                jsonObject.put("videoId", list.Id)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+
+            mSocket.emit("view", jsonObject)
+
 
             playPauseVolumeBtn.setOnClickListener {
                 playPauseIc.visibility = View.GONE
@@ -615,6 +629,8 @@ import retrofit2.Response
             recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
+
+
                 }
 
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -644,6 +660,22 @@ import retrofit2.Response
                         if (holder_previous.exoPlayer.isPlaying)
                             holder_previous.exoPlayer.stop()
                         holder_previous.exoPlayer.playWhenReady = false
+
+                        val duration: Long = holder_previous.exoPlayer.contentDuration
+
+                        val jsonObject = JSONObject()
+                        try {
+                            jsonObject.put("userId", sessionManager.getUserSelfID())
+                            jsonObject.put("time", duration)
+                            jsonObject.put("videoId", videoList[lastPosition].Id)
+                        } catch (e: JSONException) {
+                            e.printStackTrace()
+                        }
+
+                        Log.i("SocketCheck", "Scroll : $jsonObject")
+
+                        mSocket.emit("scroll", jsonObject)
+
                     }
                     if (visiblePosition >= 0) {
                         cPos = visiblePosition

@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="float_transaparent">#00ffffff</color>
 
     <color name="icon_color_black">#1a1a1a</color>
     <color name="textColorWhite">#FFFFFFFF</color>
@@ -58,6 +59,7 @@
     <color name="effect_color3">#E6FEA933</color>
     <color name="effect_color4">#E6F35C4B</color>
     <color name="effect_color5">#E6798ECD</color>
+    <color name="commanBackground">#900201</color>
 
     <array name="text_edit_colors">
         <item>#FFF8AA99</item>

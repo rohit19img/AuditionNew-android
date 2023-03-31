@@ -1,38 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@color/bgColorWhite"
     android:layout_height="match_parent"
+    android:background="@color/bgColorWhite"
     tools:context=".screens.OtherUserProfileActivity">
 
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/l1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_height="wrap_content">
+
         <RelativeLayout
-            android:background="@color/bgColorRed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            >
+            android:background="@color/bgColorRed">
+
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentEnd="true"
                 android:layout_width="match_parent"
-                android:layout_height="45dp">
+                android:layout_height="45dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true">
 
 
                 <RelativeLayout
 
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    >
+                    android:layout_height="wrap_content">
 
                     <ImageView
                         android:id="@+id/backPressIC"
@@ -48,25 +46,24 @@
                         android:src="@drawable/back_arrow_ic" />
 
 
-
                     <TextView
                         android:id="@+id/userName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_toEndOf="@+id/backPressIC"
                         android:layout_centerVertical="true"
-                        android:hint="/@userName"
                         android:layout_marginStart="4dp"
-                        android:textColorHint="@color/textHintColor"
+                        android:layout_toEndOf="@+id/backPressIC"
+                        android:hint="/@userName"
                         android:textColor="@color/textColorWhite"
-                        android:textSize="16sp"/>
+                        android:textColorHint="@color/textHintColor"
+                        android:textSize="16sp" />
 
                     <ImageView
                         android:id="@+id/menuIcBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
                         android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
                         android:layout_marginEnd="20dp"
                         android:src="@drawable/three_vertical_line_ic" />
 
@@ -76,29 +73,29 @@
 
             <LinearLayout
                 android:id="@+id/l11"
-                android:layout_below="@id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/toolbar"
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/view2"
                     android:layout_width="85dp"
                     android:layout_height="85dp"
-                    android:elevation="5dp"
-                    app:cardBackgroundColor="@color/bgHintColor"
                     android:layout_gravity="center"
                     android:layout_marginStart="15dp"
+                    android:elevation="5dp"
+                    app:cardBackgroundColor="@color/bgHintColor"
                     app:cardCornerRadius="100dp">
 
                     <ImageView
                         android:id="@+id/userImageView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@color/bgHintColor"
-                        android:src="@drawable/person_ic"
                         android:layout_gravity="center"
-                        android:scaleType="fitXY"/>
+                        android:background="@color/bgHintColor"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/person_ic" />
                 </androidx.cardview.widget.CardView>
 
 
@@ -117,15 +114,14 @@
                         <TextView
                             android:id="@+id/userID"
                             style="@style/textViewStyle1"
-                            android:hint="/@AuditionID"
-                            />
+                            android:hint="/@AuditionID" />
 
                         <ImageView
                             android:id="@+id/copy"
                             style="@style/imageButtonStyle"
+                            android:layout_marginStart="0dp"
                             android:paddingStart="0dp"
                             android:paddingTop="0dp"
-                            android:layout_marginStart="0dp"
                             android:src="@drawable/content_copy_ic"
                             app:tint="@color/white" />
 
@@ -150,8 +146,7 @@
                             <TextView
                                 style="@style/textViewStyle1"
                                 android:text="Followers"
-                                android:textSize="14sp"
-                                />
+                                android:textSize="14sp" />
 
                         </LinearLayout>
 
@@ -168,8 +163,7 @@
                             <TextView
                                 style="@style/textViewStyle1"
                                 android:text="Following"
-                                android:textSize="14sp"
-                                />
+                                android:textSize="14sp" />
 
 
                         </LinearLayout>
@@ -187,8 +181,7 @@
                             <TextView
                                 style="@style/textViewStyle1"
                                 android:text="Likes"
-                                android:textSize="14sp"
-                                />
+                                android:textSize="14sp" />
 
                         </LinearLayout>
 
@@ -198,25 +191,23 @@
                 </LinearLayout>
 
 
-
-
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/bioLy"
-                android:layout_below="@id/l11"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
+                android:layout_below="@id/l11"
+                android:orientation="vertical">
+
                 <TextView
                     android:id="@+id/userBio"
                     style="@style/textViewStyle1"
+                    android:layout_gravity="start"
+                    android:layout_marginStart="20dp"
                     android:hint="Bio"
                     android:paddingEnd="20dp"
-                    android:layout_marginStart="20dp"
                     android:textAlignment="textStart"
-                    android:layout_gravity="start"
                     android:textSize="16sp"
                     tools:ignore="RtlSymmetry" />
             </LinearLayout>
@@ -235,11 +226,11 @@
                 <TextView
                     android:id="@+id/followBtn"
                     style="@style/textViewStyle1"
+                    android:layout_weight="1"
                     android:background="@drawable/cardview_look"
                     android:paddingStart="20dp"
-                    android:layout_weight="1"
-                    android:paddingEnd="20dp"
                     android:paddingTop="10dp"
+                    android:paddingEnd="20dp"
                     android:paddingBottom="10dp"
                     android:text="Following"
                     android:textColor="@color/textColorBlack" />
@@ -248,14 +239,14 @@
                 <TextView
                     android:id="@+id/messageBtn"
                     style="@style/textViewStyle1"
+                    android:layout_weight="1"
                     android:background="@drawable/cardview_look"
                     android:backgroundTint="@color/cardHintColor"
-                    android:text="Message"
-                    android:layout_weight="1"
                     android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
                     android:paddingTop="10dp"
+                    android:paddingEnd="20dp"
                     android:paddingBottom="10dp"
+                    android:text="Message"
                     android:textColor="@color/textColorBlack" />
 
             </LinearLayout>
@@ -264,41 +255,35 @@
 
 
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:layout_below="@id/l1"
         android:id="@+id/shimmerVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
+        android:layout_below="@id/l1">
 
-        <include
-            layout="@layout/user_videoitem_view_shimer"
-          />
+        <include layout="@layout/user_videoitem_view_shimer" />
 
     </com.facebook.shimmer.ShimmerFrameLayout>
 
     <ImageView
         android:id="@+id/noVideo"
-        android:background="@color/bgColorWhite"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/l1"
+        android:background="@color/bgColorWhite"
         android:src="@drawable/no_video"
         android:visibility="gone"
-        app:tint="@color/bgColorDarkRed"
+        app:tint="@color/bgColorDarkRed" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/userVideoRecycle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_below="@+id/l1"
-        />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:visibility="gone"
-            android:layout_below="@+id/l1"
-            android:background="@color/bgColorWhite"
-            tools:listitem="@layout/video_item_view"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            app:spanCount="3"
-            android:id="@+id/userVideoRecycle"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
-
+        android:background="@color/bgColorWhite"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        tools:listitem="@layout/video_item_view" />
 
 
 </RelativeLayout>

@@ -7,16 +7,16 @@
 
     <androidx.media3.ui.PlayerView
         android:id="@+id/videoExoView"
+        app:scaleType="fitCenter"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         app:resize_mode="fill"
-        app:surface_type="texture_view"
+        app:surface_type="surface_view"
         app:keep_content_on_player_reset="true"
         app:use_controller="false"
         app:show_buffering="never"
-
          />
 
     <ImageView

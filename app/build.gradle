@@ -15,15 +15,10 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-        ndkVersion "23.1.7779620"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    externalNativeBuild {
-        cmake {
-            version = " 3.10.2"
-        }
-    }
+
 
     buildTypes {
         release {
@@ -42,28 +37,9 @@ android {
         viewBinding true
     }
 
-    splits {
-        abi {
-            enable true
-            reset()
-            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64","libx264"
-            universalApk false
-        }
-    }
-
 }
 
-ext.abiCodes = ['x86': 1, 'x86_64': 2, 'armeabi-v7a': 3, 'arm64-v8a': 4, 'libx264':5]
 
-import com.android.build.OutputFile
-
-android.applicationVariants.all { variant ->
-    variant.outputs.each {
-        output ->
-            def baseAbiVersionCode = project.ext.abiCodes.get(output.getFilter(OutputFile.ABI))
-            output.versionCodeOverride = baseAbiVersionCode + variant.versionCode
-    }
-}
 
 dependencies {
 
@@ -121,8 +97,7 @@ dependencies {
 
     //dimens sdp and dp
     implementation 'com.intuit.sdp:sdp-android:1.1.0'
-    //Ffmpeg
-    implementation 'com.arthenica:ffmpeg-kit-full:5.1'
+
 
 
 

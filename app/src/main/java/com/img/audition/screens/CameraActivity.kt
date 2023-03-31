@@ -8,8 +8,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
-import com.img.audition.R
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -24,14 +22,13 @@ import androidx.core.content.PermissionChecker
 import androidx.core.util.Consumer
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.img.audition.R
 import com.img.audition.cameraX.getNameString
 import com.img.audition.customView.RecordButton
 import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.screens.fragment.MusicListFragment
-import java.io.File
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -44,6 +41,7 @@ import java.util.concurrent.TimeUnit
     private val curreentVideoDuration = mutableListOf<Int>()
 
     private var videoFilePath = ""
+
 
     companion object {
         private const val MUSIC_TAG = "music_tag"
@@ -133,6 +131,7 @@ import java.util.concurrent.TimeUnit
     }
 
     override fun onDown() {
+        viewBinding.showPreviewBtn.visibility = View.GONE
         var duration = 0
         curreentVideoDuration.forEach { 
             duration = it
@@ -157,6 +156,7 @@ import java.util.concurrent.TimeUnit
     override fun onClick() {}
 
     private fun startCamera(mode:Boolean) {
+
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
@@ -232,7 +232,6 @@ import java.util.concurrent.TimeUnit
 
     private fun startRecording() {
 
-        val file = File(getNewFilePath())
 
         val name = "audition-recording-" +
                 SimpleDateFormat(FILENAME_FORMAT, Locale.US)
@@ -347,30 +346,7 @@ import java.util.concurrent.TimeUnit
         behavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
-    fun getNewFilePath():String{
-        val newPath = File(getVideoFolderPath())
-        Log.i("path_test","getVideoFilePath : ${getVideoFolderPath()}")
-        myApplication.printLogD(newPath.absolutePath,"New Path")
 
-        if(!File(getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/").exists())
-            File(getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/").mkdir()
-
-
-        if (!(newPath.exists())){
-            try {
-                newPath.createNewFile()
-            } catch (e: IOException) {
-                myApplication.printLogE(e.toString(),TAG)
-            }
-        }
-        Log.i("path_test","new path : ${newPath.path}")
-
-        return newPath.path
-    }
-
-    fun getVideoFolderPath(): String {
-        return   getExternalFilesDir(null)!!.path.replace("files","")+"raw_video/" /*+ SimpleDateFormat("yyyyMM_dd-HHmmss").format(Date()) + "cameraRecorder.mp4"*/
-    }
 
 
 

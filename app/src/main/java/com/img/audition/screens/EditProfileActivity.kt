@@ -1,5 +1,7 @@
 package com.img.audition.screens
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.content.Intent
@@ -9,25 +11,32 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
+import com.android.volley.*
+import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
+import com.img.audition.dataModel.CommonResponse
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityEditProfileBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
-import com.img.audition.network.ApiInterface
-import com.img.audition.network.RetrofitClient
-import com.img.audition.network.SessionManager
+import com.img.audition.network.*
+import com.img.audition.screens.fragment.ProfileFragment
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 import java.util.*
 
-class EditProfileActivity : AppCompatActivity() {
+@UnstableApi class EditProfileActivity : AppCompatActivity() {
     val TAG = "EditProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityEditProfileBinding.inflate(layoutInflater)
@@ -47,6 +56,8 @@ class EditProfileActivity : AppCompatActivity() {
     var imagePath = ""
 
     lateinit var progressDialog:ProgressDialog
+    var requestQueue: RequestQueue? = null
+
     lateinit var appPermission : AppPermission
 
     lateinit var gender_botSheetBtn:TextView
@@ -54,14 +65,18 @@ class EditProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+        progressDialog = ProgressDialog(this@EditProfileActivity)
+        progressDialog.setCancelable(false)
+        progressDialog.setTitle("Uploading.")
+        progressDialog.setMessage("please wait...")
+
+        requestQueue = Volley.newRequestQueue(this@EditProfileActivity)
+
+
         appPermission =  AppPermission(this@EditProfileActivity,
             ConstValFile.PERMISSION_LIST,
             ConstValFile.REQUEST_PERMISSION_CODE_STORAGE)
 
-
-        progressDialog = ProgressDialog(this@EditProfileActivity)
-        progressDialog.setCancelable(false)
-        progressDialog.setMessage("Please Wait")
 
         viewBinding.mobilenumber.isEnabled = false
 
@@ -75,6 +90,14 @@ class EditProfileActivity : AppCompatActivity() {
         }
 
         viewBinding.btnSave.setOnClickListener {
+            progressDialog.show()
+            val name = viewBinding.name.text.toString().trim()
+            val auditionID = viewBinding.auditionid.text.toString().trim()
+            val bio = viewBinding.bio.text.toString().trim()
+            val gender = viewBinding.gender.text.toString().trim()
+            val dob = viewBinding.dob.text.toString().trim()
+            editProfile(name,auditionID,bio,gender,dob,imagePath)
+            verifyUserDetails(name,auditionID,bio,gender,dob,imagePath)
 
         }
 
@@ -153,8 +176,6 @@ class EditProfileActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ConstValFile.REQUEST_PERMISSION_CODE_STORAGE) {
                 selectImage()
-        }else{
-            myApplication.showToast("Please Allow Permission..")
         }
 
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -183,7 +204,8 @@ class EditProfileActivity : AppCompatActivity() {
            val cancel = view.findViewById<TextView>(R.id.cancel_genBtn)
 
           if (gender!=""){
-              if (gender == "male")
+              myApplication.printLogD(gender,"gender")
+              if (gender.equals("male" ,true))
                   maleRb.isChecked = true
               else
                   femaleRb.isChecked = true
@@ -222,5 +244,146 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
 
+    private fun editProfile(
+        name: String,
+        auditionID: String,
+        bio: String,
+        gender: String,
+        dob: String,
+        imagePath: String
+    ) {
+        try {
+            val editProfileApiUrl: String = APITags.APIBASEURL +"editProfile"
+
+            val strRequest: VolleyMultipartRequest = object : VolleyMultipartRequest(
+                Method.POST, editProfileApiUrl,
+                com.android.volley.Response.Listener<NetworkResponse> { response ->
+                    myApplication.printLogD(response.toString(),TAG)
+                    progressDialog.dismiss()
+                    sendToMainActivity()
+                },
+                com.android.volley.Response.ErrorListener { error ->
+                    myApplication.printLogE(error.toString(),TAG)
+                    progressDialog.dismiss()
+                })
+            {
+                override fun getParams(): MutableMap<String, String>? {
+                    val map = HashMap<String, String>()
+                    map["typename"] = "user-profiles"
+                    map["name"] = name
+                    map["audition_id"] = auditionID
+                    map["image"] = imagePath
+                    map["bio"] = bio
+                    map["gender"] = gender
+                    map["dob"] = dob
+                    Log.i("params", map.toString())
+                    return map
+                }
+
+                @Throws(AuthFailureError::class)
+                override fun getHeaders(): Map<String, String?> {
+                    val params: MutableMap<String, String?> = HashMap()
+                    params["Authorization"] = sessionManager.getToken()
+                    Log.i("Header", params.toString())
+                    return params
+                }
+
+
+            }
+            strRequest.setShouldCache(false)
+            strRequest.retryPolicy = DefaultRetryPolicy(0,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            )
+            requestQueue?.add<NetworkResponse>(strRequest)
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+            val d = AlertDialog.Builder(this@EditProfileActivity)
+            d.setTitle("Something went wrong")
+            d.setCancelable(false)
+            d.setMessage("Something went wrong, Please try again")
+            d.setPositiveButton(
+                "Retry"
+            ) { dialog, which -> editProfile(name, auditionID, bio, gender, dob, this.imagePath) }
+            d.setNegativeButton(
+                "Cancel"
+            ) { dialog, which -> (this@EditProfileActivity as Activity).finishAffinity() }
+            try {
+                if (d != null) {
+                    d.show()
+                }
+            } catch (f: java.lang.Exception) {
+                f.printStackTrace()
+            }
+        }
+    }
+
+    private fun sendToMainActivity() {
+        val intent = Intent(this@EditProfileActivity,HomeActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun verifyUserDetails(
+        name: String,
+        auditionIdText: String,
+        bio: String,
+        gender: String,
+        dob: String,
+        imagePath: String
+    ) {
+        val typename1 = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), "user-profiles")
+        val name1: RequestBody =
+            RequestBody.create("multipart/form-data".toMediaTypeOrNull(),name )
+        val auditionID: RequestBody =
+            RequestBody.create("multipart/form-data".toMediaTypeOrNull(), auditionIdText)
+        val bio1: RequestBody =
+            RequestBody.create("multipart/form-data".toMediaTypeOrNull(), bio)
+        val gender11: RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), gender)
+        val dob1: RequestBody =
+            RequestBody.create("multipart/form-data".toMediaTypeOrNull(), dob)
+
+        var requestBody: RequestBody? = null
+        var fileToUpload: MultipartBody.Part? = null
+        var mCall: Call<CommonResponse>? = null
+        if (!(imagePath.trim().equals(""))) {
+            val file: File = File(imagePath)
+            requestBody = RequestBody.create("*/*".toMediaTypeOrNull(),file)
+            fileToUpload = MultipartBody.Part.createFormData("image",file.name,requestBody)
+            mCall = apiInterface.editProfile(sessionManager.getToken(),
+                typename1,
+                name1,
+                auditionID,
+                fileToUpload,
+                bio1,
+                gender11,
+                dob1
+            )
+        } else {
+            mCall = apiInterface.editProfile(
+                sessionManager.getToken(),
+                typename1,
+                name1,
+                auditionID,
+                bio1,
+                gender11,
+                dob1
+            )
+        }
+        mCall.enqueue(object : Callback<CommonResponse> {
+            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+                progressDialog.dismiss()
+                if (response.isSuccessful && response.body()!!.success!!) {
+
+                } else {
+
+                }
+            }
+
+            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+                progressDialog.dismiss()
+            }
+        })
+    }
 
 }

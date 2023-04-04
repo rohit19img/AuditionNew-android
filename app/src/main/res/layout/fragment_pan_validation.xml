@@ -362,7 +362,7 @@
                             android:padding="10dp"
                             android:inputType="textCapCharacters"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp" />
 
 
@@ -390,7 +390,7 @@
                             android:background="@drawable/et_design"
                             android:padding="10dp"
                             android:textColor="@color/black"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:maxLength="10"
                             android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
                             android:inputType="textCapCharacters"
@@ -413,7 +413,7 @@
                         <TextView
                             android:layout_marginStart="10dp"
                             android:layout_marginEnd="10dp"
-                            android:textColorHint="@color/textHintColor"
+                            android:textColorHint="@color/Gray"
                             android:textSize="13sp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

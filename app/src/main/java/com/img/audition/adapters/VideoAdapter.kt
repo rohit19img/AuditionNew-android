@@ -22,21 +22,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.firebase.firestore.FirebaseFirestore
 import com.img.audition.R
-import com.img.audition.dataModel.CommonResponse
-import com.img.audition.dataModel.FollowFollowingResponse
-import com.img.audition.dataModel.LikeResponse
-import com.img.audition.dataModel.VideoData
+import com.img.audition.dataModel.*
 import com.img.audition.databinding.VideoLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -45,6 +45,7 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.LoginActivity
 import com.img.audition.screens.OtherUserProfileActivity
+import com.img.audition.screens.fragment.CommentBottomSheet
 import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.VideoCacheWork
 import com.img.audition.videoWork.VideoItemPlayPause
@@ -62,6 +63,9 @@ import retrofit2.Response
     var Ar = arrayOf(-1,0)
     val  sessionManager = SessionManager(context.applicationContext)
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+    var firestore = FirebaseFirestore.getInstance()
+    lateinit var commentList : ArrayList<CommentData>
+
     private val myApplication by lazy {
         MyApplication(context.applicationContext)
     }
@@ -113,6 +117,22 @@ import retrofit2.Response
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
         holder.apply {
             val list = videoList[position]
+
+            //commentCount
+            firestore.collection(ConstValFile.FirebaseCommentDB).whereEqualTo("post_id", list.postId)
+                .get()
+                .addOnSuccessListener { documentSnapshots ->
+                    commentList = java.util.ArrayList<CommentData>()
+                    for (documentSnapshot1 in documentSnapshots) {
+                        val note: CommentData =
+                            documentSnapshot1.toObject(CommentData::class.java)
+                        commentList.add(note)
+                    }
+                    myApplication.printLogD("commentCount "+commentList.size.toString(),TAG)
+                    commentCount.text = commentList.size.toString()
+                }
+            //
+
             myApplication.printLogD("onBindViewHolder: ${list.file}","videoUrl")
 
             if (list.likeStatus!!){
@@ -187,6 +207,7 @@ import retrofit2.Response
                 if (!(list.isSelf)!!){
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.USER_IDFORIntent,list.userId)
+                    bundle.putInt(ConstValFile.UserPositionInList,position)
                     bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
                     sendToVideoUserProfile(bundle)
                 }else{
@@ -204,16 +225,28 @@ import retrofit2.Response
 
 
             likeCount.text = list.likeCount.toString()
-            commentCount.text = list.commentCount.toString()
             shareCount.text = list.shares.toString()
             Glide.with(context).load(list.image).placeholder(R.drawable.person_ic).into(userProfile)
             userName.text = list.auditionId
             audioName.text = list.auditionId +" - Original Audio"
+
+            commentBtn.setOnClickListener {
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.AuditionID,list.auditionId)
+                bundle.putString(ConstValFile.VideoID,list.auditionId)
+                bundle.putSerializable(ConstValFile.CommentList, list.comment)
+                bundle.putString(ConstValFile.AllUserID, list.userId)
+                bundle.putString(ConstValFile.PostID, list.postId)
+                bundle.putString(ConstValFile.VideoID, list.vId)
+                bundle.putString(ConstValFile.UserImage, list.image)
+                bundle.putInt(ConstValFile.UserPositionInList, position)
+                showCommentDialog(bundle)
+            }
         }
     }
 
     private fun moredialog(i: Int) {
-        val dialog1 = BottomSheetDialog(context)
+        val dialog1 = BottomSheetDialog(context,R.style.CustomBottomSheetDialogTheme)
         dialog1.setContentView(R.layout.more_dialog)
         val tv_watch_later = dialog1.findViewById<TextView>(R.id.tv_watch_later)
         val iv_share_not_intersested = dialog1.findViewById<ImageView>(R.id.iv_share_not_intersested)
@@ -257,19 +290,10 @@ import retrofit2.Response
                     Intent(context.applicationContext, LoginActivity::class.java)
                 context.startActivity(intent)
             } else {
-                /*val BottomSheet = Notinterstedpopup_Fragment()
-                val link: String = list.get(i).get_id()
-                Log.e("Check256", "!!  $link")
-                if (link != null) {
-                    val bundle = Bundle()
-                    bundle.putString("vid", link)
-                    BottomSheet.setArguments(bundle)
-                    BottomSheet.show(
-                        (context as AppCompatActivity).supportFragmentManager,
-                        BottomSheet.getTag()
-                    )
-                }*/
-                myApplication.showToast("Soon..")
+                val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
+                val showReportDialog = VideoReportDialog(videoList[i].Id.toString(),ConstValFile.NotInterestedDialogView)
+                showReportDialog.show(manager,showReportDialog.tag)
+                dialog1.dismiss()
             }
         }
 
@@ -316,7 +340,7 @@ import retrofit2.Response
             } else {
                 val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
 
-                val showReportDialog = VideoReportDialog(videoList[i].Id.toString())
+                val showReportDialog = VideoReportDialog(videoList[i].Id.toString(),ConstValFile.ReportDialogView)
                 showReportDialog.show(manager,showReportDialog.tag)
             }
             dialog1.dismiss()
@@ -364,7 +388,7 @@ import retrofit2.Response
     }
 
     private fun shareDialog(i: Int) {
-        val dialog1 = BottomSheetDialog(context)
+        val dialog1 = BottomSheetDialog(context,R.style.CustomBottomSheetDialogTheme)
         dialog1.setContentView(R.layout.share_dailog)
         val iv_share_chat = dialog1.findViewById<ImageView>(R.id.iv_share_chat)
         val iv_share_whatsapp = dialog1.findViewById<ImageView>(R.id.iv_share_whatsapp)
@@ -520,6 +544,15 @@ import retrofit2.Response
                 }
             }
 
+            audioImage.setOnClickListener {
+                if (exoPlayer.volume == 0F){
+                    exoPlayer.volume = 1F
+                    audioImage.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.volume_on_ic))
+                }else{
+                    exoPlayer.volume = 0F
+                    audioImage.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.volume_off_ic))
+                }
+            }
             exoPlayer.addListener(object : Player.Listener{
                 override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                     when (playbackState) {
@@ -539,6 +572,24 @@ import retrofit2.Response
                         }
                     }
                 }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    when(error.errorCode){
+                        TYPE_SOURCE ->{
+                            myApplication.showToast("Source Error..")
+                            val list = videoList[position]
+                            val mediaItem = MediaItem.fromUri(list.file.toString())
+                            val videoMediaSource = mediaSource.createMediaSource(mediaItem)
+                            playerViewExo.player = exoPlayer
+                            exoPlayer.setMediaSource(videoMediaSource)
+                            exoPlayer.prepare()
+                            exoPlayer.play()
+                        }
+
+                    }
+                }
+
             })
 
         }
@@ -548,7 +599,7 @@ import retrofit2.Response
 
     fun onActivityStateChanged() : VideoItemPlayPause{
         return object : VideoItemPlayPause{
-            override fun onPause(holder: VideoViewHolder,cPos:Int) {
+            override fun onPause(holder: VideoAdapter.VideoViewHolder, cPos:Int) {
                 myApplication.printLogD("onPause: Position ${cPos}",TAG)
 
                 holder.apply {
@@ -643,8 +694,8 @@ import retrofit2.Response
                     Ar[0] = Ar[1]
                     Ar[1] = visiblePosition
 
-                    Log.i("positionTest","visible : $visiblePosition")
-                    Log.i("positionTest","last : $lastPosition")
+                   /* Log.i("positionTest","visible : $visiblePosition")
+                    Log.i("positionTest","last : $lastPosition")*/
 
                     if (visiblePosition >= 0) {
                         val holder_current: VideoViewHolder =
@@ -654,27 +705,31 @@ import retrofit2.Response
                     }
 
                     if (lastPosition >= 0) {
-                        val holder_previous: VideoViewHolder =
-                            recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
-                        holder_previous.exoPlayer.seekTo(0)
-                        if (holder_previous.exoPlayer.isPlaying)
-                            holder_previous.exoPlayer.stop()
-                        holder_previous.exoPlayer.playWhenReady = false
+                       try {
+                           val holder_previous: VideoViewHolder =
+                               recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
+                           holder_previous.exoPlayer.seekTo(0)
+                           if (holder_previous.exoPlayer.isPlaying)
+                               holder_previous.exoPlayer.stop()
+                           holder_previous.exoPlayer.playWhenReady = false
 
-                        val duration: Long = holder_previous.exoPlayer.contentDuration
+                           val duration: Long = holder_previous.exoPlayer.contentDuration
 
-                        val jsonObject = JSONObject()
-                        try {
-                            jsonObject.put("userId", sessionManager.getUserSelfID())
-                            jsonObject.put("time", duration)
-                            jsonObject.put("videoId", videoList[lastPosition].Id)
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
-                        }
+                           val jsonObject = JSONObject()
+                           try {
+                               jsonObject.put("userId", sessionManager.getUserSelfID())
+                               jsonObject.put("time", duration)
+                               jsonObject.put("videoId", videoList[lastPosition].Id)
+                           } catch (e: JSONException) {
+                               e.printStackTrace()
+                           }
 
-                        Log.i("SocketCheck", "Scroll : $jsonObject")
+                           Log.i("SocketCheck", "Scroll : $jsonObject")
 
-                        mSocket.emit("scroll", jsonObject)
+                           mSocket.emit("scroll", jsonObject)
+                       }catch (e:Exception){
+                           myApplication.printLogE(e.toString(),TAG)
+                       }
 
                     }
                     if (visiblePosition >= 0) {
@@ -688,6 +743,7 @@ import retrofit2.Response
     }
 
     override fun getItemCount(): Int {
+        myApplication.printLogD(videoList.size.toString(),"Video List Size")
         return videoList.size
     }
 
@@ -747,6 +803,13 @@ import retrofit2.Response
         val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         manager.enqueue(request)
         Toast.makeText(context, "Video Download started", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showCommentDialog(bundle: Bundle) {
+        val showCommentDialog = CommentBottomSheet()
+        showCommentDialog.arguments = bundle
+        showCommentDialog.show((context as AppCompatActivity).
+        supportFragmentManager, showCommentDialog.getTag())
     }
 
 }

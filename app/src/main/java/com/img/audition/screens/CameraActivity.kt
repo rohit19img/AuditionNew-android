@@ -157,30 +157,25 @@ import java.util.concurrent.TimeUnit
 
     private fun startCamera(mode:Boolean) {
 
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
-            val cameraSelector = lensFacing
-
-
-
-            // Preview
             val preview = Preview.Builder()
                 .build()
                 .also {
                     it.setSurfaceProvider(viewBinding.previewView.surfaceProvider)
                 }
-            val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.SD))
-                .build()
+
+              val recorder = Recorder.Builder()
+               .setQualitySelector(QualitySelector.from(Quality.HD))
+               .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
 
-            // Select back camera as a default
+            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
+            val cameraSelector = lensFacing
 
 
             try {
@@ -318,7 +313,6 @@ import java.util.concurrent.TimeUnit
                         myApplication.showToast("Video Max Duration Reached")
                     }
                 }
-
             }
             viewBinding.lineView.setLoadingProgress(time * 1.0f / maxVideoDuration)
         }

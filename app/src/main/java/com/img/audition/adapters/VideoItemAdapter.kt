@@ -11,6 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.img.audition.R
 import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.VideoItemViewBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -38,7 +39,7 @@ import com.img.audition.screens.CommanVideoPlayActivity
             val list = videoData[position]
 
             Glide.with(context).load(list.file)
-                .diskCacheStrategy(DiskCacheStrategy.ALL).into(videoThumbnail)
+                .diskCacheStrategy(DiskCacheStrategy.ALL).placeholder(R.drawable.splash_icon).into(videoThumbnail)
 
             videoViewCount.text = list.views.toString()
 

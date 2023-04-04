@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.img.audition.databinding.ActivityPreviewBinding
@@ -48,6 +49,7 @@ import com.img.audition.network.SessionManager
 
             viewBinding.sendToUploadBtn.setOnClickListener {
                 val bundle = Bundle()
+                player.stop()
                 bundle.putString(ConstValFile.VideoFilePath,videoUri)
                 sendToUploadVideoActivity(bundle)
             }
@@ -55,7 +57,26 @@ import com.img.audition.network.SessionManager
             myApplication.printLogD("File Path Null",TAG)
         }
 
-
+        player.addListener(object : Player.Listener {
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                when (playbackState) {
+                    ExoPlayer.STATE_ENDED -> {
+                        player.seekTo(0)
+                        player.prepare()
+                        player.play()
+                    }
+                    ExoPlayer.STATE_BUFFERING -> {
+                        myApplication.printLogD("STATE_BUFFERING", TAG)
+                    }
+                    ExoPlayer.STATE_READY -> {
+                        myApplication.printLogD("STATE_READY", TAG)
+                    }
+                    else -> {
+                        myApplication.printLogD(playbackState.toString(), "currentState")
+                    }
+                }
+            }
+        })
     }
 
     private fun sendToUploadVideoActivity(bundle: Bundle) {

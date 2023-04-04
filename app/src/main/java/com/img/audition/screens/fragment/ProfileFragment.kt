@@ -1,6 +1,8 @@
 package com.img.audition.screens.fragment
 
 import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -10,11 +12,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.img.audition.R
 import com.img.audition.adapters.LanguageSelecteDialog
@@ -33,10 +38,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ProfileFragment : Fragment() {
+@UnstableApi class ProfileFragment : Fragment() {
     val TAG = "ProfileFragment"
 
-    private lateinit var _viewBinding :  FragmentProfileBinding
+    private lateinit var _viewBinding : FragmentProfileBinding
     private val view get() = _viewBinding!!
     private val sessionManager by lazy {
         SessionManager(requireContext())
@@ -82,7 +87,7 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view1, savedInstanceState)
 
-//        shimmerVideoView.startShimmer()
+        view.shimmerVideoView.startShimmer()
 
         view.editProfileBtn.setOnClickListener {
             senToEditProfile()
@@ -93,6 +98,10 @@ class ProfileFragment : Fragment() {
             } else {
                 drawerLayout.openDrawer(GravityCompat.END)
             }
+        }
+
+        view.watchLaterBtn.setOnClickListener {
+            sendToCollectionActivity()
         }
 
         view.changelanguage.setOnClickListener {
@@ -124,6 +133,12 @@ class ProfileFragment : Fragment() {
             sendToWalletActivity()
         }
 
+        view.copy.setOnClickListener {
+            val clipboard = activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("label",view.auditionID.text.toString())
+            clipboard.setPrimaryClip(clip)
+            myApplication.showToast("Id Copied..")
+        }
 
         view.logout.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(requireContext())
@@ -163,6 +178,11 @@ class ProfileFragment : Fragment() {
 
     private fun sendToWalletActivity() {
         val intent = Intent(requireContext(),WalletActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun sendToCollectionActivity() {
+        val intent = Intent(requireContext().applicationContext,CollectionActivity::class.java)
         startActivity(intent)
     }
 
@@ -211,14 +231,14 @@ class ProfileFragment : Fragment() {
                     if (videoData.size>0) {
                         val videoItemAdapter = VideoItemAdapter(requireContext(), videoData)
                         userVideoRecycle.adapter = videoItemAdapter
-                      /*  shimmerVideoView.stopShimmer()
-                        shimmerVideoView.hideShimmer()
-                        shimmerVideoView.visibility = View.GONE*/
+                        view.shimmerVideoView.stopShimmer()
+                        view.shimmerVideoView.hideShimmer()
+                        view.shimmerVideoView.visibility = View.GONE
                         userVideoRecycle.visibility = View.VISIBLE
                     }else{
                         myApplication.printLogD("No Video Data",TAG)
-                    /*    shimmerVideoView.stopShimmer()
-                        shimmerVideoView.hideShimmer()*/
+                        view.shimmerVideoView.stopShimmer()
+                        view.shimmerVideoView.hideShimmer()
                         noVideoImage.visibility = View.VISIBLE
                     }
                 }else{
@@ -246,6 +266,8 @@ class ProfileFragment : Fragment() {
                         followCount.text = userData!!.followersCount.toString()
                         followingCount.text = userData!!.followingCount.toString()
                         if (userData.image.toString().isNotEmpty()){
+                            Glide.with(this@ProfileFragment).load(userData.image.toString())
+                                .placeholder(R.drawable.person_ic).into(userImageView)
                             MyApplication.DownloadImageTask(userImageView).execute(userData.image.toString())
                         }else{
                             userImageView.setImageResource(R.drawable.person_ic)

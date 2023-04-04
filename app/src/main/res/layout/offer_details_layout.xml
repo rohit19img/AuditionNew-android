@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_margin="@dimen/_4sdp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:id="@+id/offerLyt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/card_rummy_design">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="@dimen/_5sdp"
+                >
+                <TextView
+                    android:id="@+id/offerTitle"
+                    android:textColor="@color/white"
+                    android:layout_width="match_parent"
+                    android:textSize="@dimen/_14sdp"
+                    android:layout_height="wrap_content"
+                    android:text="Title"/>
+
+                <TextView
+                    android:id="@+id/offerMsg"
+                    android:textColor="@color/white"
+                    android:layout_width="match_parent"
+                    android:textSize="@dimen/_12sdp"
+                    android:paddingTop="@dimen/_3sdp"
+                    android:layout_height="wrap_content"
+                    android:text="You will get 25 %"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/_5sdp"
+                android:background="@drawable/et_design"
+                android:backgroundTint="#51bd42"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_12sdp"
+                    android:text="Code"/>
+
+                <TextView
+                    android:id="@+id/offerCode"
+                    android:textColor="@color/white"
+                    android:layout_width="wrap_content"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/_14sdp"
+                    android:textAllCaps="true"
+                    android:layout_height="wrap_content"
+                    android:text="XYZs3W"/>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:paddingBottom="@dimen/_3sdp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            >
+            <TextView
+                android:id="@+id/offerUseTimes"
+                android:layout_weight="1"
+                android:textColor="#e6b914"
+                android:padding="@dimen/_2sdp"
+                android:layout_width="wrap_content"
+                android:textAlignment="textStart"
+                android:textSize="@dimen/_8sdp"
+                android:layout_height="wrap_content"
+                android:text="Use Only 3 Times"/>
+
+            <TextView
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:textAlignment="center"
+                android:textColor="@color/white"/>
+            <TextView
+                android:layout_weight="1"
+                android:padding="@dimen/_2sdp"
+                android:textColor="#e6b914"
+                android:layout_width="wrap_content"
+                android:textAlignment="textStart"
+                android:textSize="@dimen/_8sdp"
+                android:id="@+id/offerMinAmt"
+                android:layout_height="wrap_content"
+                android:text="Min Amount : 3"/>
+            <TextView
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="|"
+                android:textColor="@color/white"/>
+            <TextView
+                android:padding="@dimen/_2sdp"
+                android:layout_weight="1"
+                android:textSize="@dimen/_8sdp"
+                android:textColor="#e6b914"
+                android:id="@+id/offerMaxAmt"
+                android:layout_width="wrap_content"
+                android:textAlignment="textStart"
+                android:layout_height="wrap_content"
+                android:text="Max Amount : 1000"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

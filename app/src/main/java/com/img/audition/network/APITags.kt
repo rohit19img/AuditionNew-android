@@ -7,6 +7,7 @@ class APITags {
         const val APIBASEURL = "http://139.59.30.125:6060/api/"
         const val AUTHORIZATION = "Authorization"
         const val GuestLogin = "guest-login"
+        const val GetChatHistory = "getChatHistory"
         const val GetVideo = "get_video"
         const val Login = "login"
         const val OTPLogin = "otp-login"
@@ -25,7 +26,14 @@ class APITags {
         const val FollowFollowingList = "getFollowerList"
         const val GetMusicList = "get_music_Uploaded"
         const val GetReportCategory = "getReportCategory"
+        const val GetNotInterestedCategory = "interest-categories"
         const val ReportVideo = "report_video"
+        const val addIntoNotInterested = "not-intrested"
+        const val GetSavedVideos = "watch-later-videos"
+        const val blockUnblock = "userBlockUnblock"
+        const val GetAddCashOffer = "getOffers"
+        const val EditUserProfile = "editProfile"
+        const val GetUserTransactions = "getTransactions"
 
 
     }

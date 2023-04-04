@@ -13,10 +13,7 @@ import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.img.audition.R
-import com.img.audition.adapters.LanguageSelecteDialog
-import com.img.audition.adapters.VideoAdapter
 import com.img.audition.dataModel.UserLatLang
-import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.ActivityHomeBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
@@ -56,12 +53,12 @@ import com.img.audition.screens.fragment.*
 
         appPermission.checkPermissions()
 
-        loadFragment(VideoFragment(this@HomeActivity))
+        loadFragment(VideoFragment())
 
         viewBinding.bottomNav.setOnItemSelectedListener {
             when(it.itemId){
                 R.id.home -> {
-                    loadFragment(VideoFragment(this@HomeActivity))
+                    loadFragment(VideoFragment())
                     true
                 }
                 R.id.search->{
@@ -78,16 +75,12 @@ import com.img.audition.screens.fragment.*
                         startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
                     }
                     false
-                }R.id.profile ->{
-                        if (!(sessionManager.isUserLoggedIn())){
-                            sendToLoginScreen()
-                        }else{
-                            loadFragment(ProfileFragment())
-                        }
-                    true
-                }
-                else -> {
-                    loadFragment(VideoFragment(this@HomeActivity))
+                }else -> {
+                    if (!(sessionManager.isUserLoggedIn())){
+                        sendToLoginScreen()
+                    }else{
+                        loadFragment(ProfileFragment())
+                    }
                     true
                 }
             }

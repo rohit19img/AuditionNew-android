@@ -1,10 +1,15 @@
 package com.img.audition.screens.fragment
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.media3.common.util.UnstableApi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.img.audition.R
 import com.img.audition.adapters.ReportCategoryAdapter
@@ -13,15 +18,18 @@ import com.img.audition.dataModel.Languages
 import com.img.audition.dataModel.ReportCategoryData
 import com.img.audition.dataModel.ReportCategoryResponse
 import com.img.audition.databinding.VideoReportDialogBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.HomeActivity
+import com.img.audition.screens.LoginActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
+@UnstableApi class VideoReportDialog( val vID:String, val viewType :String) : BottomSheetDialogFragment() {
 
     val TAG = "VideoReportDialog"
     private val sessionManager by lazy {
@@ -30,9 +38,7 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
-    private val myApplication by lazy {
-        MyApplication(requireActivity().applicationContext)
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +58,21 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view1, savedInstanceState)
 
+        if (viewType == ConstValFile.ReportDialogView){
+            reportCategory()
+            view.reportSubmitBtn.text =  "Report Video"
+            view.title.text =  "Report Video"
+        }else if(viewType == ConstValFile.NotInterestedDialogView){
+            getNotInterestedCategory()
+            view.reportSubmitBtn.text =  "Not Interested"
+            view.title.text =  "Not Interested"
+        }else{
+            reportCategory()
+            view.reportSubmitBtn.text =  "Report User"
+            view.title.text =  "Report User"
+        }
+
+
         view.reportSubmitBtn.setOnClickListener {
             var reportCat = ""
             for (zz in listReport) {
@@ -62,15 +83,23 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
                 }
             }
             if (reportCat == ""){
-                myApplication.showToast("Please select one of these options..")
-            }else{
-                reportVideo(categoryID)
-                myApplication.showToast("Report Successfully..")
+                showToast("Please select one of these options..")
+            }
+            else{
+                if (viewType == ConstValFile.ReportDialogView){
+                    reportVideo(categoryID)
+//                    myApplication.showToast("Report Successfully..")
+                }else if(viewType == ConstValFile.NotInterestedDialogView){
+                    addIntoNoInterestedVideo(categoryID)
+//                    myApplication.showToast("Add Successfully..")
+                }else{
+                    reportVideo(categoryID)
+                }
                 dismiss()
             }
         }
-        reportCategory()
     }
+
 
     private fun reportCategory() {
         val reportCatReq = apiInterface.getReportCategory(sessionManager.getToken())
@@ -82,12 +111,33 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
                     val adapter = ReportCategoryAdapter(requireContext(),listReport,vID)
                     view.reportCycle.adapter = adapter
                 }else{
-                    myApplication.printLogE("No Data ${response.code()}",TAG)
+                    printLogE("No Data ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<ReportCategoryResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                printLogE(t.toString())
+            }
+
+        })
+    }
+
+    private fun getNotInterestedCategory() {
+        val reportCatReq = apiInterface.getNotInterestedCategory(sessionManager.getToken())
+
+        reportCatReq.enqueue(object : Callback<ReportCategoryResponse>{
+            override fun onResponse(call: Call<ReportCategoryResponse>, response: Response<ReportCategoryResponse>) {
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                    listReport = response.body()!!.data
+                    val adapter = ReportCategoryAdapter(requireContext(),listReport,vID)
+                    view.reportCycle.adapter = adapter
+                }else{
+                    printLogE("No Data ${response.code()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ReportCategoryResponse>, t: Throwable) {
+                printLogE(t.toString())
             }
 
         })
@@ -99,16 +149,41 @@ class VideoReportDialog(val vID:String) : BottomSheetDialogFragment() {
         reportVideoReq.enqueue(object :Callback<CommonResponse>{
             override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-//                    myApplication.showToast("Report Successfully..")
+                    showToast("Report Successfully..")
                 }else{
 //                    myApplication.printLogE("No Data ${response.code()}",TAG)
                 }
             }
             override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
-                myApplication.printLogE(t.message.toString(),TAG)
+                printLogE(t.message.toString())
             }
 
         })
     }
 
+    private fun addIntoNoInterestedVideo(categoryID: String) {
+        val reportVideoReq = apiInterface.addIntoNotInterestedVideo(sessionManager.getToken(),categoryID,vID)
+
+        reportVideoReq.enqueue(object :Callback<CommonResponse>{
+            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                    showToast("Add Successfully..")
+                }else{
+//                    myApplication.printLogE("No Data ${response.code()}",TAG)
+                }
+            }
+            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+                printLogE(t.message.toString())
+            }
+
+        })
+    }
+
+    fun showToast(msg:String){
+//        Toast.makeText(requireContext(),msg,Toast.LENGTH_SHORT).show()
+    }
+
+    fun printLogE(msg:String){
+        Log.e(TAG, msg)
+    }
 }

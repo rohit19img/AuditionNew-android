@@ -1,7 +1,9 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.img.audition.R
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityWalletBinding
@@ -9,6 +11,8 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.fragment.MusicListFragment
+import com.img.audition.screens.fragment.TransactionReportFragment
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,6 +25,9 @@ import kotlin.toString
 
 class WalletActivity : AppCompatActivity() {
 
+    companion object{
+        const val TRANS_TAG = "tarns_tag"
+    }
     val TAG = "WalletActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityWalletBinding.inflate(layoutInflater)
@@ -37,6 +44,32 @@ class WalletActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
         getUserSelfDetails()
 
+        viewBinding.btnAddCash.setOnClickListener {
+            sendToAddCashActivity()
+        }
+
+        viewBinding.btnWithdraw.setOnClickListener {
+            sendToWithdrawCashActivity()
+        }
+
+        viewBinding.transactionReportBtn.setOnClickListener {
+            showTransactionReportSheet()
+        }
+
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
+
+    }
+
+    private fun sendToAddCashActivity() {
+        val intent = Intent(this@WalletActivity,AddAmountActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun sendToWithdrawCashActivity() {
+        val intent = Intent(this@WalletActivity,WithdrawActivity::class.java)
+        startActivity(intent)
     }
 
     private val apiInterface by lazy{
@@ -92,6 +125,28 @@ class WalletActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    private fun showTransactionReportSheet() {
+        var transFragment = supportFragmentManager.findFragmentByTag(TRANS_TAG)
+        if (transFragment == null) {
+            transFragment = TransactionReportFragment.newInstance()
+
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(viewBinding.frameContainer.id,transFragment)
+            transaction.commit()
+        }
+        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
+        if (behavior.state != BottomSheetBehavior.STATE_EXPANDED) {
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        } else {
+            behavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+    }
+
+    fun closeBottomSheet() {
+        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
+        behavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
 }

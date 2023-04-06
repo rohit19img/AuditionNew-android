@@ -7,9 +7,11 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
@@ -29,6 +31,8 @@ import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.screens.fragment.MusicListFragment
+import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -133,7 +137,7 @@ import java.util.concurrent.TimeUnit
     override fun onDown() {
         viewBinding.showPreviewBtn.visibility = View.GONE
         var duration = 0
-        curreentVideoDuration.forEach { 
+        curreentVideoDuration.forEach {
             duration = it
         }
         myApplication.printLogD("onDown: duration : $duration",TAG)
@@ -163,24 +167,24 @@ import java.util.concurrent.TimeUnit
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
-            val cameraSelector = lensFacing
-
-
-
-            // Preview
             val preview = Preview.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setTargetRotation(viewBinding.previewView.display.rotation)
                 .build()
                 .also {
                     it.setSurfaceProvider(viewBinding.previewView.surfaceProvider)
                 }
+
             val recorder = Recorder.Builder()
-                .setQualitySelector(QualitySelector.from(Quality.SD))
+                .setQualitySelector(QualitySelector.from(Quality.HD))
                 .build()
             videoCapture = VideoCapture.withOutput(recorder)
 
 
-            // Select back camera as a default
+
+
+            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
+            val cameraSelector = lensFacing
 
 
             try {
@@ -233,23 +237,25 @@ import java.util.concurrent.TimeUnit
     private fun startRecording() {
 
 
-        val name = "audition-recording-" +
+       /* val name = "audition-recording-" +
                 SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-                    .format(System.currentTimeMillis()) + ".mp4"
+                    .format(System.currentTimeMillis()) + ".mp4"*/
 
-        val contentValues = ContentValues().apply {
+       /* val contentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
-        }
+        }*/
 
-        val mediaStoreOutputOptions = MediaStoreOutputOptions
+       /* val mediaStoreOutputOptions = MediaStoreOutputOptions
             .Builder(contentResolver,MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
             .setContentValues(contentValues)
-            .build()
+            .build()*/
         val videoCapture = this.videoCapture ?: return
+        val fileOutputOptions = FileOutputOptions.Builder(File(createFileAndFolder())).build()
 
 
         currentRecording = videoCapture.output
-            .prepareRecording(this, mediaStoreOutputOptions)
+
+            .prepareRecording(this, fileOutputOptions)
             .apply { if (PermissionChecker.checkSelfPermission(this@CameraActivity,
                     Manifest.permission.RECORD_AUDIO) ==
                 PermissionChecker.PERMISSION_GRANTED)
@@ -318,7 +324,6 @@ import java.util.concurrent.TimeUnit
                         myApplication.showToast("Video Max Duration Reached")
                     }
                 }
-
             }
             viewBinding.lineView.setLoadingProgress(time * 1.0f / maxVideoDuration)
         }
@@ -347,7 +352,24 @@ import java.util.concurrent.TimeUnit
     }
 
 
+    private fun createFileAndFolder():String{
+        val timestamp = System.currentTimeMillis()
+        val filename = "$timestamp.mp4"
+        val appData = filesDir
+        myApplication.printLogD(appData.absolutePath,TAG)
 
+        val createFile = File(appData,filename)
+        if (!(createFile.exists())){
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath,TAG)
+            }catch (i: IOException){
+                myApplication.printLogE(i.toString(),TAG)
+            }
+        }
 
+        return createFile.absolutePath
+
+    }
 
 }

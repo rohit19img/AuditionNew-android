@@ -38,14 +38,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
-class VideoFragment(context: Context) : Fragment() {
+@UnstableApi
+class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
     val TAG = "VideoFragment"
     val TRACK = "Check 100"
     var videoList1 = ArrayList<VideoData>()
-    val videoList2 = ArrayList<VideoData>()
-
     private lateinit var _viewBinding : FragmentVideoBinding
     private val view get() = _viewBinding
 
@@ -55,18 +53,22 @@ class VideoFragment(context: Context) : Fragment() {
     lateinit var locationManager: LocationManager
     var authToken = ""
     private val sessionManager by lazy {
-        SessionManager(context)
+        SessionManager(requireContext())
     }
     private val myApplication by lazy {
-        MyApplication(context)
+        MyApplication(requireContext())
     }
 
-    lateinit var viewPager : ViewPager2
     lateinit var videoAdapter: VideoAdapter
+    val videoList2 = ArrayList<VideoData>()
+
+    lateinit var viewPager : ViewPager2
+
     lateinit var videoItemPlayPause:VideoItemPlayPause
     lateinit var videoShimmerEffect:ShimmerFrameLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         Log.d(TRACK, "onCreate: ")
         appPermission =  AppPermission(requireActivity(),ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
@@ -106,6 +108,7 @@ class VideoFragment(context: Context) : Fragment() {
     }
 
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
+
         super.onViewCreated(view1, savedInstanceState)
         viewPager = view.videoViewpager2
 
@@ -133,7 +136,7 @@ class VideoFragment(context: Context) : Fragment() {
         }
 
 
-        apiVideoRequest.enqueue(@UnstableApi object : Callback<VideoResponse> {
+        apiVideoRequest.enqueue( object : Callback<VideoResponse> {
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.code()==401){
                     sessionManager.clearLogoutSession()
@@ -147,10 +150,14 @@ class VideoFragment(context: Context) : Fragment() {
                         videoShimmerEffect.hideShimmer()
                         videoShimmerEffect.visibility = View.GONE
                         if (videoList2.size == 0){
-                            videoList2.addAll(videoList1)
-                            videoAdapter = VideoAdapter(context!!,videoList2)
-                            viewPager.adapter = videoAdapter
-                            videoItemPlayPause = videoAdapter.onActivityStateChanged()
+                           try {
+                               videoList2.addAll(videoList1)
+                               videoAdapter = VideoAdapter(contextFromActivity,videoList2)
+                               viewPager.adapter = videoAdapter
+                               videoItemPlayPause = videoAdapter.onActivityStateChanged()
+                           }catch (e:Exception){
+                               myApplication.printLogE(e.toString(),TAG)
+                           }
 
                         }else{
                             videoList2.addAll(videoList1)
@@ -166,7 +173,7 @@ class VideoFragment(context: Context) : Fragment() {
             }
 
             override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                myApplication.printLogE(t.message.toString(),TAG)
+                myApplication.printLogE(t.message.toString(),TAG+"1")
             }
 
         })
@@ -198,7 +205,7 @@ class VideoFragment(context: Context) : Fragment() {
             val holder: VideoAdapter.VideoViewHolder = (viewPager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
             videoItemPlayPause.onPause(holder,cPos)
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG)
+            myApplication.printLogE(e.message.toString(),TAG+"2")
         }
         super.onPause()
     }
@@ -210,31 +217,38 @@ class VideoFragment(context: Context) : Fragment() {
            val holder: VideoAdapter.VideoViewHolder = (viewPager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
            videoItemPlayPause.onPause(holder,cPos)
        }catch (e:Exception){
-           myApplication.printLogE(e.message.toString(),TAG)
+           myApplication.printLogE(e.message.toString(),TAG+"3")
        }
         super.onStop()
 
     }
 
     override fun onResume() {
+
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
                 if (position == videoList2.size-2){
-                    showReels()
+//                    showReels()
                     myApplication.printLogD("call again showReels",TAG)
                 }
             }
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                myApplication.printLogD(position.toString(),"check 200")
+                if (position == videoList2.size-3){
+                    showReels()
+                    myApplication.printLogD("Api Call","check 800")
+                    myApplication.printLogD(position.toString(),"check 800")
+                }
+
+
                 try {
                     val cPos = position
                     val holder: VideoAdapter.VideoViewHolder = (viewPager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
 
                 }catch (e:Exception){
-                    myApplication.printLogE(e.message.toString(),TAG)
+                    myApplication.printLogE(e.message.toString(),TAG+"4")
                 }
             }
         })
@@ -244,7 +258,7 @@ class VideoFragment(context: Context) : Fragment() {
             val holder: VideoAdapter.VideoViewHolder = (viewPager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
             videoItemPlayPause.onResume(holder,cPos)
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG)
+            myApplication.printLogE(e.message.toString(),TAG+"5")
         }
         Log.d(TRACK, "onResume: ")
         super.onResume()

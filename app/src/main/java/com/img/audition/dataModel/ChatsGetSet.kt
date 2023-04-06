@@ -12,3 +12,13 @@ class ChatsGetSet {
     var createdAt: String = ""
     var updatedAt: String = ""
 }
+
+class CommentData{
+    var auditionID : String = ""
+    var comment : String? = ""
+    var commentBy : String? = ""
+    var createdAt : String? = ""
+    var postID : String? = ""
+    var userID : String? = ""
+    var userImage : String? = ""
+}

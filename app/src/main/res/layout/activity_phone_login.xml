@@ -59,6 +59,8 @@
             android:background="@drawable/bg_edittext"
             android:id="@+id/countyCodePicker"
             android:layout_marginHorizontal="10dp"
+            android:clickable="false"
+            app:ccp_clickable="false"
             android:layout_width="wrap_content"
             app:ccp_areaCodeDetectedCountry="true"
             app:ccp_arrowColor="@color/textColorWhite"

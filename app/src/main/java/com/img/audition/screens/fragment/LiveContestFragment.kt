@@ -57,18 +57,22 @@ class LiveContestFragment : Fragment() {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val contestData = response.body()!!.data
                     if (contestData.size>0){
+                        view.noLiveContest.visibility = View.GONE
                            val contestAdapter = ContestLiveAdapter(requireContext(),contestData)
                             view.contestViewpager2.adapter = contestAdapter
                     }else{
                         myApplication.printLogD(" No Live Contest",TAG)
+                        view.noLiveContest.visibility = View.VISIBLE
                     }
                 }else{
                     myApplication.printLogE(response.toString(),TAG)
+                    view.noLiveContest.visibility = View.VISIBLE
                 }
             }
 
             override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
+                view.noLiveContest.visibility = View.VISIBLE
             }
 
         })

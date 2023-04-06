@@ -71,6 +71,15 @@ class PanValidationFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentPanValidationBinding.inflate(inflater,container,false)
 
+
+
+
+        return view.root
+    }
+
+    override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view1, savedInstanceState)
+
         AllVerify()
 
         view.dob.setOnClickListener {
@@ -84,9 +93,6 @@ class PanValidationFragment : Fragment() {
         view.btnUpload.setOnClickListener {
             selectImage()
         }
-
-
-        return view.root
     }
 
     fun validate() {
@@ -129,7 +135,7 @@ class PanValidationFragment : Fragment() {
                 }
 
                 @Throws(AuthFailureError::class)
-                override fun getHeaders(): Map<String, String?>? {
+                override fun getHeaders(): Map<String, String?> {
                     val params: MutableMap<String, String?> = HashMap()
                     params["Authorization"] = sessionManager.getToken()
                     Log.i("Header", params.toString())

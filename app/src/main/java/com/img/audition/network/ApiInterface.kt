@@ -2,6 +2,8 @@ package com.img.audition.network
 
 import com.google.gson.JsonObject
 import com.img.audition.dataModel.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -85,12 +87,18 @@ interface ApiInterface {
     @GET(APITags.GetReportCategory)
     fun getReportCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
 
+    @GET(APITags.GetNotInterestedCategory)
+    fun getNotInterestedCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
+
     @GET(APITags.ReportVideo)
     fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommonResponse>
 
-    @GET("getChatHistory")
+    @GET(APITags.addIntoNotInterested)
+    fun addIntoNotInterestedVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("catId") contestId: String?, @Query("videoId") videoID: String?): Call<CommonResponse>
+
+    @GET(APITags.GetChatHistory)
     fun getChatHistory(
-        @Header("Authorization") Auth: String?,
+        @Header(APITags.AUTHORIZATION) Auth: String?,
         @Query("receiverId") contestId: String?,
         @Query("page") page_no: Int
     ): Call<ChatsGetSet>
@@ -100,5 +108,46 @@ interface ApiInterface {
         @Header("Authorization") Auth: String?,
         @Body login: JsonObject?
     ): Call<Searchgetset>
+    @GET(APITags.GetSavedVideos)
+    fun getSavedVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
+
+
+    @Multipart
+    @POST(APITags.EditUserProfile)
+    fun editProfile(
+        @Header(APITags.AUTHORIZATION) auth: String?,
+        @Part("typename") typename: RequestBody?,
+        @Part("name") name: RequestBody?,
+        @Part("audition_id") suditionid: RequestBody?,
+        @Part image: MultipartBody.Part?,
+        @Part("bio") bio: RequestBody?,
+        @Part("gender") gender: RequestBody?,
+        @Part("dob") dob: RequestBody?
+    ): Call<CommonResponse>
+
+    @Multipart
+    @POST(APITags.EditUserProfile)
+    fun editProfile(
+        @Header(APITags.AUTHORIZATION) auth: String?,
+        @Part("typename") typename: RequestBody?,
+        @Part("name") name: RequestBody?,
+        @Part("audition_id") suditionid: RequestBody?,
+        @Part("bio") bio: RequestBody?,
+        @Part("gender") gender: RequestBody?,
+        @Part("dob") dob: RequestBody?
+    ): Call<CommonResponse>
+
+    @GET(APITags.blockUnblock)
+    fun blockUnblockUser(
+        @Header(APITags.AUTHORIZATION) Auth: String?,
+        @Query("blockId") videoid: String?,
+        @Query("status") status: String?
+    ): Call<CommonResponse>
+
+    @GET(APITags.GetAddCashOffer)
+    fun getOfferDetails(@Header("Authorization") Auth: String?): Call<OfferDataResponse>
+
+    @GET(APITags.GetUserTransactions)
+    fun getTransactions(@Header("Authorization") Auth: String?): Call<TransactionReportResponse>
 
 }

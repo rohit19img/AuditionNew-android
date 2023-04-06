@@ -54,8 +54,8 @@ class SessionManager(context: Context) {
 
         prefEditorMain.clear()
         prefEditorMain.commit()
-        prefEditorLang.clear()
-        prefEditorLang.commit()
+       /* prefEditorLang.clear()
+        prefEditorLang.commit()*/
     }
 
     fun setSelectedLanguage(selected_Lang:String){

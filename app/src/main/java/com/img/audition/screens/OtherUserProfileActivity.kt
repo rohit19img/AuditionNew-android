@@ -1,17 +1,22 @@
 package com.img.audition.screens
 
+import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
 import com.img.audition.adapters.VideoItemAdapter
+import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.FollowFollowingResponse
 import com.img.audition.dataModel.GetOtherUserResponse
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.ActivityOtherUserProfileBinding
@@ -20,12 +25,13 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.fragment.VideoReportDialog
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
-class OtherUserProfileActivity : AppCompatActivity() {
+@UnstableApi class OtherUserProfileActivity : AppCompatActivity() {
 
     val TAG = "OtherUserProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -49,6 +55,7 @@ class OtherUserProfileActivity : AppCompatActivity() {
 
     lateinit var userID : String
     lateinit var userimage : String
+    var followStatus: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,13 +86,84 @@ class OtherUserProfileActivity : AppCompatActivity() {
             myApplication.showToast("Id Copied..")
         }
 
+        viewBinding.menuIcBtn.setOnClickListener {
+            showReportAndBlockDialog()
+        }
+
+    }
+
+    private fun showReportAndBlockDialog() {
+        val dialog1 = BottomSheetDialog(this@OtherUserProfileActivity,R.style.CustomBottomSheetDialogTheme)
+        dialog1.setContentView(R.layout.report_and_block_dialog)
+
+        val report = dialog1.findViewById<TextView>(R.id.report)
+        val block = dialog1.findViewById<TextView>(R.id.block)
+
+        report?.setOnClickListener {
+            if (!sessionManager.isUserLoggedIn()){
+                sendToLoginScreen()
+            }else{
+                val showReportDialog = VideoReportDialog(this@OtherUserProfileActivity,userID,ConstValFile.ReportUserView)
+                showReportDialog.show(supportFragmentManager,showReportDialog.tag)
+            }
+            dialog1.dismiss()
+        }
+
+        block?.setOnClickListener {
+            if (!sessionManager.isUserLoggedIn()){
+                sendToLoginScreen()
+            }else{
+                val dialogBuilder = AlertDialog.Builder(this@OtherUserProfileActivity)
+                dialogBuilder.setTitle("Block user")
+                dialogBuilder.setMessage("Do you want block this user")
+                    .setCancelable(false)
+                    .setPositiveButton("Block", DialogInterface.OnClickListener {
+                            _, _ -> blockUnblockUser(ConstValFile.Block)
+                    })
+                    .setNegativeButton("NO") { dialog, _ ->
+                        dialog.cancel()
+                    }
+                val alert = dialogBuilder.create()
+                alert.show()
+            }
+            dialog1.dismiss()
+        }
+
+        dialog1.show()
+
+    }
+
+    private fun blockUnblockUser(status: String) {
+        val blockUnblockReq = apiInterface.blockUnblockUser(sessionManager.getToken(),
+        userID,status)
+
+        blockUnblockReq.enqueue(object :Callback<CommonResponse>{
+            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+                if (response.isSuccessful && response.body()?.success!!){
+                    startActivity(Intent(this@OtherUserProfileActivity, HomeActivity::class.java))
+                    finish()
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
+                }
+            }
+
+            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
     }
 
     override fun onStart() {
         userID = bundle!!.getString(ConstValFile.USER_IDFORIntent).toString()
-        val followStatus =  bundle!!.getBoolean(ConstValFile.UserFollowStatus,false)
+        followStatus =  bundle!!.getBoolean(ConstValFile.UserFollowStatus,false)
         getUserData(userID,followStatus)
 
+        if (followStatus){
+            viewBinding.followBtn.text = ConstValFile.Following
+        }else{
+            viewBinding.followBtn.text = ConstValFile.Follow
+        }
         getUserVideo(userID)
         super.onStart()
     }
@@ -158,11 +236,7 @@ class OtherUserProfileActivity : AppCompatActivity() {
 
                     viewBinding.userID.text = userData.auditionId.toString()
 
-                    if (userData.followStatus!!){
-                        viewBinding.followBtn.text = ConstValFile.Following
-                    }else{
-                        viewBinding.followBtn.text = ConstValFile.Follow
-                    }
+
                 }else{
                     myApplication.printLogE("Get User Response Failed ${response.code()}",TAG)
                 }
@@ -175,5 +249,59 @@ class OtherUserProfileActivity : AppCompatActivity() {
         })
     }
 
+    fun sendToLoginScreen(){
+        val intent = Intent(this@OtherUserProfileActivity, LoginActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+    }
 
+    private fun followUserApi(userId: String?, status: String) {
+        myApplication.printLogD("followUserApi: $userId $status",TAG)
+        val ffReq = apiInterface.followFollowing(sessionManager.getToken(),userId,status)
+        ffReq.enqueue(object : Callback<FollowFollowingResponse>{
+            override fun onResponse(call: Call<FollowFollowingResponse>, response: Response<FollowFollowingResponse>) {
+                if (response.isSuccessful){
+                    myApplication.printLogD("onResponse: FollowFollowing ${response.toString()}",TAG)
+                }else{
+                    myApplication.printLogE("onResponse: FollowFollowing ${response.toString()}",TAG)
+                }
+            }
+            override fun onFailure(call: Call<FollowFollowingResponse>, t: Throwable) {
+                myApplication.printLogE("onFailure: FollowFollowing ${t.toString()}",TAG)
+
+            }
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewBinding.followBtn.setOnClickListener {
+            viewBinding.followBtn.isSelected = false
+            if (!(sessionManager.isUserLoggedIn())){
+                myApplication.showToast(ConstValFile.LoginMsg)
+                sendToLoginScreen()
+            }else {
+               try {
+                   /*val list = (VideoFragment).videoList2
+                   val adapter = (VideoFragment).videoAdapter
+                   val position = bundle!!.getInt(ConstValFile.UserPositionInList)
+                   if (!(list[position].followStatus!!)){
+                       list[position].followStatus = true
+                       adapter.notifyDataSetChanged()
+                        Thread { followUserApi(userID, "followed") }
+                       viewBinding.followBtn.text = ConstValFile.Following
+                       viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
+                   }else{
+                       list[position].followStatus = false
+                       adapter.notifyDataSetChanged()
+                       followUserApi(userID,"unfollowed")
+                       viewBinding.followBtn.text = ConstValFile.Follow
+                       viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.NORMAL)
+                   }*/
+               }catch (e:Exception){
+                   myApplication.printLogE(e.toString(),TAG)
+               }
+            }
+        }
+    }
 }

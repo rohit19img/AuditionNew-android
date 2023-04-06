@@ -44,11 +44,11 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
     }
 
     fun printLogE(logMessage: String,TAG:String){
-        Log.d(TAG, "printLogD: ${logMessage}")
+        Log.e(TAG, "printLogE: ${logMessage}")
     }
 
     fun printLogI(logMessage: String,TAG:String){
-        Log.d(TAG, "printLogD: ${logMessage}")
+        Log.i(TAG, "printLogI: ${logMessage}")
     }
 
      fun onGPS() {

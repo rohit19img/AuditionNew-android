@@ -16,7 +16,6 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.android.volley.*
-import com.android.volley.toolbox.HttpHeaderParser
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
@@ -42,7 +41,7 @@ class BankVerificationFragment : Fragment() {
     var image_path = ""
 
     private lateinit var _viewBinding : FragmentBankVerificationBinding
-    private val view get() = _viewBinding!!
+    private val view get() = _viewBinding
     private val sessionManager by lazy {
         SessionManager(requireContext())
     }
@@ -55,31 +54,42 @@ class BankVerificationFragment : Fragment() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        requestQueue = Volley.newRequestQueue(context)
 
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _viewBinding = FragmentBankVerificationBinding.inflate(inflater,container,false)
 
 
-        requestQueue = Volley.newRequestQueue(context)
+        return _viewBinding.root
+
+    }
+
+    override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view1, savedInstanceState)
 
         val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
-        view.stateSpinner.setAdapter(StateListAdapter(requireContext(), stateAr))
+        view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
-        view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapterView: AdapterView<*>?, view1: View, i: Int, l: Long) {
-                state = stateAr[i]
-                if (view.stateSpinner.selectedView != null)
-                    (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
-            }
+      try {
+          view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+              override fun onItemSelected(adapterView: AdapterView<*>, view1: View, i: Int, l: Long) {
+                    myApplication.printLogD(stateAr[i],"stateAr")
+                  state = stateAr[i]
+                  if (view.stateSpinner.selectedView != null)
+                      (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
+              }
 
-            override fun onNothingSelected(adapterView: AdapterView<*>?) {}
-        }
+              override fun onNothingSelected(adapterView: AdapterView<*>?) {}
+      }
+      }catch (e:java.lang.Exception){
+          myApplication.printLogE(e.toString(),TAG)
+
+      }
 
         view.btnUpload.setOnClickListener {
             selectImage()
@@ -89,9 +99,6 @@ class BankVerificationFragment : Fragment() {
             if (validate())
                 VerifyBankDetails()
         }
-
-        return view.root
-
     }
 
     private fun selectImage() {

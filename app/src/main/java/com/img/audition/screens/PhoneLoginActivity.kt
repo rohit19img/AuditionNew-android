@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.media3.common.util.UnstableApi
 import com.img.audition.dataModel.LoginResponse
 import com.img.audition.dataModel.NumLoginRequest
 import com.img.audition.dataModel.CommonResponse
@@ -18,7 +19,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class PhoneLoginActivity : AppCompatActivity() {
+@UnstableApi class PhoneLoginActivity : AppCompatActivity() {
 
     val TAG = "PhoneLoginActivity"
     var number = ""
@@ -39,7 +40,6 @@ class PhoneLoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
-
 
         viewBinding.closeActivityButton.setOnClickListener {
             onBackPressed()
@@ -73,7 +73,7 @@ class PhoneLoginActivity : AppCompatActivity() {
     }
 
     private fun loginWithOTP(number: String, otp: String, fcmToken: String?) {
-        myApplication.showToast(otp)
+//        myApplication.showToast(otp)
         val  otpRequest = OTPRequest(number,otp.toInt(),fcmToken)
         val apiOTPRequest = apiInterface.OTP_Login(otpRequest)
         apiOTPRequest.enqueue(object : Callback<LoginResponse>{
@@ -113,6 +113,7 @@ class PhoneLoginActivity : AppCompatActivity() {
         loginReq.enqueue(object:Callback<CommonResponse>{
             override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
                 if (response.isSuccessful){
+                    viewBinding.phoneNumberET.isEnabled = false
                     viewBinding.otpLayout.visibility = View.VISIBLE
                     viewBinding.getOtpBtn.visibility = View.GONE
                     myApplication.showToast("OTP Sent..")

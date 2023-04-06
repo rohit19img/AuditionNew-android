@@ -64,6 +64,7 @@
                 android:src="@drawable/rupee_ic" />
 
             <ImageView
+                android:visibility="gone"
                 android:id="@+id/block"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
@@ -268,17 +269,27 @@
             />-->
 
 
-        <ImageView
-            android:id="@+id/noVideo"
-            android:background="@color/bgColorWhite"
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmerVideoView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/editProLy">
+
+            <include layout="@layout/user_videoitem_view_shimer" />
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <ImageView
+            android:id="@+id/noVideo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/editProLy"
+            android:background="@color/bgColorWhite"
             android:src="@drawable/no_video"
             android:visibility="gone"
-            app:tint="@color/bgColorDarkRed"
-            android:layout_below="@+id/editProLy"
-            />
+            app:tint="@color/bgColorDarkRed" />
         <androidx.recyclerview.widget.RecyclerView
+            android:visibility="gone"
             android:layout_below="@+id/editProLy"
             android:background="@color/bgColorWhite"
             tools:listitem="@layout/video_item_view"

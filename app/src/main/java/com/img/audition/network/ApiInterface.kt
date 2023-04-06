@@ -1,5 +1,6 @@
 package com.img.audition.network
 
+import com.google.gson.JsonObject
 import com.img.audition.dataModel.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -102,6 +103,11 @@ interface ApiInterface {
         @Query("page") page_no: Int
     ): Call<ChatsGetSet>
 
+    @POST("search")
+    fun search(
+        @Header("Authorization") Auth: String?,
+        @Body login: JsonObject?
+    ): Call<Searchgetset>
     @GET(APITags.GetSavedVideos)
     fun getSavedVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
 

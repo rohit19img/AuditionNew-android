@@ -57,7 +57,6 @@ class MessageActivity : AppCompatActivity() {
         viewBinding = ActivityMessageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-
         viewBinding.backPressIC.setOnClickListener {
             finish()
         }

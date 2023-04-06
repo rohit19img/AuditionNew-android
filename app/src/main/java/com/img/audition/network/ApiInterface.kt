@@ -1,5 +1,6 @@
 package com.img.audition.network
 
+import com.google.gson.JsonObject
 import com.img.audition.dataModel.*
 import retrofit2.Call
 import retrofit2.http.*
@@ -93,5 +94,11 @@ interface ApiInterface {
         @Query("receiverId") contestId: String?,
         @Query("page") page_no: Int
     ): Call<ChatsGetSet>
+
+    @POST("search")
+    fun search(
+        @Header("Authorization") Auth: String?,
+        @Body login: JsonObject?
+    ): Call<Searchgetset>
 
 }

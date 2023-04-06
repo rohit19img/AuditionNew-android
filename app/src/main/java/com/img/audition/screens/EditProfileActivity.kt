@@ -26,7 +26,6 @@ import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.*
-import com.img.audition.screens.fragment.ProfileFragment
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody

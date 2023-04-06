@@ -57,17 +57,17 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-@UnstableApi class VideoAdapter(val context:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
+@UnstableApi class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
     val TAG = "VideoAdapter"
 
     var Ar = arrayOf(-1,0)
-    val  sessionManager = SessionManager(context.applicationContext)
+    val  sessionManager = SessionManager(contextFromActivity.applicationContext)
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     var firestore = FirebaseFirestore.getInstance()
     lateinit var commentList : ArrayList<CommentData>
 
     private val myApplication by lazy {
-        MyApplication(context.applicationContext)
+        MyApplication(contextFromActivity.applicationContext)
     }
     var cPos = 0
 
@@ -102,7 +102,7 @@ import retrofit2.Response
         DefaultHttpDataSource.Factory()
         .setUserAgent("ExoPlayer"))
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
-        var exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
+        var exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext).build()
         //
     }
 
@@ -136,11 +136,11 @@ import retrofit2.Response
             myApplication.printLogD("onBindViewHolder: ${list.file}","videoUrl")
 
             if (list.likeStatus!!){
-                likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.liked_ic))
-                likeBtn.setColorFilter(context.resources.getColor(R.color.likeHeartRed))
+                likeBtn.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic))
+                likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.likeHeartRed))
             }else{
-                likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.like_ic))
-                likeBtn.setColorFilter(context.resources.getColor(R.color.white))
+                likeBtn.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic))
+                likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
             }
             if (list.followStatus!!){
                 followBtn.text = ConstValFile.Following
@@ -159,8 +159,8 @@ import retrofit2.Response
             likeBtn.setOnClickListener {
                 if (list.likeStatus!!){
                     likeBtn.isSelected = false
-                    likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.like_ic))
-                    likeBtn.setColorFilter(context.resources.getColor(R.color.bgColorWhite))
+                    likeBtn.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic))
+                    likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.bgColorWhite))
                     list.likeStatus = false
                     likeVideo(list.Id,"unlike")
                     val newlikeCount = list.likeCount?.minus(1)
@@ -171,8 +171,8 @@ import retrofit2.Response
                     }
                     likeCount.text = newlikeCount.toString()
                 }else{
-                    likeBtn.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.liked_ic))
-                    likeBtn.setColorFilter(context.resources.getColor(R.color.likeHeartRed))
+                    likeBtn.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic))
+                    likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.likeHeartRed))
                     likeBtn.isSelected = true
                     likeVideo(list.Id,"liked")
                     list.likeStatus = true
@@ -226,7 +226,7 @@ import retrofit2.Response
 
             likeCount.text = list.likeCount.toString()
             shareCount.text = list.shares.toString()
-            Glide.with(context).load(list.image).placeholder(R.drawable.person_ic).into(userProfile)
+            Glide.with(contextFromActivity).load(list.image).placeholder(R.drawable.person_ic).into(userProfile)
             userName.text = list.auditionId
             audioName.text = list.auditionId +" - Original Audio"
 
@@ -246,7 +246,7 @@ import retrofit2.Response
     }
 
     private fun moredialog(i: Int) {
-        val dialog1 = BottomSheetDialog(context,R.style.CustomBottomSheetDialogTheme)
+        val dialog1 = BottomSheetDialog(contextFromActivity,R.style.CustomBottomSheetDialogTheme)
         dialog1.setContentView(R.layout.more_dialog)
         val tv_watch_later = dialog1.findViewById<TextView>(R.id.tv_watch_later)
         val iv_share_not_intersested = dialog1.findViewById<ImageView>(R.id.iv_share_not_intersested)
@@ -265,13 +265,13 @@ import retrofit2.Response
 
         boostPost.setOnClickListener(View.OnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
-                val intent = Intent(context.applicationContext, LoginActivity::class.java)
-                context.startActivity(intent)
+                val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                contextFromActivity.startActivity(intent)
             } else {
-               /* val intent = Intent(context.applicationContext, BoostPostActivity::class.java)
+               /* val intent = Intent(contextFromActivity.applicationContext, BoostPostActivity::class.java)
                 intent.putExtra("videoID", list.get(i).get_id())
                 Log.d("videoID", "onClick:" + list.get(i).get_id())
-                context.startActivity(intent)*/
+                contextFromActivity.startActivity(intent)*/
 
                 myApplication.showToast("Post Boost..")
             }
@@ -287,11 +287,11 @@ import retrofit2.Response
         iv_share_not_intersested!!.setOnClickListener { view: View? ->
             if (!sessionManager.isUserLoggedIn()) {
                 val intent =
-                    Intent(context.applicationContext, LoginActivity::class.java)
-                context.startActivity(intent)
+                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                contextFromActivity.startActivity(intent)
             } else {
-                val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
-                val showReportDialog = VideoReportDialog(videoList[i].Id.toString(),ConstValFile.NotInterestedDialogView)
+                val manager: FragmentManager = (contextFromActivity as AppCompatActivity).supportFragmentManager
+                val showReportDialog = VideoReportDialog(contextFromActivity,videoList[i].Id.toString(),ConstValFile.NotInterestedDialogView)
                 showReportDialog.show(manager,showReportDialog.tag)
                 dialog1.dismiss()
             }
@@ -307,17 +307,17 @@ import retrofit2.Response
         iv_share_duet!!.setOnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
                 val intent =
-                    Intent(context.applicationContext, LoginActivity::class.java)
-                context.startActivity(intent)
+                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                contextFromActivity.startActivity(intent)
             } else {
-                Toast.makeText(context, "Coming Soon..", Toast.LENGTH_SHORT).show()
+                Toast.makeText(contextFromActivity, "Coming Soon..", Toast.LENGTH_SHORT).show()
             }
         }
 
         iv_share_watch_later!!.setOnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
-                val intent = Intent(context.applicationContext, LoginActivity::class.java)
-                context.startActivity(intent)
+                val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                contextFromActivity.startActivity(intent)
             } else {
                 if (!(videoList[i].isSaved)!!) {
                     tv_watch_later.text = ConstValFile.RemoveFromWatch
@@ -335,12 +335,12 @@ import retrofit2.Response
 
         iv_share_report!!.setOnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
-                val intent = Intent(context.applicationContext, LoginActivity::class.java)
-                context.startActivity(intent)
+                val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                contextFromActivity.startActivity(intent)
             } else {
-                val manager: FragmentManager = (context as AppCompatActivity).supportFragmentManager
+                val manager: FragmentManager = (contextFromActivity as AppCompatActivity).supportFragmentManager
 
-                val showReportDialog = VideoReportDialog(videoList[i].Id.toString(),ConstValFile.ReportDialogView)
+                val showReportDialog = VideoReportDialog(contextFromActivity,videoList[i].Id.toString(),ConstValFile.ReportDialogView)
                 showReportDialog.show(manager,showReportDialog.tag)
             }
             dialog1.dismiss()
@@ -388,7 +388,7 @@ import retrofit2.Response
     }
 
     private fun shareDialog(i: Int) {
-        val dialog1 = BottomSheetDialog(context,R.style.CustomBottomSheetDialogTheme)
+        val dialog1 = BottomSheetDialog(contextFromActivity,R.style.CustomBottomSheetDialogTheme)
         dialog1.setContentView(R.layout.share_dailog)
         val iv_share_chat = dialog1.findViewById<ImageView>(R.id.iv_share_chat)
         val iv_share_whatsapp = dialog1.findViewById<ImageView>(R.id.iv_share_whatsapp)
@@ -401,13 +401,13 @@ import retrofit2.Response
 
         iv_share_chat!!.setOnClickListener {
             val shareBody: String = videoList[i].file.toString()
-           /* val intent = Intent(context.applicationContext, Message_Activity::class.java)
+           /* val intent = Intent(contextFromActivity.applicationContext, Message_Activity::class.java)
             val bundle = Bundle()
             bundle.putString("url204", shareBody + " userid " + list.get(i).getUserId())
             bundle.putString("userid", list.get(i).getAudition_id())
             bundle.putString("img", list.get(i).getImage())
             intent.putExtras(bundle)
-            context.startActivity(intent)*/
+            contextFromActivity.startActivity(intent)*/
             myApplication.showToast("Send To Message Activity..")
         }
 
@@ -417,7 +417,7 @@ import retrofit2.Response
             intent.type = "text/plain"
             intent.setPackage("com.whatsapp")
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
@@ -427,7 +427,7 @@ import retrofit2.Response
             intent.type = "text/plain"
             intent.setPackage("com.facebook.katana")
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
@@ -437,14 +437,14 @@ import retrofit2.Response
             intent.type = "text/plain"
             intent.setPackage("com.instagram.android")
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
         iv_share_link!!.setOnClickListener { v: View? ->
-            Toast.makeText(context, "Copied..", Toast.LENGTH_LONG).show()
+            Toast.makeText(contextFromActivity, "Copied..", Toast.LENGTH_LONG).show()
             val clipboard =
-                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                contextFromActivity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val shareBody: String = videoList.get(i).file.toString()
             val check = ClipData.newPlainText("label", shareBody)
             clipboard.setPrimaryClip(check)
@@ -457,7 +457,7 @@ import retrofit2.Response
             intent.type = "text/plain"
             intent.setPackage("com.snapchat.android")
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
@@ -467,7 +467,7 @@ import retrofit2.Response
             intent.type = "text/plain"
             intent.setPackage("com.twitter.android")
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
@@ -476,7 +476,7 @@ import retrofit2.Response
             val shareBody: String = videoList.get(i).file.toString()
             intent.type = "text/plain"
             intent.putExtra(Intent.EXTRA_TEXT, shareBody)
-            context.startActivity(Intent.createChooser(intent, "Audition"))
+            contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
 
@@ -484,14 +484,14 @@ import retrofit2.Response
     }
 
     private fun sendToVideoUserProfile(bundle: Bundle) {
-        val intent = Intent(context, OtherUserProfileActivity::class.java)
+        val intent = Intent(contextFromActivity, OtherUserProfileActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
-        context.startActivity(intent)
+        contextFromActivity.startActivity(intent)
     }
 
 
     private fun showToast(msg: String) {
-        Toast.makeText(context.applicationContext,msg,Toast.LENGTH_SHORT).show()
+        Toast.makeText(contextFromActivity.applicationContext,msg,Toast.LENGTH_SHORT).show()
     }
 
     override fun onViewAttachedToWindow(holder: VideoViewHolder) {
@@ -535,7 +535,7 @@ import retrofit2.Response
                 if (exoPlayer.isPlaying){
                     exoPlayer.pause()
                     playPauseIc.visibility = View.VISIBLE
-                    playPauseIc.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.play_ic))
+                    playPauseIc.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.play_ic))
 
                 }else{
                     exoPlayer.prepare()
@@ -547,10 +547,10 @@ import retrofit2.Response
             audioImage.setOnClickListener {
                 if (exoPlayer.volume == 0F){
                     exoPlayer.volume = 1F
-                    audioImage.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.volume_on_ic))
+                    audioImage.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.volume_on_ic))
                 }else{
                     exoPlayer.volume = 0F
-                    audioImage.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.volume_off_ic))
+                    audioImage.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.volume_off_ic))
                 }
             }
             exoPlayer.addListener(object : Player.Listener{
@@ -748,9 +748,9 @@ import retrofit2.Response
     }
 
     fun sendToLoginScreen(){
-        val intent = Intent(context, LoginActivity::class.java)
+        val intent = Intent(contextFromActivity, LoginActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        context.startActivity(intent)
+        contextFromActivity.startActivity(intent)
     }
 
     private fun likeVideo(id: String?, status: String) {
@@ -800,15 +800,15 @@ import retrofit2.Response
         request.allowScanningByMediaScanner()
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,ConstValFile.APP_NAME+"/"+timestamp.toString()+".mp4")
-        val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val manager = contextFromActivity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         manager.enqueue(request)
-        Toast.makeText(context, "Video Download started", Toast.LENGTH_SHORT).show()
+        Toast.makeText(contextFromActivity, "Video Download started", Toast.LENGTH_SHORT).show()
     }
 
     private fun showCommentDialog(bundle: Bundle) {
         val showCommentDialog = CommentBottomSheet()
         showCommentDialog.arguments = bundle
-        showCommentDialog.show((context as AppCompatActivity).
+        showCommentDialog.show((contextFromActivity as AppCompatActivity).
         supportFragmentManager, showCommentDialog.getTag())
     }
 

@@ -1,26 +1,20 @@
 package com.img.audition.screens.fragment
 
 import android.app.AlertDialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.*
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.facebook.shimmer.ShimmerFrameLayout
 import com.img.audition.R
 import com.img.audition.adapters.LanguageSelecteDialog
 import com.img.audition.adapters.VideoItemAdapter
@@ -38,16 +32,16 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi class ProfileFragment : Fragment() {
+@UnstableApi class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     val TAG = "ProfileFragment"
 
     private lateinit var _viewBinding : FragmentProfileBinding
     private val view get() = _viewBinding!!
     private val sessionManager by lazy {
-        SessionManager(requireContext())
+        SessionManager(contextFromActivity)
     }
     private val myApplication by lazy {
-        MyApplication(requireContext())
+        MyApplication(contextFromActivity)
     }
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
@@ -141,7 +135,7 @@ import retrofit2.Response
         }
 
         view.logout.setOnClickListener {
-            val dialogBuilder = AlertDialog.Builder(requireContext())
+            val dialogBuilder = AlertDialog.Builder(contextFromActivity)
             dialogBuilder.setTitle("Logout.")
             dialogBuilder.setMessage("Are you sure you want to Logout?")
                 .setCancelable(false)
@@ -158,12 +152,12 @@ import retrofit2.Response
 
     }
     private fun sendToVerificationActivity() {
-        val intent = Intent(requireContext(),VerificationActivity::class.java)
+        val intent = Intent(contextFromActivity,VerificationActivity::class.java)
         startActivity(intent)
     }
 
     private fun senToEditProfile() {
-        val intent = Intent(requireContext(),EditProfileActivity::class.java)
+        val intent = Intent(contextFromActivity,EditProfileActivity::class.java)
         startActivity(intent)
     }
 
@@ -171,18 +165,18 @@ import retrofit2.Response
         val bundle = Bundle()
         bundle.putInt(ConstValFile.PagePosition,pagePos)
         bundle.putString(ConstValFile.UserName,userName)
-        val intent = Intent(requireContext(),FollowFollowingListActivity::class.java)
+        val intent = Intent(contextFromActivity,FollowFollowingListActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
     }
 
     private fun sendToWalletActivity() {
-        val intent = Intent(requireContext(),WalletActivity::class.java)
+        val intent = Intent(contextFromActivity,WalletActivity::class.java)
         startActivity(intent)
     }
 
     private fun sendToCollectionActivity() {
-        val intent = Intent(requireContext().applicationContext,CollectionActivity::class.java)
+        val intent = Intent(contextFromActivity.applicationContext,CollectionActivity::class.java)
         startActivity(intent)
     }
 
@@ -196,7 +190,7 @@ import retrofit2.Response
             ) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                         sessionManager.clearLogoutSession()
-                        startActivity(Intent(requireContext(), SplashActivity::class.java))
+                        startActivity(Intent(contextFromActivity, SplashActivity::class.java))
                         requireActivity().finishAffinity()
 
 
@@ -229,7 +223,7 @@ import retrofit2.Response
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val videoData = response.body()!!.data
                     if (videoData.size>0) {
-                        val videoItemAdapter = VideoItemAdapter(requireContext(), videoData)
+                        val videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
                         userVideoRecycle.adapter = videoItemAdapter
                         view.shimmerVideoView.stopShimmer()
                         view.shimmerVideoView.hideShimmer()
@@ -266,7 +260,7 @@ import retrofit2.Response
                         followCount.text = userData!!.followersCount.toString()
                         followingCount.text = userData!!.followingCount.toString()
                         if (userData.image.toString().isNotEmpty()){
-                            Glide.with(this@ProfileFragment).load(userData.image.toString())
+                            Glide.with(contextFromActivity).load(userData.image.toString())
                                 .placeholder(R.drawable.person_ic).into(userImageView)
                             MyApplication.DownloadImageTask(userImageView).execute(userData.image.toString())
                         }else{

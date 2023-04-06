@@ -62,7 +62,8 @@ class ConstValFile {
         const val REQUEST_PERMISSION_CODE_STORAGE = 1004
         const val REQUEST_PERMISSION_CODE = 1000
 
-        val PERMISSION_LIST = listOf<String>(Manifest.permission.CAMERA,
+        val PERMISSION_LIST = listOf<String>(
+            Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_FINE_LOCATION,

@@ -61,11 +61,11 @@ class BankVerificationFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _viewBinding = FragmentBankVerificationBinding.inflate(inflater,container,false)
 
 
-        return view.root
+        return _viewBinding.root
 
     }
 
@@ -75,15 +75,21 @@ class BankVerificationFragment : Fragment() {
         val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
         view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
-        view?.stateSpinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(adapterView: AdapterView<*>, view1: View, i: Int, l: Long) {
-                state = stateAr[i]
-                if (view.stateSpinner.selectedView != null)
-                    (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
-            }
+      try {
+          view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+              override fun onItemSelected(adapterView: AdapterView<*>, view1: View, i: Int, l: Long) {
+                    myApplication.printLogD(stateAr[i],"stateAr")
+                  state = stateAr[i]
+                  if (view.stateSpinner.selectedView != null)
+                      (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
+              }
 
-            override fun onNothingSelected(adapterView: AdapterView<*>?) {}
-        }
+              override fun onNothingSelected(adapterView: AdapterView<*>?) {}
+      }
+      }catch (e:java.lang.Exception){
+          myApplication.printLogE(e.toString(),TAG)
+
+      }
 
         view.btnUpload.setOnClickListener {
             selectImage()

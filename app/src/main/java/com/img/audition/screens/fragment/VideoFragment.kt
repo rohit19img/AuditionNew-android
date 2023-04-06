@@ -39,7 +39,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @UnstableApi
-class VideoFragment : Fragment() {
+class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
     val TAG = "VideoFragment"
     val TRACK = "Check 100"
@@ -152,7 +152,7 @@ class VideoFragment : Fragment() {
                         if (videoList2.size == 0){
                            try {
                                videoList2.addAll(videoList1)
-                               videoAdapter = VideoAdapter(context!!,videoList2)
+                               videoAdapter = VideoAdapter(contextFromActivity,videoList2)
                                viewPager.adapter = videoAdapter
                                videoItemPlayPause = videoAdapter.onActivityStateChanged()
                            }catch (e:Exception){

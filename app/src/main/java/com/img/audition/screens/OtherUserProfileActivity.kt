@@ -103,7 +103,7 @@ import retrofit2.Response
             if (!sessionManager.isUserLoggedIn()){
                 sendToLoginScreen()
             }else{
-                val showReportDialog = VideoReportDialog(userID,ConstValFile.ReportUserView)
+                val showReportDialog = VideoReportDialog(this@OtherUserProfileActivity,userID,ConstValFile.ReportUserView)
                 showReportDialog.show(supportFragmentManager,showReportDialog.tag)
             }
             dialog1.dismiss()

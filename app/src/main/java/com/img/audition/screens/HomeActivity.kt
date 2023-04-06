@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,6 +22,8 @@ import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
+import java.io.File
+import java.io.IOException
 
 @UnstableApi class HomeActivity : AppCompatActivity() {
     val TAG = "HomeActivity"
@@ -43,6 +47,8 @@ import com.img.audition.screens.fragment.*
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
+
         appPermission =  AppPermission(this@HomeActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@HomeActivity)
         authToken = sessionManager.getToken().toString()
@@ -53,12 +59,12 @@ import com.img.audition.screens.fragment.*
 
         appPermission.checkPermissions()
 
-        loadFragment(VideoFragment())
+        loadFragment(VideoFragment(this@HomeActivity))
 
         viewBinding.bottomNav.setOnItemSelectedListener {
             when(it.itemId){
                 R.id.home -> {
-                    loadFragment(VideoFragment())
+                    loadFragment(VideoFragment(this@HomeActivity))
                     true
                 }
                 R.id.search->{
@@ -75,13 +81,18 @@ import com.img.audition.screens.fragment.*
                         startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
                     }
                     false
-                }else -> {
+                }
+                R.id.profile->{
                     if (!(sessionManager.isUserLoggedIn())){
                         sendToLoginScreen()
                     }else{
-                        loadFragment(ProfileFragment())
+                        loadFragment(ProfileFragment(this@HomeActivity))
                     }
                     true
+                }else -> {
+                    loadFragment(VideoFragment(this@HomeActivity))
+                    true
+
                 }
             }
         }
@@ -156,5 +167,6 @@ import com.img.audition.screens.fragment.*
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
     }
+
 
 }

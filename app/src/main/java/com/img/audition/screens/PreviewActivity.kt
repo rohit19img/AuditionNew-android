@@ -1,5 +1,6 @@
 package com.img.audition.screens
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,6 +12,7 @@ import com.img.audition.databinding.ActivityPreviewBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
+import java.io.File
 
 @UnstableApi class PreviewActivity : AppCompatActivity() {
 
@@ -84,6 +86,8 @@ import com.img.audition.network.SessionManager
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
     }
+
+
 
 
 }

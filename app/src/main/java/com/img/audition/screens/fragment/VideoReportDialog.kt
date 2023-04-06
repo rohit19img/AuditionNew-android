@@ -1,35 +1,29 @@
 package com.img.audition.screens.fragment
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.media3.common.util.UnstableApi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.img.audition.R
 import com.img.audition.adapters.ReportCategoryAdapter
 import com.img.audition.dataModel.CommonResponse
-import com.img.audition.dataModel.Languages
 import com.img.audition.dataModel.ReportCategoryData
 import com.img.audition.dataModel.ReportCategoryResponse
 import com.img.audition.databinding.VideoReportDialogBinding
 import com.img.audition.globalAccess.ConstValFile
-import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
-import com.img.audition.screens.HomeActivity
-import com.img.audition.screens.LoginActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi class VideoReportDialog( val vID:String, val viewType :String) : BottomSheetDialogFragment() {
+@UnstableApi class VideoReportDialog(val contextFromActivity:Context ,val vID:String, val viewType :String) : BottomSheetDialogFragment() {
 
     val TAG = "VideoReportDialog"
     private val sessionManager by lazy {
@@ -88,10 +82,8 @@ import retrofit2.Response
             else{
                 if (viewType == ConstValFile.ReportDialogView){
                     reportVideo(categoryID)
-//                    myApplication.showToast("Report Successfully..")
                 }else if(viewType == ConstValFile.NotInterestedDialogView){
                     addIntoNoInterestedVideo(categoryID)
-//                    myApplication.showToast("Add Successfully..")
                 }else{
                     reportVideo(categoryID)
                 }
@@ -151,7 +143,7 @@ import retrofit2.Response
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     showToast("Report Successfully..")
                 }else{
-//                    myApplication.printLogE("No Data ${response.code()}",TAG)
+                  printLogE("No Data ${response.code()}")
                 }
             }
             override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
@@ -169,7 +161,7 @@ import retrofit2.Response
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     showToast("Add Successfully..")
                 }else{
-//                    myApplication.printLogE("No Data ${response.code()}",TAG)
+                    printLogE("No Data ${response.code()}")
                 }
             }
             override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
@@ -180,7 +172,7 @@ import retrofit2.Response
     }
 
     fun showToast(msg:String){
-//        Toast.makeText(requireContext(),msg,Toast.LENGTH_SHORT).show()
+        Toast.makeText(contextFromActivity,msg,Toast.LENGTH_SHORT).show()
     }
 
     fun printLogE(msg:String){

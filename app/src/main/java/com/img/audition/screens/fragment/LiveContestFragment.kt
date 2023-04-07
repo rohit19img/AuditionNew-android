@@ -22,7 +22,7 @@ import retrofit2.Response
 
 class LiveContestFragment : Fragment() {
 
-    val TAG = "MobileVerificationFragment"
+    val TAG = "LiveContestFragment"
     private lateinit var _viewBinding : FragmentLiveContestBinding
     private val view get() = _viewBinding
     private val sessionManager by lazy {

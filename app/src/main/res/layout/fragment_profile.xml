@@ -217,6 +217,7 @@
                 style="@style/textViewStyle1"
                 android:hint="Bio"
                 android:paddingEnd="20dp"
+                android:maxLines="2"
                 android:layout_marginStart="20dp"
                 android:textAlignment="textStart"
                 android:layout_gravity="start"

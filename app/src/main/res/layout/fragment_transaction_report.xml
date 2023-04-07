@@ -44,15 +44,15 @@
 
     <TextView
         android:id="@+id/noTrans"
-        android:layout_marginStart="5dp"
-        android:layout_gravity="center_vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No Transaction"
         android:layout_centerInParent="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="5dp"
+        android:text="No Transaction"
         android:textColor="@color/textColorDarkRed"
         android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:visibility="gone"

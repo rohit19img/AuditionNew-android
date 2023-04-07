@@ -72,6 +72,9 @@ interface ApiInterface {
     @GET(APITags.GetAllLiveContest)
     fun getAllLiveContest(@Header(APITags.AUTHORIZATION)Auth: String?) : Call<GetLiveContestDataResponse>
 
+    @GET(APITags.GetJoinedContest)
+    fun getJoinedContest(@Header(APITags.AUTHORIZATION) Auth: String?): Call<GetJoinedContestDataResponse>
+
     @GET(APITags.WatchLater)
     fun saveIntoWatchLater(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommonResponse>
 
@@ -156,5 +159,23 @@ interface ApiInterface {
         @Header(APITags.AUTHORIZATION) Auth: String?,
         @Body postVideoObj: JsonObject?
     ): Call<CommonResponse>
+
+    @POST("search")
+    fun search(
+        @Header("Authorization") Auth: String?,
+        @Body login: JsonObject?
+    ): Call<Searchgetset>
+
+    @GET("leagueDetails")
+    fun getSingleContestDetails(
+        @Header("Authorization") Auth: String?,
+        @Query("contestId") contestId: String?
+    ): Call<SingleContestDetailsResponse>
+
+    @GET("myLeaderboard")
+    fun getLeaderboardDetails(
+        @Header("Authorization") Auth: String?,
+        @Query("contestId") contestId: String?
+    ): Call<LeaderboardDataResponse>
 
 }

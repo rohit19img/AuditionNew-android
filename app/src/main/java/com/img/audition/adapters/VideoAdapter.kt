@@ -232,7 +232,7 @@ import retrofit2.Response
 
             commentBtn.setOnClickListener {
                 val bundle = Bundle()
-                bundle.putString(ConstValFile.AuditionID,list.auditionId)
+                bundle.putString(ConstValFile.AuditionID,sessionManager.getUserName())
                 bundle.putString(ConstValFile.VideoID,list.auditionId)
                 bundle.putSerializable(ConstValFile.CommentList, list.comment)
                 bundle.putString(ConstValFile.AllUserID, list.userId)

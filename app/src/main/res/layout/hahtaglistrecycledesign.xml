@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="wrap_content"
+    android:background="@color/commanBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/hashtag_icon"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            app:tint="@color/white"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/hashtagname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#funny"
+                android:textColor="@color/white"
+                android:textSize="16dp"/>
+
+            <TextView
+                android:id="@+id/hashtagplays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#funny"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/bgColorYellow"
+                android:textSize="14dp"
+                android:textStyle="normal"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

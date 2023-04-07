@@ -112,8 +112,8 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
 
 
        val mapData = HashMap<String, Any>()
-        mapData.put("comment_by",auditionID!!)
-        mapData.put("auditionid", auditionID)
+        mapData.put("comment_by",sessionManager.getUserName()!!)
+        mapData.put("auditionid", auditionID!!)
         mapData.put("comment",commentText!!)
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val calendar = Calendar.getInstance().time

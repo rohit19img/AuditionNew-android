@@ -68,7 +68,7 @@ import java.io.IOException
                     true
                 }
                 R.id.search->{
-                    loadFragment(TrendingSearchFragment())
+                    loadFragment(TrendingSearchFragment(this@HomeActivity))
                     true
                 }R.id.contest->{
                     loadFragment(ContestFragment())

@@ -3,12 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".screens.fragment.JoinedContestFragment">
+    tools:context=".screens.fragment.JoinedContestFragment"
+   >
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/contestViewpager2"/>
 
     <TextView
-        android:layout_centerInParent="true"
+        android:id="@+id/noJoinedContest"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Joined Contest" />
+        android:text="No Joined Contest"
+        android:textColor="@color/textColorRed"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>

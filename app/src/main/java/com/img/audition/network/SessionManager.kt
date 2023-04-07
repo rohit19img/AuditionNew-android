@@ -2,6 +2,7 @@ package com.img.audition.network
 
 import android.content.Context
 import android.os.Bundle
+import android.text.method.TextKeyListener.clear
 import com.img.audition.globalAccess.ConstValFile
 
 class SessionManager(context: Context) {
@@ -9,9 +10,11 @@ class SessionManager(context: Context) {
     val sharedPrefMain = context.getSharedPreferences(ConstValFile.PREFER_MAIN, Context.MODE_PRIVATE)
     val sharedPrefLang = context.getSharedPreferences(ConstValFile.PREFER_LANG, Context.MODE_PRIVATE)
     val sharedPrefContest = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
+    val sharedPrefVideoSession = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
     val prefEditorMain = sharedPrefMain.edit()
     val prefEditorLang = sharedPrefLang.edit()
     val prefEditorContest = sharedPrefContest.edit()
+    val prefEditorVideoSession = sharedPrefContest.edit()
 
 
     fun createUserLoginSession(isLogin: Boolean, Token: String?, mNumber: String?) {
@@ -115,7 +118,8 @@ class SessionManager(context: Context) {
         return sharedPrefMain.getString(ConstValFile.BankVerified,"")
     }
 
-    fun createContestSession(contestID: String?, contestType: String?, contestFile: String?, isFromContest: Boolean) {
+    fun createContestSession(contestEntryFee: Int,contestID: String?, contestType: String?, contestFile: String?, isFromContest: Boolean) {
+        prefEditorContest.putInt(ConstValFile.ContestEntryFee,contestEntryFee)
         prefEditorContest.putString(ConstValFile.ContestID,contestID)
         prefEditorContest.putString(ConstValFile.ContestType, contestType)
         prefEditorContest.putString(ConstValFile.ContestFile,contestFile)
@@ -126,6 +130,10 @@ class SessionManager(context: Context) {
     fun clearContestSession(){
         prefEditorContest.clear()
         prefEditorContest.commit()
+    }
+
+    fun getContestEntryFee(): Int {
+        return sharedPrefContest.getInt(ConstValFile.ContestEntryFee,0)
     }
 
     fun getContestID(): String? {
@@ -144,6 +152,20 @@ class SessionManager(context: Context) {
         return sharedPrefContest.getBoolean(ConstValFile.IsFromContest,false)
     }
 
+
+    fun setCreateVideoSession(videoTempUrl: String?) {
+        prefEditorVideoSession.putString(ConstValFile.VideoFilePath,videoTempUrl)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getCreateVideoSession(): String? {
+        return sharedPrefVideoSession.getString(ConstValFile.VideoFilePath,"")
+    }
+
+    fun clearVideoSession(){
+        prefEditorVideoSession.clear()
+        prefEditorVideoSession.commit()
+    }
 
 
 

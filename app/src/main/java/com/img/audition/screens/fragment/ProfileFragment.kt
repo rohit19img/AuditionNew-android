@@ -262,7 +262,6 @@ import retrofit2.Response
                         if (userData.image.toString().isNotEmpty()){
                             Glide.with(contextFromActivity).load(userData.image.toString())
                                 .placeholder(R.drawable.person_ic).into(userImageView)
-                            MyApplication.DownloadImageTask(userImageView).execute(userData.image.toString())
                         }else{
                             userImageView.setImageResource(R.drawable.person_ic)
                         }
@@ -273,8 +272,10 @@ import retrofit2.Response
                         }
                         if (userData.name.toString().isNotEmpty()){
                             userName.text = userData.name.toString()
+                            sessionManager.setUserName(userData.name.toString())
                         }else{
                             userName.text = userData.auditionId.toString()
+                            sessionManager.setUserName(userData.auditionId.toString())
                         }
                         auditionID.text = userData.auditionId.toString()
                     }else{

@@ -15,7 +15,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.img.audition.dataModel.ContestData
+import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -24,7 +24,7 @@ import com.img.audition.screens.CameraActivity
 import com.img.audition.screens.LoginActivity
 import com.img.audition.videoWork.VideoCacheWork
 
-@UnstableApi class ContestLiveAdapter(val context: Context,val contestList:ArrayList<ContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
+@UnstableApi class ContestLiveAdapter(val context: Context,val contestList:ArrayList<LiveContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
     val TAG = "ContestLiveAdapter"
     private var cPos = 0
     private val myApplication by lazy {
@@ -53,7 +53,6 @@ import com.img.audition.videoWork.VideoCacheWork
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
         var exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
         //
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -77,7 +76,7 @@ import com.img.audition.videoWork.VideoCacheWork
               }else{
                   if (!(contest.isJoined!!)){
                       myApplication.printLogD("User Not Joined",TAG)
-                      sessionManager.createContestSession(contest.Id,contest.fileType,contest.file,true)
+                      sessionManager.createContestSession(contest.entryfee!!,contest.Id,contest.fileType,contest.file,true)
                       sendForCreateVideo()
                   }else{
                       myApplication.printLogD("User Joined",TAG)

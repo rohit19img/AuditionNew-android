@@ -105,6 +105,9 @@ dependencies {
         exclude group: 'org.json', module: 'json'
     }
 
+    implementation 'com.cashfree.pg:android-sdk:1.7.28'
+
+
     //ffmpeg
     implementation 'com.arthenica:ffmpeg-kit-full-gpl:5.1'
 

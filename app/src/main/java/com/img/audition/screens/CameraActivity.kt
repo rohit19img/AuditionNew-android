@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit
     private val sessionManager by lazy {
         SessionManager(this@CameraActivity)
     }
+    private var isFromContest = false
 
     companion object {
         private const val MUSIC_TAG = "music_tag"
@@ -129,10 +130,8 @@ import java.util.concurrent.TimeUnit
     }
 
     private fun sendToVideoPreview(videoUri:String) {
-        val bundle = Bundle()
-        bundle.putString(ConstValFile.VideoFilePath,videoUri)
+        sessionManager.setCreateVideoSession(videoUri)
         val intent = Intent(this@CameraActivity,PreviewActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
     }
 
@@ -377,7 +376,8 @@ import java.util.concurrent.TimeUnit
 
     override fun onStart() {
         super.onStart()
-        val isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest,false)
+        isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest,false)
+        myApplication.printLogD("$isFromContest onStart"," isFromContest + $TAG")
         if (!(isFromContest)){
             sessionManager.clearContestSession()
         }

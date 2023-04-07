@@ -3,6 +3,7 @@ package com.img.audition.screens
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.img.audition.R
 import com.img.audition.dataModel.UserSelfProfileResponse
@@ -86,7 +87,7 @@ class WalletActivity : AppCompatActivity() {
                     val userData = response.body()!!.data
                     if(userData!=null){
                         if (userData.image.toString().isNotEmpty()){
-                            MyApplication.DownloadImageTask(viewBinding.userImage).execute(userData.image.toString())
+                            Glide.with(this@WalletActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into(viewBinding.userImage)
                         }else{
                             viewBinding.userImage.setImageResource(R.drawable.person_ic)
                         }

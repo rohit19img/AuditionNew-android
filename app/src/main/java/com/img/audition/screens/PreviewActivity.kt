@@ -1,9 +1,8 @@
 package com.img.audition.screens
 
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -12,9 +11,9 @@ import com.img.audition.databinding.ActivityPreviewBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import java.io.File
 
-@UnstableApi class PreviewActivity : AppCompatActivity() {
+@UnstableApi
+class PreviewActivity : AppCompatActivity() {
 
     val TAG = "PreviewActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -32,33 +31,37 @@ import java.io.File
         intent.getBundleExtra(ConstValFile.Bundle)
     }
 
+    private var isFromContest = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
+
+    }
+
+    private fun sendToUploadVideoActivity() {
+        val intent = Intent(this@PreviewActivity, UploadVideoActivity::class.java)
+        startActivity(intent)
+    }
+
+    override fun onStart() {
+        super.onStart()
+
         val player = ExoPlayer.Builder(this@PreviewActivity).build()
         viewBinding.videoExoView.player = player
 
-        if (bundle!=null){
-            val videoUri = bundle!!.getString(ConstValFile.VideoFilePath).toString()
-            val mediaItem = MediaItem.fromUri(videoUri)
-            player.setMediaItem(mediaItem)
-            player.prepare()
-            player.play()
+        val videoUri = sessionManager.getCreateVideoSession()
+        isFromContest = sessionManager.getIsFromContest()
+        myApplication.printLogD("$isFromContest onCreate", " isFromContest $TAG")
+        val mediaItem = MediaItem.fromUri(videoUri!!)
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.play()
 
-            viewBinding.backPressIC.setOnClickListener {
-                onBackPressed()
-            }
-
-            viewBinding.sendToUploadBtn.setOnClickListener {
-                val bundle = Bundle()
-                player.stop()
-                bundle.putString(ConstValFile.VideoFilePath,videoUri)
-                sendToUploadVideoActivity(bundle)
-            }
-        }else{
-            myApplication.printLogD("File Path Null",TAG)
-        }
 
         player.addListener(object : Player.Listener {
             override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
@@ -80,15 +83,12 @@ import java.io.File
                 }
             }
         })
+
+        viewBinding.sendToUploadBtn.setOnClickListener {
+            player.stop()
+            sendToUploadVideoActivity()
+        }
     }
-
-    private fun sendToUploadVideoActivity(bundle: Bundle) {
-        val intent = Intent(this@PreviewActivity,UploadVideoActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
-        startActivity(intent)
-    }
-
-
 
 
 }

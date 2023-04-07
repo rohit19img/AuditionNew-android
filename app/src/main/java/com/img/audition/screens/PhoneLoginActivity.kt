@@ -94,8 +94,8 @@ import retrofit2.Response
                     myApplication.showToast("Login Successfully..")
                     sendToHomeActivity()
                 }else{
+                    myApplication.showToast("Wrong OTP")
                     myApplication.printLogE("User OTP Login Failed ${response.code()}",TAG)
-
                 }
             }
 

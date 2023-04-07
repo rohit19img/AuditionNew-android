@@ -81,7 +81,7 @@
             android:background="@drawable/bg_edittext"
             android:layout_toEndOf="@id/countyCodePicker"
             android:hint="Phone Number"
-            android:inputType="phone"
+            android:inputType="number"
             android:maxLength="10"
             android:padding="10dp"
             android:textColor="@color/textColorWhite"

@@ -38,7 +38,7 @@ class ChatsAdapter(var context: Context, var list: ArrayList<ChatsGetSet>) :
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.message.text = list[position].message
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.forLanguageTag("Hi"))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val dateFormat1: SimpleDateFormat
         try {
             val calendar = Calendar.getInstance().time
@@ -49,7 +49,7 @@ class ChatsAdapter(var context: Context, var list: ArrayList<ChatsGetSet>) :
                 if (dateFormat.parse(list[position].createdAt).date == dateToday) SimpleDateFormat(
                     "hh:mm aa",
                     Locale.forLanguageTag("Hi")
-                ) else SimpleDateFormat("MMM dd, yyyy hh:mm aa", Locale.forLanguageTag("Hi"))
+                ) else SimpleDateFormat("MMM dd, yyyy hh:mm aa")
             holder.time.text = dateFormat1.format(dateFormat.parse(list[position].createdAt))
         } catch (e: ParseException) {
             e.printStackTrace()

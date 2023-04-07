@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_rummy_design"
+    android:layout_margin="@dimen/_3sdp"
+    android:orientation="vertical">
+
+   <LinearLayout
+       android:layout_width="wrap_content"
+       android:layout_margin="@dimen/_1sdp"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+       <androidx.cardview.widget.CardView
+           android:layout_margin="@dimen/_1sdp"
+           android:layout_width="wrap_content"
+           android:layout_height="185dp"
+           android:backgroundTint="@color/white"
+           app:cardCornerRadius="@dimen/_8sdp">
+
+           <RelativeLayout
+               android:padding="@dimen/_1sdp"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent">
+
+
+               <ImageView
+                   android:id="@+id/videothumb"
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   android:scaleType="fitXY"
+                   android:src="@drawable/logo" />
+
+               <TextView
+                   android:id="@+id/auditionid"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_alignParentBottom="true"
+                   android:layout_marginLeft="5dp"
+                   android:layout_marginBottom="5dp"
+                   android:gravity="center_vertical"
+                   android:text="auditionid"
+                   android:textColor="@color/commanBackground"
+                   android:textSize="12.5dp"
+                   android:textStyle="normal" />
+
+
+               <TextView
+                   android:id="@+id/plays"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_alignParentBottom="true"
+                   android:padding="@dimen/_1sdp"
+                   android:text="cdfsdsfsfs"
+                   android:gravity="center_vertical"
+                   android:layout_margin="@dimen/_1sdp"
+                   android:layout_toLeftOf="@id/ic_play11"
+                   android:textColor="@color/commanBackground"
+                   android:textSize="12dp" />
+
+               <ImageView
+                   android:id="@+id/ic_play11"
+                   android:layout_width="18dp"
+                   android:layout_margin="@dimen/_2sdp"
+                   android:padding="@dimen/_1sdp"
+                   android:layout_height="18dp"
+                   android:layout_alignParentEnd="true"
+                   android:layout_alignParentBottom="true"
+                   android:src="@drawable/play_ic"
+                   app:tint="@color/commanBackground" />
+
+           </RelativeLayout>
+
+       </androidx.cardview.widget.CardView>
+   </LinearLayout>
+
+</LinearLayout>

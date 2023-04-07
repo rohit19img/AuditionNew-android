@@ -30,6 +30,7 @@ class APITags {
         const val VerifyMobileNumber = "verifyMobileNumber"
         const val AllVerify = "allverify"
         const val GetAllLiveContest = "get_all_contest"
+        const val GetJoinedContest = "myJoinedContests"
         const val WatchLater = "watch-later/{id}"
         const val RemoveWatchLater = "remove-watch-later/{id}"
         const val FollowFollowingList = "getFollowerList"

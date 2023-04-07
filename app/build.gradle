@@ -97,12 +97,23 @@ dependencies {
 
     //dimens sdp and dp
     implementation 'com.intuit.sdp:sdp-android:1.1.0'
-
+    //Alert Dialog
+    implementation 'com.github.f0ris.sweetalert:library:1.6.2'
 
     //Socket
     implementation('io.socket:socket.io-client:2.0.1') {
         exclude group: 'org.json', module: 'json'
     }
 
+    //ffmpeg
+    implementation 'com.arthenica:ffmpeg-kit-full-gpl:5.1'
+
+    //amz webServices
+    implementation 'com.amazonaws:aws-android-sdk-core:2.16.4'
+    implementation 'com.amazonaws:aws-android-sdk-cognito:2.2.13'
+    implementation 'com.amazonaws:aws-android-sdk-s3:2.6.30'
+    implementation 'com.amazonaws:aws-android-sdk-ddb:2.2.13'
+
+//    implementation 'cc.cloudist.acplibrary:library:1.2.1'
 
 }

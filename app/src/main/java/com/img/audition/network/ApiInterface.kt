@@ -1,5 +1,6 @@
 package com.img.audition.network
 
+import com.google.gson.JsonObject
 import com.img.audition.dataModel.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -139,9 +140,21 @@ interface ApiInterface {
     ): Call<CommonResponse>
 
     @GET(APITags.GetAddCashOffer)
-    fun getOfferDetails(@Header("Authorization") Auth: String?): Call<OfferDataResponse>
+    fun getOfferDetails(@Header(APITags.AUTHORIZATION) Auth: String?): Call<OfferDataResponse>
 
     @GET(APITags.GetUserTransactions)
-    fun getTransactions(@Header("Authorization") Auth: String?): Call<TransactionReportResponse>
+    fun getTransactions(@Header(APITags.AUTHORIZATION) Auth: String?): Call<TransactionReportResponse>
+
+    @POST(APITags.UploadNormalVideoToServer)
+    fun uploadNormalVideoToServer(
+        @Header(APITags.AUTHORIZATION) Auth: String?,
+        @Body postVideoObj: JsonObject?
+    ): Call<CommonResponse>
+
+    @POST(APITags.UploadContestVideoToServer)
+    fun uploadContestVideoToServer(
+        @Header(APITags.AUTHORIZATION) Auth: String?,
+        @Body postVideoObj: JsonObject?
+    ): Call<CommonResponse>
 
 }

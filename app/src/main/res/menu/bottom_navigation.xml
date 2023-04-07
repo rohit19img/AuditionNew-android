@@ -17,10 +17,10 @@
         android:id="@+id/contest"
         android:icon="@drawable/contest_ic"
         android:iconTint="@color/white"
-        android:title="create video" />
+        android:title="contest" />
 
     <item
         android:id="@+id/profile"
         android:icon="@drawable/person_ic"
-        android:title="create video" />
+        android:title="profile" />
 </menu>

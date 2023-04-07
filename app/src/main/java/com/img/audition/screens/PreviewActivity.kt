@@ -28,6 +28,10 @@ import java.io.File
         MyApplication(this@PreviewActivity)
     }
 
+    private val bundle by lazy {
+        intent.getBundleExtra(ConstValFile.Bundle)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -35,15 +39,12 @@ import java.io.File
         val player = ExoPlayer.Builder(this@PreviewActivity).build()
         viewBinding.videoExoView.player = player
 
-        val intent = intent.getBundleExtra(ConstValFile.Bundle)
-        if (intent!=null){
-
-            val videoUri = intent.getString(ConstValFile.VideoFilePath).toString()
+        if (bundle!=null){
+            val videoUri = bundle!!.getString(ConstValFile.VideoFilePath).toString()
             val mediaItem = MediaItem.fromUri(videoUri)
             player.setMediaItem(mediaItem)
             player.prepare()
             player.play()
-
 
             viewBinding.backPressIC.setOnClickListener {
                 onBackPressed()

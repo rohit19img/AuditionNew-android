@@ -1,14 +1,17 @@
 package com.img.audition.network
 
 import android.content.Context
+import android.os.Bundle
 import com.img.audition.globalAccess.ConstValFile
 
 class SessionManager(context: Context) {
 
     val sharedPrefMain = context.getSharedPreferences(ConstValFile.PREFER_MAIN, Context.MODE_PRIVATE)
     val sharedPrefLang = context.getSharedPreferences(ConstValFile.PREFER_LANG, Context.MODE_PRIVATE)
+    val sharedPrefContest = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
     val prefEditorMain = sharedPrefMain.edit()
     val prefEditorLang = sharedPrefLang.edit()
+    val prefEditorContest = sharedPrefContest.edit()
 
 
     fun createUserLoginSession(isLogin: Boolean, Token: String?, mNumber: String?) {
@@ -99,9 +102,51 @@ class SessionManager(context: Context) {
         return sharedPrefMain.getString(ConstValFile.PanVerified,"")
     }
 
+    fun setUserName(v: String?) {
+        prefEditorMain.putString(ConstValFile.UserName,v)
+        prefEditorMain.commit()
+    }
+
+    fun getUserName(): String? {
+        return sharedPrefMain.getString(ConstValFile.UserName,"")
+    }
+
     fun getBankVerified(): String? {
         return sharedPrefMain.getString(ConstValFile.BankVerified,"")
     }
+
+    fun createContestSession(contestID: String?, contestType: String?, contestFile: String?, isFromContest: Boolean) {
+        prefEditorContest.putString(ConstValFile.ContestID,contestID)
+        prefEditorContest.putString(ConstValFile.ContestType, contestType)
+        prefEditorContest.putString(ConstValFile.ContestFile,contestFile)
+        prefEditorContest.putBoolean(ConstValFile.IsFromContest,isFromContest)
+        prefEditorContest.commit()
+    }
+
+    fun clearContestSession(){
+        prefEditorContest.clear()
+        prefEditorContest.commit()
+    }
+
+    fun getContestID(): String? {
+        return sharedPrefContest.getString(ConstValFile.ContestID,"")
+    }
+
+    fun getContestType(): String? {
+        return  sharedPrefContest.getString(ConstValFile.ContestType,"")
+    }
+
+    fun getContestFile(): String? {
+        return  sharedPrefContest.getString(ConstValFile.ContestFile,"")
+    }
+
+    fun getIsFromContest(): Boolean {
+        return sharedPrefContest.getBoolean(ConstValFile.IsFromContest,false)
+    }
+
+
+
+
 
 
 }

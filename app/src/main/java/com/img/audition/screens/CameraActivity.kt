@@ -30,6 +30,7 @@ import com.img.audition.customView.RecordButton
 import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.MusicListFragment
 import java.io.File
 import java.io.IOException
@@ -46,6 +47,9 @@ import java.util.concurrent.TimeUnit
 
     private var videoFilePath = ""
 
+    private val sessionManager by lazy {
+        SessionManager(this@CameraActivity)
+    }
 
     companion object {
         private const val MUSIC_TAG = "music_tag"
@@ -76,6 +80,10 @@ import java.util.concurrent.TimeUnit
     private val myApplication by lazy {
         MyApplication(this@CameraActivity)
     }
+
+    private val bundle by lazy {
+        intent.getBundleExtra(ConstValFile.Bundle)
+    }
     private var lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
     var mode = false
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,11 +91,6 @@ import java.util.concurrent.TimeUnit
         setContentView(viewBinding.root)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        val contestIntent = intent.getBundleExtra(ConstValFile.Bundle)
-        if (contestIntent!=null){
-            val contestID =  contestIntent.getString(ConstValFile.ContestID)
-            val contestType = contestIntent.getString(ConstValFile.TYPE_IMAGE)
-        }
 
         viewBinding.switchCamera.setOnClickListener {
             if (lensFacing == CameraSelector.DEFAULT_FRONT_CAMERA)
@@ -131,7 +134,6 @@ import java.util.concurrent.TimeUnit
         val intent = Intent(this@CameraActivity,PreviewActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
-
     }
 
     override fun onDown() {
@@ -269,6 +271,7 @@ import java.util.concurrent.TimeUnit
         if (event !is VideoRecordEvent.Status){
             recordingState = event
         }
+
         updateUI(event)
 
     }
@@ -370,6 +373,14 @@ import java.util.concurrent.TimeUnit
 
         return createFile.absolutePath
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest,false)
+        if (!(isFromContest)){
+            sessionManager.clearContestSession()
+        }
     }
 
 }

@@ -88,6 +88,7 @@ import retrofit2.Response
                     sessionManager.setMobileVerified(true)
                     sessionManager.createUserLoginSession(true,userToken,userID)
                     sessionManager.setUserSelfID(userID)
+                    sessionManager.setUserName(number)
                     sessionManager.setToken(userToken)
                     Thread.sleep(500)
                     myApplication.showToast("Login Successfully..")

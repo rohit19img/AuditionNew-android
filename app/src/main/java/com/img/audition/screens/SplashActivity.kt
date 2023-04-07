@@ -31,6 +31,7 @@ class SplashActivity : AppCompatActivity() {
         myApplication  = MyApplication(this@SplashActivity)
 
         if (myApplication.isNetworkConnected()){
+            FirebaseMessaging.getInstance().subscribeToTopic("All")
             if (!(sessionManager.isUserLoggedIn())){
                 myApplication.printLogD("Not Login in",TAG)
                 if (!(sessionManager.isGuestLoggedIn())){

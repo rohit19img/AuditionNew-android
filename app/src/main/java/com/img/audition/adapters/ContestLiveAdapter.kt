@@ -15,7 +15,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.img.audition.R
 import com.img.audition.dataModel.ContestData
 import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -78,13 +77,11 @@ import com.img.audition.videoWork.VideoCacheWork
               }else{
                   if (!(contest.isJoined!!)){
                       myApplication.printLogD("User Not Joined",TAG)
-                      val bundle = Bundle()
-                      bundle.putString(ConstValFile.ContestID,contest.Id)
-                      bundle.putString(ConstValFile.TYPE_IMAGE, contest.fileType)
-                      sendForCreateVideo(bundle)
+                      sessionManager.createContestSession(contest.Id,contest.fileType,contest.file,true)
+                      sendForCreateVideo()
                   }else{
                       myApplication.printLogD("User Joined",TAG)
-                      myApplication.showToast("Already join this contest")
+                      myApplication.showToast("You Already join this contest")
 
                   }
               }
@@ -157,7 +154,9 @@ import com.img.audition.videoWork.VideoCacheWork
         context.startActivity(intent)
     }
 
-    private fun sendForCreateVideo(bundle: Bundle) {
+    private fun sendForCreateVideo() {
+        val bundle = Bundle()
+        bundle.putBoolean(ConstValFile.IsFromContest,true)
         val intent = Intent(context, CameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         context.startActivity(intent)

@@ -78,7 +78,7 @@ import java.io.IOException
                     if (!(sessionManager.isUserLoggedIn())){
                         sendToLoginScreen()
                     }else{
-                        startActivity(Intent(this@HomeActivity,CameraActivity::class.java))
+                        sendForCreateVideo()
                     }
                     false
                 }
@@ -169,4 +169,11 @@ import java.io.IOException
     }
 
 
+    private fun sendForCreateVideo() {
+        val bundle = Bundle()
+        bundle.putBoolean(ConstValFile.IsFromContest,false)
+        val intent = Intent(this@HomeActivity, CameraActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
+    }
 }

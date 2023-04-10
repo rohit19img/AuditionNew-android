@@ -7,9 +7,13 @@
     tools:context=".screens.CameraActivity"
     android:layout_height="match_parent">
 
+
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+
 
         <androidx.camera.view.PreviewView
             android:id="@+id/previewView"
@@ -44,6 +48,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:pv_divider_width="1dp"
             app:pv_radius="4dp" />
+
+        <ImageView
+            app:layout_constraintTop_toBottomOf="@id/line_view"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="5dp"
+            android:id="@+id/backPressIC"
+            style="@style/imageButtonStyle"
+            android:padding="15dp"
+            android:layout_gravity="start"
+            app:tint="@color/bgColorWhite"
+            android:src="@drawable/back_arrow_ic" />
+
 
         <ImageView
             android:id="@+id/setting"

@@ -7,7 +7,7 @@ import android.view.View
 import androidx.media3.common.util.UnstableApi
 import com.img.audition.dataModel.LoginResponse
 import com.img.audition.dataModel.NumLoginRequest
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.OTPRequest
 import com.img.audition.databinding.ActivityPhoneLoginBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -111,8 +111,8 @@ import retrofit2.Response
         myApplication.printLogD(number,TAG)
 
         val loginReq = apiInterface.Login(numLoginRequest)
-        loginReq.enqueue(object:Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        loginReq.enqueue(object:Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful){
                     viewBinding.phoneNumberET.isEnabled = false
                     viewBinding.otpLayout.visibility = View.VISIBLE
@@ -126,7 +126,7 @@ import retrofit2.Response
                 }
             }
 
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
             }
         })

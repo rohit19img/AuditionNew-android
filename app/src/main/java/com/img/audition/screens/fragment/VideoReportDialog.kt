@@ -11,7 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.img.audition.R
 import com.img.audition.adapters.ReportCategoryAdapter
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.ReportCategoryData
 import com.img.audition.dataModel.ReportCategoryResponse
 import com.img.audition.databinding.VideoReportDialogBinding
@@ -138,15 +138,15 @@ import retrofit2.Response
     private fun reportVideo(categoryID: String) {
         val reportVideoReq = apiInterface.reportTheVideo(sessionManager.getToken(),categoryID,vID)
 
-        reportVideoReq.enqueue(object :Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        reportVideoReq.enqueue(object :Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     showToast("Report Successfully..")
                 }else{
                   printLogE("No Data ${response.code()}")
                 }
             }
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 printLogE(t.message.toString())
             }
 
@@ -156,15 +156,15 @@ import retrofit2.Response
     private fun addIntoNoInterestedVideo(categoryID: String) {
         val reportVideoReq = apiInterface.addIntoNotInterestedVideo(sessionManager.getToken(),categoryID,vID)
 
-        reportVideoReq.enqueue(object :Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        reportVideoReq.enqueue(object :Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     showToast("Add Successfully..")
                 }else{
                     printLogE("No Data ${response.code()}")
                 }
             }
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 printLogE(t.message.toString())
             }
 

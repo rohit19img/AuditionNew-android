@@ -33,40 +33,37 @@ import org.json.JSONObject
 import java.io.*
 
 
-class BankVerificationFragment : Fragment() {
+class BankVerificationFragment() : Fragment() {
 
     val TAG = "BankVerificationFragment"
     lateinit var requestQueue: RequestQueue
     var state = ""
     var image_path = ""
 
-    private lateinit var _viewBinding : FragmentBankVerificationBinding
+    private lateinit var _viewBinding: FragmentBankVerificationBinding
     private val view get() = _viewBinding
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
+    private var sessionManager: SessionManager? = null
 
-    private val myApplication by lazy {
-        MyApplication(requireContext())
-    }
-    private val apiInterface by lazy{
+    private var myApplication: MyApplication? = null
+    private val apiInterface by lazy {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestQueue = Volley.newRequestQueue(context)
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _viewBinding = FragmentBankVerificationBinding.inflate(inflater,container,false)
+        _viewBinding = FragmentBankVerificationBinding.inflate(inflater, container, false)
 
+        sessionManager = SessionManager(requireContext())
+        myApplication = MyApplication(requireContext())
 
         return _viewBinding.root
-
     }
 
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
@@ -75,21 +72,25 @@ class BankVerificationFragment : Fragment() {
         val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
         view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
-      try {
-          view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-              override fun onItemSelected(adapterView: AdapterView<*>, view1: View, i: Int, l: Long) {
-                    myApplication.printLogD(stateAr[i],"stateAr")
-                  state = stateAr[i]
-                  if (view.stateSpinner.selectedView != null)
-                      (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
-              }
+        try {
+            view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    adapterView: AdapterView<*>,
+                    view1: View,
+                    i: Int,
+                    l: Long
+                ) {
+                    myApplication!!.printLogD(stateAr[i], "stateAr")
+                    state = stateAr[i]
+                    if (view.stateSpinner.selectedView != null)
+                        (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
+                }
 
-              override fun onNothingSelected(adapterView: AdapterView<*>?) {}
-      }
-      }catch (e:java.lang.Exception){
-          myApplication.printLogE(e.toString(),TAG)
-
-      }
+                override fun onNothingSelected(adapterView: AdapterView<*>?) {}
+            }
+        } catch (e: java.lang.Exception) {
+            myApplication!!.printLogE(e.toString(), TAG)
+        }
 
         view.btnUpload.setOnClickListener {
             selectImage()
@@ -131,7 +132,9 @@ class BankVerificationFragment : Fragment() {
         if (view.accountNumber.getText().toString().length < 6) {
             valid = false
             view.accountNumber.setError("Please enter account number")
-        } else if (view.accountNumber.getText().toString() != view.VaccountNumber.getText().toString()) {
+        } else if (view.accountNumber.getText().toString() != view.VaccountNumber.getText()
+                .toString()
+        ) {
             valid = false
             view.accountNumber.setError("Your account number and verify account number not matched")
         } else view.accountNumber.setError(null)
@@ -145,43 +148,49 @@ class BankVerificationFragment : Fragment() {
                 valid = false
             } else if (image_path == "") {
                 valid = false
-               myApplication.showToast("Please click a image of passbook first")
+                myApplication!!.showToast("Please click a image of passbook first")
             }
         }
         return valid
     }
+
     fun validIfsc(text: String): Boolean {
         val pattern = Regex("^[A-Za-z]{4}[0][a-zA-Z0-9]{6}$")
         return if (text.matches(pattern)) true else false
     }
 
     fun VerifyBankDetails() {
-       try {
+        try {
             val url = APITags.APIBASEURL + "bankRequest"
             Log.i("url", url)
             val strRequest: VolleyMultipartRequest = object : VolleyMultipartRequest(
                 Request.Method.POST, url,
                 Response.Listener<NetworkResponse> { response ->
                     try {
-                        val res = String(response.data, charset ( "UTF-8"))
+                        val res = String(response.data, charset("UTF-8"))
                         val jsonObject = JSONObject(res)
                         if (jsonObject.getBoolean("status")) {
-                            sessionManager.setBankVerified("0")
+                            sessionManager!!.setBankVerified("0")
                             view.invalidBank.setVisibility(View.GONE)
                             view.bankVerified.setVisibility(View.VISIBLE)
                             view.bankText.setText("Your Bank details are sent for verification.")
                             view.bankNotVerified.setVisibility(View.GONE)
                             view.comment.setVisibility(View.GONE)
                             BankDetails()
-                            view.bankText.setTextColor(ContextCompat.getColor(requireContext(), R.color.Gray))
+                            view.bankText.setTextColor(
+                                ContextCompat.getColor(
+                                    requireContext(),
+                                    R.color.Gray
+                                )
+                            )
                         } else {
-                            myApplication.showToast(jsonObject.getString("message"))
+                            myApplication!!.showToast(jsonObject.getString("message"))
                         }
                     } catch (e: UnsupportedEncodingException) {
-                        myApplication.printLogE( e.message!!,TAG)
+                        myApplication!!.printLogE(e.message!!, TAG)
 
                     } catch (e: JSONException) {
-                        myApplication.printLogE( e.message!!,TAG)
+                        myApplication!!.printLogE(e.message!!, TAG)
                     }
                 },
                 Response.ErrorListener { error -> Log.i("ErrorResponce", error.toString()) }) {
@@ -195,13 +204,13 @@ class BankVerificationFragment : Fragment() {
                     map["bankbranch"] = view.branchName.getText().toString()
                     map["state"] = state
                     map["typename"] = "bank"
-                    myApplication.printLogI(map.toString(),TAG)
+                    myApplication!!.printLogI(map.toString(), TAG)
                     return map
                 }
 
                 override fun getHeaders(): MutableMap<String, String> {
                     val params: MutableMap<String, String> = HashMap()
-                    params["Authorization"] = sessionManager.getToken().toString()
+                    params["Authorization"] = sessionManager!!.getToken().toString()
                     Log.i("Header", params.toString())
                     return params
                 }
@@ -290,7 +299,11 @@ class BankVerificationFragment : Fragment() {
                             if (bankImage != "") {
                                 Glide.with(requireContext()).load(bankImage)
                             }
-                            if (jsonObject.has("comment")) view.comment.setText(jsonObject.getString("comment"))
+                            if (jsonObject.has("comment")) view.comment.setText(
+                                jsonObject.getString(
+                                    "comment"
+                                )
+                            )
                             view.bankDetails.setVisibility(View.VISIBLE)
                         }
                     } catch (je: JSONException) {
@@ -324,7 +337,7 @@ class BankVerificationFragment : Fragment() {
                 override fun getHeaders(): Map<String, String> {
                     val params: MutableMap<String, String> = java.util.HashMap()
                     //                        params.put("Content-Type", "application/json; charset=UTF-8");
-                    params["Authorization"] = sessionManager.getToken().toString()
+                    params["Authorization"] = sessionManager!!.getToken().toString()
                     Log.i("Header", params.toString())
                     return params
                 }
@@ -367,7 +380,7 @@ class BankVerificationFragment : Fragment() {
                 Log.e("Check file", image_path)
                 view.img.setImageURI(Uri.parse(image_path))
             } catch (e: Exception) {
-                myApplication.printLogE(e.message.toString(),TAG)
+                myApplication!!.printLogE(e.message.toString(), TAG)
             }
         }
     }

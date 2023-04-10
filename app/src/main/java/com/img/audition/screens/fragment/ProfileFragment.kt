@@ -18,7 +18,7 @@ import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.adapters.LanguageSelecteDialog
 import com.img.audition.adapters.VideoItemAdapter
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.FragmentProfileBinding
@@ -183,10 +183,10 @@ import retrofit2.Response
     private fun logoutUser() {
         val logoutReq = apiInterface.logoutUser(sessionManager.getToken())
 
-        logoutReq.enqueue(object : Callback<CommonResponse>{
+        logoutReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(
-                call: Call<CommonResponse>,
-                response: Response<CommonResponse>
+                call: Call<CommanResponse>,
+                response: Response<CommanResponse>
             ) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                         sessionManager.clearLogoutSession()
@@ -201,7 +201,7 @@ import retrofit2.Response
                 }
             }
 
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.showToast("Something went wrong...")
                 myApplication.printLogE(t.toString(),TAG)
             }

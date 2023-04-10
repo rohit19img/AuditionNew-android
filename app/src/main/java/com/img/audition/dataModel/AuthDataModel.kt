@@ -20,7 +20,7 @@ data class NumLoginRequest(
     @SerializedName("mobile" ) var mobile : String? = null
 )
 
-data class CommonResponse(
+data class CommanResponse(
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("message" ) var message : String?  = null,
 //    @SerializedName("data"    ) var data    : Data?    = Data()

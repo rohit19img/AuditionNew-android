@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.JsonObject
@@ -57,7 +58,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
         _viewBinding.apply {
             userRecycle.layoutManager = GridLayoutManager(contextFromHome,2)
-            hashtagRecycle.layoutManager = GridLayoutManager(contextFromHome,3)
+            hashtagRecycle.layoutManager = GridLayoutManager(contextFromHome,1)
             videoRecycle.layoutManager = GridLayoutManager(contextFromHome,2)
 
             searchBar.addTextChangedListener(
@@ -105,7 +106,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
         val responseCall: Call<Searchgetset> =
             apiInterface.search(sessionManager.getToken(), obj)
-        responseCall.enqueue(object : Callback<Searchgetset> {
+        responseCall.enqueue(@UnstableApi object : Callback<Searchgetset> {
             override fun onResponse(call: Call<Searchgetset>, response: Response<Searchgetset>) {
                 if (response.isSuccessful) {
                     response.body()!!.message

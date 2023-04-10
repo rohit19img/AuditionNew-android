@@ -2,6 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature android:name="android.hardware.camera"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage"
+        android:minSdkVersion="30"/>
+
     <application
         android:name=".videoWork.VideoCacheWork"
         android:allowBackup="true"
@@ -15,18 +30,22 @@
         android:theme="@style/Theme.Audition"
         tools:node="merge"
         tools:targetApi="31">
-
-        <activity android:name=".cashfree.PaymentActivity"
+        <activity
+            android:name=".screens.BoostPostActivity"
             android:exported="false"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".cashfree.PaymentActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.ContestDetailsActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.WithdrawActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.AddAmountActivity"
             android:exported="false"
@@ -41,6 +60,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.UploadVideoActivity"
+            android:parentActivityName=".screens.HomeActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
@@ -49,8 +69,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Base.Theme.AppCompat" />
         <activity
             android:name=".screens.FollowFollowingListActivity"
             android:exported="false"
@@ -58,7 +78,7 @@
         <activity
             android:name=".screens.WalletActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.CommanVideoPlayActivity"
             android:exported="false"
@@ -86,8 +106,8 @@
         <activity
             android:name=".screens.LoginActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".screens.HomeActivity" />
+            android:parentActivityName=".screens.HomeActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.SplashActivity"
             android:exported="true"
@@ -104,15 +124,15 @@
             android:name=".screens.HomeActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.FullScreen" />
+          />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/logo" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/textColorRed" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -135,19 +155,6 @@
             </intent-filter>
         </service>
     </application>
-    <uses-feature android:name="android.hardware.camera2.full" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
 </manifest>

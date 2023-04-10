@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
 import com.img.audition.adapters.VideoItemAdapter
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.FollowFollowingResponse
 import com.img.audition.dataModel.GetOtherUserResponse
 import com.img.audition.dataModel.VideoResponse
@@ -137,8 +137,8 @@ import retrofit2.Response
         val blockUnblockReq = apiInterface.blockUnblockUser(sessionManager.getToken(),
         userID,status)
 
-        blockUnblockReq.enqueue(object :Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        blockUnblockReq.enqueue(object :Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()?.success!!){
                     startActivity(Intent(this@OtherUserProfileActivity, HomeActivity::class.java))
                     finish()
@@ -147,7 +147,7 @@ import retrofit2.Response
                 }
             }
 
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
             }
 

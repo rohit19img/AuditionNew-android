@@ -45,3 +45,18 @@ data class VideoData(
     @SerializedName("image"          ) var image         : String?           = null,
     @SerializedName("isSaved"        ) var isSaved       : Boolean?          = null
 ) : java.io.Serializable
+
+
+data class VoteDataResponse(
+    @SerializedName("success" ) var success : Boolean?        = null,
+    @SerializedName("message" ) var message : String?         = null,
+    @SerializedName("data"    ) var data    : ArrayList<VoteData> = arrayListOf()
+)
+
+data class VoteData(
+    @SerializedName("_id"           ) var Id           : String? = null,
+    @SerializedName("like_category" ) var likeCategory : String? = null,
+    @SerializedName("vote"          ) var vote         : String? = null,
+    @SerializedName("__v"           ) var _v           : Int?    = null,
+    @SerializedName("emoji"         ) var emoji        : String? = null
+)

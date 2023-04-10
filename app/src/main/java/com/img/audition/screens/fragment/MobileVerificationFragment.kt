@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.NumLoginRequest
 import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentMobileVarificationBinding
@@ -95,10 +95,10 @@ class MobileVerificationFragment : Fragment() {
     private fun verifymobile(mobile: String) {
         val verifyReq = apiInterface.verifyMobileNumber(sessionManager.getToken(), NumLoginRequest(mobile))
 
-        verifyReq.enqueue(object : Callback<CommonResponse>{
+        verifyReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(
-                call: Call<CommonResponse>,
-                response: Response<CommonResponse>
+                call: Call<CommanResponse>,
+                response: Response<CommanResponse>
             ) {
                 if (response.isSuccessful){
                     if ( response.body()!!.success!!){
@@ -112,7 +112,7 @@ class MobileVerificationFragment : Fragment() {
                
             }
 
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
             }
 

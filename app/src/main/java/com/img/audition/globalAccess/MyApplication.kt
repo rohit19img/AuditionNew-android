@@ -17,6 +17,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
+import cn.pedant.SweetAlert.SweetAlertDialog
+import com.cashfree.pg.ui.CFNonWebBaseActivity.onBackPressed
 import java.net.URL
 
 
@@ -52,15 +54,25 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
     }
 
      fun onGPS() {
-        val builder = AlertDialog.Builder(context.applicationContext)
-        builder.setMessage("Enable GPS").setCancelable(false).setPositiveButton(
-            "Yes"
-        ) { dialog, which -> startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
-            .setNegativeButton(
-                "No"
-            ) { dialog, which -> dialog.cancel() }
-        val alertDialog = builder.create()
-        alertDialog.show()
+
+         val sweetAlertDialog = SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
+         sweetAlertDialog.titleText = "Enable GPS"
+         sweetAlertDialog.contentText = "Please Enable GPS"
+         sweetAlertDialog.confirmText = "₹ Yes"
+         sweetAlertDialog.setConfirmClickListener {
+             sweetAlertDialog.dismiss()
+             try {
+                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+             }catch (e:java.lang.Exception){
+                 Log.e("myApplication", "onGPS: ${e.message}", )
+             }
+
+         }
+         sweetAlertDialog.cancelText = "No"
+         sweetAlertDialog.setCancelClickListener {
+             sweetAlertDialog.dismiss()
+         }
+         sweetAlertDialog.show()
     }
 
 

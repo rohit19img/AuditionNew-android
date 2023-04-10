@@ -16,7 +16,7 @@
             android:background="@color/white"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-          >
+            >
 
 
             <LinearLayout
@@ -174,22 +174,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         >
-        <ImageButton
-            android:id="@+id/notificationButton"
-            style="@style/imageButtonStyle"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/notifications_ic"
-            android:contentDescription="Notification Icon" />
-
-        <ImageView
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:layout_alignEnd="@id/notificationButton"
-            android:layout_alignTop="@id/notificationButton"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="20dp"
-            android:src="@drawable/notify_round_red_ic"
-            android:contentDescription="Notify icon" />
 
         <LinearLayout
             android:visibility="gone"
@@ -225,5 +209,24 @@
             android:orientation="vertical"
             android:id="@+id/videoViewpager2"/>
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/notificationButton"
+        style="@style/imageButtonStyle"
+        android:elevation="2dp"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/notifications_ic"
+        android:contentDescription="Notification Icon" />
+
+    <ImageView
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_alignEnd="@id/notificationButton"
+        android:elevation="2dp"
+        android:layout_alignTop="@id/notificationButton"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/notify_round_red_ic"
+        android:contentDescription="Notify icon" />
 
 </RelativeLayout>

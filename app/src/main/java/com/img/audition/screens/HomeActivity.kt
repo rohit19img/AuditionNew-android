@@ -4,8 +4,10 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,7 +33,7 @@ import java.io.IOException
     lateinit var fusedLocation : FusedLocationProviderClient
     lateinit var userLatLang: UserLatLang
     lateinit var locationManager:LocationManager
-
+    var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
 
     var authToken = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -48,6 +50,7 @@ import java.io.IOException
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+        askForPermissionsAndroidUpperVerssion();
 
         appPermission =  AppPermission(this@HomeActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@HomeActivity)
@@ -175,5 +178,22 @@ import java.io.IOException
         val intent = Intent(this@HomeActivity, CameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
+    }
+
+    private fun askForPermissionsAndroidUpperVerssion() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                startActivity(intent)
+                return
+            }
+            createDir()
+        }
+    }
+
+    fun createDir() {
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
     }
 }

@@ -30,8 +30,8 @@ class HashtagSearch_Adapter(val context: Context, val list: ArrayList<Searchgets
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.hashtagname.text = "#" + list[position].name
-        holder.hashtagplays.text = "2.5M Plays"
+        holder.hashtagname.text = "#" + list[position].Name
+        holder.hashtagplays.text = "${list[position].Videos} Plays"
         holder.itemView.setOnClickListener(View.OnClickListener {
 //            context.startActivity(
 //                Intent(context, Hashtag_Activity::class.java)

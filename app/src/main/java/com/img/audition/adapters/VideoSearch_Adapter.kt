@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -17,17 +18,12 @@ import com.img.audition.dataModel.VideoData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
 
-class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
+@UnstableApi class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var auditionid: TextView
-        var hashtagplays: TextView? = null
-        var videothumb: ImageView
-
-        init {
-            auditionid = itemView.findViewById<TextView>(R.id.auditionid)
-            videothumb = itemView.findViewById<ImageView>(R.id.videothumb)
-        }
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val auditionid =  itemView.findViewById<TextView>(R.id.auditionid)
+        val videothumb = itemView.findViewById<ImageView>(R.id.videothumb)
+        val plays = itemView.findViewById<TextView>(R.id.plays)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -36,12 +32,11 @@ class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>
         return ViewHolder(itemView)
     }
 
-    @SuppressLint("UnsafeOptInUsageError")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
             auditionid.text = list[position].auditionId
-            hashtagplays!!.text = "${list[position].views} Plays"
-            Glide.with(context).load(list[position].file).diskCacheStrategy(DiskCacheStrategy.ALL).into(videothumb)
+            plays.text = list[position].views.toString()
+            Glide.with(context).load(list[position].file).placeholder(R.drawable.splash_icon).diskCacheStrategy(DiskCacheStrategy.ALL).into(videothumb)
             itemView.setOnClickListener {
                 val bundle = Bundle()
                 bundle.putSerializable(ConstValFile.VideoList,list)

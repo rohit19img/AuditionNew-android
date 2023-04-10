@@ -1,14 +1,13 @@
 package com.img.audition.screens
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
+import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
@@ -34,8 +33,6 @@ import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.MusicListFragment
 import java.io.File
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -52,6 +49,8 @@ import java.util.concurrent.TimeUnit
     }
     private var isFromContest = false
 
+    var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
+
     companion object {
         private const val MUSIC_TAG = "music_tag"
 
@@ -66,6 +65,7 @@ import java.util.concurrent.TimeUnit
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
+
             }.toTypedArray()
     }
 
@@ -93,14 +93,24 @@ import java.util.concurrent.TimeUnit
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
 
+        askForPermissionsAndroidUpperVerssion();
         viewBinding.switchCamera.setOnClickListener {
             if (lensFacing == CameraSelector.DEFAULT_FRONT_CAMERA)
                 lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
             else if (lensFacing == CameraSelector.DEFAULT_BACK_CAMERA)
                 lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA
-            startCamera(mode)
+
+            val t: Thread = object : Thread() {
+                override fun run() {
+                    startCamera(mode)
+                }
+            }
+            t.start()
         }
 
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
         viewBinding.flash.setOnClickListener {
             mode = !mode
             if (mode){
@@ -108,7 +118,12 @@ import java.util.concurrent.TimeUnit
             }else{
                 viewBinding.flash.setImageDrawable(ContextCompat.getDrawable(this@CameraActivity,R.drawable.ic_flash_off))
             }
-            startCamera(mode)
+            val t: Thread = object : Thread() {
+                override fun run() {
+                    startCamera(mode)
+                }
+            }
+            t.start()
         }
 
         viewBinding.music.setOnClickListener {
@@ -118,7 +133,12 @@ import java.util.concurrent.TimeUnit
 
         viewBinding.done.visibility = View.INVISIBLE
         if (allPermissionsGranted()) {
-            startCamera(mode)
+            val t: Thread = object : Thread() {
+                override fun run() {
+                    startCamera(mode)
+                }
+            }
+            t.start()
         } else {
             ActivityCompat.requestPermissions(
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
@@ -144,7 +164,13 @@ import java.util.concurrent.TimeUnit
         myApplication.printLogD("onDown: duration : $duration",TAG)
         if (!this::recordingState.isInitialized || recordingState is VideoRecordEvent.Finalize)
         {
-            startRecording()
+            val t: Thread = object : Thread() {
+                override fun run() {
+                    startRecording()
+                }
+            }
+            t.start()
+
         }else{
             myApplication.printLogD("onDown: $recordingState",TAG)
 
@@ -168,9 +194,9 @@ import java.util.concurrent.TimeUnit
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+                /*.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setTargetRotation(viewBinding.previewView.display.rotation)*/
             val preview = Preview.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                .setTargetRotation(viewBinding.previewView.display.rotation)
                 .build()
                 .also {
                     it.setSurfaceProvider(viewBinding.previewView.surfaceProvider)
@@ -271,7 +297,13 @@ import java.util.concurrent.TimeUnit
             recordingState = event
         }
 
-        updateUI(event)
+        val t: Thread = object : Thread() {
+            override fun run() {
+                updateUI(event)
+            }
+        }
+        t.start()
+
 
     }
 
@@ -289,23 +321,23 @@ import java.util.concurrent.TimeUnit
 
         }
 
-        viewBinding.done.setOnClickListener {
-            viewBinding.done.isSelected = false
-            currentRecording?.stop()
-            viewBinding.done.visibility = View.GONE
-            viewBinding.showPreviewBtn.visibility = View.VISIBLE
-        }
+        runOnUiThread {
+            viewBinding.done.setOnClickListener {
+                viewBinding.done.isSelected = false
+                currentRecording?.stop()
+                viewBinding.done.visibility = View.GONE
+                viewBinding.showPreviewBtn.visibility = View.VISIBLE
+            }
 
-        viewBinding.showPreviewBtn.setOnClickListener{
-            if (event is VideoRecordEvent.Finalize){
-                videoFilePath = event.outputResults.outputUri.toString()
-                sendToVideoPreview(videoFilePath)
-                myApplication.printLogD(videoFilePath,"VideoFilePath")
+            viewBinding.showPreviewBtn.setOnClickListener{
+                if (event is VideoRecordEvent.Finalize){
+                    videoFilePath = event.outputResults.outputUri.toString()
+                    sendToVideoPreview(videoFilePath)
+                    myApplication.printLogD(videoFilePath,"VideoFilePath")
 //                myApplication.showToast(videoFilePath)
+                }
             }
         }
-
-
 
         myApplication.printLogD("updateUI: $size KB $time seconds",TAG)
 
@@ -357,8 +389,8 @@ import java.util.concurrent.TimeUnit
     private fun createFileAndFolder():String{
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.mp4"
-        val appData = filesDir
-        myApplication.printLogD(appData.absolutePath,TAG)
+        val appData = getExternalFilesDir(null)
+        myApplication.printLogD(appData!!.absolutePath,TAG)
 
         val createFile = File(appData,filename)
         if (!(createFile.exists())){
@@ -376,6 +408,12 @@ import java.util.concurrent.TimeUnit
 
     override fun onStart() {
         super.onStart()
+        viewBinding.done.visibility = View.GONE
+        viewBinding.showPreviewBtn.visibility = View.GONE
+        maxVideoDuration  = 15 * 1000
+        minVideoDuration = 5 * 1000
+        viewBinding.lineView.setLoadingProgress(0F)
+        viewBinding.lineView.deleteProgress()
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest,false)
         myApplication.printLogD("$isFromContest onStart"," isFromContest + $TAG")
         if (!(isFromContest)){
@@ -383,4 +421,21 @@ import java.util.concurrent.TimeUnit
         }
     }
 
+
+    private fun askForPermissionsAndroidUpperVerssion() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                startActivity(intent)
+                return
+            }
+            createDir()
+        }
+    }
+
+    fun createDir() {
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+    }
 }

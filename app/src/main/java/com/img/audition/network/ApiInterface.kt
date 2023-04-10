@@ -20,7 +20,7 @@ interface ApiInterface {
     ): Call<VideoResponse>
 
     @POST(APITags.Login)
-    fun Login(@Body loginRequest:NumLoginRequest): Call<CommonResponse>
+    fun Login(@Body loginRequest:NumLoginRequest): Call<CommanResponse>
 
     @POST(APITags.OTPLogin)
     fun OTP_Login(@Body otpRequest: OTPRequest): Call<LoginResponse>
@@ -61,10 +61,10 @@ interface ApiInterface {
     fun getUserSelfVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
 
     @GET(APITags.LogoutUser)
-    fun logoutUser(@Header(APITags.AUTHORIZATION) Auth: String?): Call<CommonResponse>
+    fun logoutUser(@Header(APITags.AUTHORIZATION) Auth: String?): Call<CommanResponse>
 
     @POST(APITags.VerifyMobileNumber)
-    fun verifyMobileNumber(@Header(APITags.AUTHORIZATION) Auth: String?, @Body loginRequest:NumLoginRequest): Call<CommonResponse>
+    fun verifyMobileNumber(@Header(APITags.AUTHORIZATION) Auth: String?, @Body loginRequest:NumLoginRequest): Call<CommanResponse>
 
     @GET(APITags.AllVerify)
     fun getAllVerificationsData(@Header(APITags.AUTHORIZATION)Auth: String?) : Call<UserVerificationResponse>
@@ -76,10 +76,10 @@ interface ApiInterface {
     fun getJoinedContest(@Header(APITags.AUTHORIZATION) Auth: String?): Call<GetJoinedContestDataResponse>
 
     @GET(APITags.WatchLater)
-    fun saveIntoWatchLater(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommonResponse>
+    fun saveIntoWatchLater(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommanResponse>
 
     @GET(APITags.RemoveWatchLater)
-    fun remove_watch_later(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommonResponse>
+    fun remove_watch_later(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommanResponse>
 
     @GET(APITags.FollowFollowingList)
     fun getFollowFollowingList(@Header(APITags.AUTHORIZATION) Auth: String?): Call<FollowerFollowingListResponse>
@@ -94,10 +94,10 @@ interface ApiInterface {
     fun getNotInterestedCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
 
     @GET(APITags.ReportVideo)
-    fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommonResponse>
+    fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommanResponse>
 
     @GET(APITags.addIntoNotInterested)
-    fun addIntoNotInterestedVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("catId") contestId: String?, @Query("videoId") videoID: String?): Call<CommonResponse>
+    fun addIntoNotInterestedVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("catId") contestId: String?, @Query("videoId") videoID: String?): Call<CommanResponse>
 
     @GET(APITags.GetChatHistory)
     fun getChatHistory(
@@ -121,7 +121,7 @@ interface ApiInterface {
         @Part("bio") bio: RequestBody?,
         @Part("gender") gender: RequestBody?,
         @Part("dob") dob: RequestBody?
-    ): Call<CommonResponse>
+    ): Call<CommanResponse>
 
     @Multipart
     @POST(APITags.EditUserProfile)
@@ -133,14 +133,14 @@ interface ApiInterface {
         @Part("bio") bio: RequestBody?,
         @Part("gender") gender: RequestBody?,
         @Part("dob") dob: RequestBody?
-    ): Call<CommonResponse>
+    ): Call<CommanResponse>
 
     @GET(APITags.blockUnblock)
     fun blockUnblockUser(
         @Header(APITags.AUTHORIZATION) Auth: String?,
         @Query("blockId") videoid: String?,
         @Query("status") status: String?
-    ): Call<CommonResponse>
+    ): Call<CommanResponse>
 
     @GET(APITags.GetAddCashOffer)
     fun getOfferDetails(@Header(APITags.AUTHORIZATION) Auth: String?): Call<OfferDataResponse>
@@ -152,13 +152,13 @@ interface ApiInterface {
     fun uploadNormalVideoToServer(
         @Header(APITags.AUTHORIZATION) Auth: String?,
         @Body postVideoObj: JsonObject?
-    ): Call<CommonResponse>
+    ): Call<CommanResponse>
 
     @POST(APITags.UploadContestVideoToServer)
     fun uploadContestVideoToServer(
         @Header(APITags.AUTHORIZATION) Auth: String?,
         @Body postVideoObj: JsonObject?
-    ): Call<CommonResponse>
+    ): Call<CommanResponse>
 
     @POST("search")
     fun search(
@@ -178,4 +178,21 @@ interface ApiInterface {
         @Query("contestId") contestId: String?
     ): Call<LeaderboardDataResponse>
 
+    @GET("boost-rate")
+    fun getBoostRate(@Header("Authorization") Auth: String?): Call<JsonObject>
+
+    @POST("boost-video")
+    fun boostPost(
+        @Header("Authorization") Auth: String?,
+        @Body boostPost: JsonObject?
+    ): Call<BoostPostGetSet>
+
+    @GET("userFullDetails")
+    fun userprofile(@Header("Authorization") Auth: String?): Call<Profilegetset>
+
+    @GET("getLikeCategory")
+    fun getVoteCategory(@Header("Authorization") Auth: String?): Call<VoteDataResponse>
+
+    @POST("userGiveVote")
+    fun voteToUserVideo(@Header("Authorization") Auth: String?, @Body login: JsonObject?): Call<CommanResponse>
 }

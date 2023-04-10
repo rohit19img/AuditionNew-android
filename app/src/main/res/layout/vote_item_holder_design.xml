@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_margin="2dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+   <RelativeLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       >
+       <TextView
+           android:id="@+id/voteImage"
+           android:layout_width="35dp"
+           android:layout_height="35dp"
+           android:text="🙌"
+           android:gravity="center"
+           android:layout_centerHorizontal="true"
+           android:background="@drawable/round_shape"
+           android:padding="5dp"
+           android:backgroundTint="@color/followButtonColor"
+
+           />
+       <androidx.cardview.widget.CardView
+           android:visibility="gone"
+           android:id="@+id/voteImageCard"
+           android:layout_margin="2dp"
+           android:layout_width="45dp"
+           android:layout_height="45dp"
+           app:cardCornerRadius="50dp"
+           app:cardBackgroundColor="@color/Gray"
+           >
+
+       </androidx.cardview.widget.CardView>
+
+       <TextView
+           android:id="@+id/voteText"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:hint="1 Vote"
+           android:textSize="10sp"
+           android:layout_centerHorizontal="true"
+           android:layout_marginHorizontal="2dp"
+           android:textColor="@color/textColorWhite"
+           android:layout_below="@+id/voteImage"
+           android:textColorHint="@color/Gray"/>
+   </RelativeLayout>
+
+</RelativeLayout>

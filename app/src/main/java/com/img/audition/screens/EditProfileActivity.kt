@@ -19,7 +19,7 @@ import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityEditProfileBinding
 import com.img.audition.globalAccess.AppPermission
@@ -344,7 +344,7 @@ import java.util.*
 
         var requestBody: RequestBody? = null
         var fileToUpload: MultipartBody.Part? = null
-        var mCall: Call<CommonResponse>? = null
+        var mCall: Call<CommanResponse>? = null
         if (!(imagePath.trim().equals(""))) {
             val file: File = File(imagePath)
             requestBody = RequestBody.create("*/*".toMediaTypeOrNull(),file)
@@ -369,8 +369,8 @@ import java.util.*
                 dob1
             )
         }
-        mCall.enqueue(object : Callback<CommonResponse> {
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        mCall.enqueue(object : Callback<CommanResponse> {
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 progressDialog.dismiss()
                 if (response.isSuccessful && response.body()!!.success!!) {
 
@@ -379,7 +379,7 @@ import java.util.*
                 }
             }
 
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 progressDialog.dismiss()
             }
         })

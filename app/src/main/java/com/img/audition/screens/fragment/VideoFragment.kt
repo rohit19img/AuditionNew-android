@@ -59,7 +59,9 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         MyApplication(requireContext())
     }
 
-    lateinit var videoAdapter: VideoAdapter
+    companion object{
+        lateinit var videoAdapter: VideoAdapter
+    }
     val videoList2 = ArrayList<VideoData>()
 
     lateinit var viewPager : ViewPager2
@@ -143,6 +145,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
                     startActivity(Intent(context, SplashActivity::class.java))
                     finishAffinity(requireActivity())
                 }else{
+                   myApplication.printLogD( response.body().toString(),"Video Res")
                     if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                         myApplication.printLogD(response.toString(),TAG)
                         videoList1 = response.body()!!.data

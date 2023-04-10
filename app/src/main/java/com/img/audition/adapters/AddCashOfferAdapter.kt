@@ -46,7 +46,7 @@ class AddCashOfferAdapter(val context: Activity, val offerData: ArrayList<OfferD
         holder.itemView.setOnClickListener {
             if (holder.addMoney.text.toString() != "") {
                 val addCashAmt = holder.addMoney.text.toString().trim { it <= ' ' }.toInt()
-                if (addCashAmt <= offerData!![position].minAmount!!) {
+                if (addCashAmt >= offerData!![position].minAmount!!) {
                     if (context is AddAmountActivity) {
                         (context as AddAmountActivity).offerId = ""
                         (context as AddAmountActivity).offerMinAmt = 0
@@ -59,7 +59,7 @@ class AddCashOfferAdapter(val context: Activity, val offerData: ArrayList<OfferD
                         "Add Cash More Then : " +offerData!![position].minAmount.toString(),
                         Toast.LENGTH_SHORT
                     ).show()
-                } else if (addCashAmt >= offerData!![position].maxAmount!!) {
+                } else if (addCashAmt <= offerData!![position].maxAmount!!) {
                     if (context is AddAmountActivity) {
                         (context as AddAmountActivity).offerId = ""
                         (context as AddAmountActivity).offerMinAmt = 0

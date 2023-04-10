@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.img.audition.R
 import com.img.audition.adapters.CommentAdapter
 import com.img.audition.dataModel.CommentData
+import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.CommentBottomSheetBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -81,17 +82,17 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
                 sendToLoginScreen()
             }else{
                 val commentText = view.commentET.text.toString().trim()
-               /* val list = (VideoFragment).videoList2
-                val adapter = (VideoFragment).videoAdapter*/
+                val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
+                val adapter = VideoFragment.videoAdapter
                 val position = bundle!!.getInt(ConstValFile.UserPositionInList)
-               if (commentText.isNotEmpty()){
-                   view.commentET.text.clear()
-                  /* list[position].commentCount =+ 1
-                   adapter.notifyDataSetChanged()*/
-                   writeNewComment(auditionID, userID,postID,videoID,userImage,commentText)
-               }else{
-                   myApplication.showToast("Please write something..")
-               }
+                if (commentText.isNotEmpty()){
+                    view.commentET.text.clear()
+                    list[position].commentCount =+ 1
+                    adapter.notifyItemChanged(position)
+                    writeNewComment(auditionID, userID,postID,videoID,userImage,commentText)
+                }else{
+                    myApplication.showToast("Please write something..")
+                }
             }
         }
 

@@ -1,29 +1,12 @@
 package com.img.audition.adapters
 
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.media3.common.C
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
-import com.img.audition.dataModel.CommonResponse
 import com.img.audition.dataModel.ReportCategoryData
 import com.img.audition.databinding.CommanlistCycleDesignBinding
-import com.img.audition.globalAccess.MyApplication
-import com.img.audition.network.ApiInterface
-import com.img.audition.network.RetrofitClient
-import com.img.audition.network.SessionManager
-import com.img.audition.screens.CameraActivity
-import com.img.audition.screens.fragment.VideoReportDialog
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class ReportCategoryAdapter(val context:Context,val categoryList: ArrayList<ReportCategoryData>,val vID:String) : RecyclerView.Adapter<ReportCategoryAdapter.MyViewHolder>() {
 

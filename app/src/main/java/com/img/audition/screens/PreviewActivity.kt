@@ -30,13 +30,14 @@ class PreviewActivity : AppCompatActivity() {
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
+    lateinit var player :ExoPlayer
 
     private var isFromContest = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
-
+        player  = ExoPlayer.Builder(this@PreviewActivity).build()
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
@@ -51,7 +52,7 @@ class PreviewActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        val player = ExoPlayer.Builder(this@PreviewActivity).build()
+
         viewBinding.videoExoView.player = player
 
         val videoUri = sessionManager.getCreateVideoSession()
@@ -85,10 +86,20 @@ class PreviewActivity : AppCompatActivity() {
         })
 
         viewBinding.sendToUploadBtn.setOnClickListener {
+            player.pause()
             player.stop()
+            player.release()
             sendToUploadVideoActivity()
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        player.pause()
+        player.stop()
+        player.release()
+    }
+
 
 
 }

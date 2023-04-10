@@ -35,7 +35,8 @@ import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.JsonObject
-import com.img.audition.dataModel.CommonResponse
+import com.img.audition.R
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityUploadVideoBinding
@@ -210,6 +211,7 @@ class UploadVideoActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+        finish()
     }
 
     private fun sendToAddAmountActivity() {
@@ -221,13 +223,16 @@ class UploadVideoActivity : AppCompatActivity() {
         val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.WARNING_TYPE)
         sweetAlertDialog.titleText = "Discard Video"
         sweetAlertDialog.contentText = "Do you want discard the video"
+        sweetAlertDialog.confirmText = "Yes"
         sweetAlertDialog.setConfirmClickListener {
             if (File(orignalPath).exists()){
                 File(orignalPath).delete()
                 sessionManager.clearVideoSession()
             }
+            sweetAlertDialog.dismiss()
             sendToMain()
         }
+        sweetAlertDialog.cancelText = "No"
         sweetAlertDialog.setCancelClickListener {
             sweetAlertDialog.dismiss()
         }
@@ -426,8 +431,8 @@ class UploadVideoActivity : AppCompatActivity() {
 
         val uploadVideoReq = apiInterface.uploadNormalVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadNormalVideoDataToServer Fun API",TARCK)
-        uploadVideoReq.enqueue(object : Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        uploadVideoReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 progressDialog.dismiss()
                 if (response.isSuccessful && response.body()!!.success!!){
                     myApplication.printLogD("Complete  uploadNormalVideoDataToServer Fun",TARCK)
@@ -439,7 +444,7 @@ class UploadVideoActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 progressDialog.dismiss()
                 myApplication.showToast(ConstValFile.UploadFailed)
             }
@@ -471,8 +476,8 @@ class UploadVideoActivity : AppCompatActivity() {
 
         val uploadVideoReq = apiInterface.uploadContestVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadContestVideoDataToServer Fun API",TARCK)
-        uploadVideoReq.enqueue(object : Callback<CommonResponse>{
-            override fun onResponse(call: Call<CommonResponse>, response: Response<CommonResponse>) {
+        uploadVideoReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 progressDialog.dismiss()
                 if (response.isSuccessful && response.body()!!.success!!){
                     myApplication.printLogD("Complete  uploadContestVideoDataToServer Fun",TARCK)
@@ -485,7 +490,7 @@ class UploadVideoActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onFailure(call: Call<CommonResponse>, t: Throwable) {
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 progressDialog.dismiss()
                 myApplication.showToast(ConstValFile.UploadFailed)
             }
@@ -540,12 +545,18 @@ class UploadVideoActivity : AppCompatActivity() {
                             val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.WARNING_TYPE)
                             sweetAlertDialog.titleText = "Wallet Balance"
                             sweetAlertDialog.contentText = "Please Add Balance"
-                            sweetAlertDialog.confirmText = "Add"
-                            sweetAlertDialog.show()
+                            sweetAlertDialog.confirmText = "₹ Add"
                             sweetAlertDialog.setConfirmClickListener {
                                 sweetAlertDialog.dismiss()
                                 sendToAddAmountActivity()
                             }
+                            sweetAlertDialog.cancelText = "No"
+                            sweetAlertDialog.setCancelClickListener {
+                                sweetAlertDialog.dismiss()
+                                onBackPressed()
+
+                            }
+                            sweetAlertDialog.show()
                         }
                     }else{
                         myApplication.printLogE("Wallet Data Null",TAG)

@@ -6,15 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.img.audition.dataModel.JoinedContestData
 import com.img.audition.databinding.JoinedContestCycleDesignBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -24,7 +23,7 @@ import com.img.audition.screens.ContestDetailsActivity
 import com.img.audition.videoWork.VideoCacheWork
 import java.text.SimpleDateFormat
 
-@UnstableApi
+
 class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<JoinedContestData>) :
     RecyclerView.Adapter<ContestJoinedAdapter.MyViewHolder>()
 {

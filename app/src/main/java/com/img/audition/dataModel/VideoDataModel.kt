@@ -43,7 +43,8 @@ data class VideoData(
     @SerializedName("follow_status"  ) var followStatus  : Boolean?          = null,
     @SerializedName("audition_id"    ) var auditionId    : String?           = null,
     @SerializedName("image"          ) var image         : String?           = null,
-    @SerializedName("isSaved"        ) var isSaved       : Boolean?          = null
+    @SerializedName("isSaved"        ) var isSaved       : Boolean?          = null,
+    @SerializedName("isBoosted"      ) var isBoosted     : Boolean?          = false
 ) : java.io.Serializable
 
 

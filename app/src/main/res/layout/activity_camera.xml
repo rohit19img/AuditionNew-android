@@ -7,13 +7,9 @@
     tools:context=".screens.CameraActivity"
     android:layout_height="match_parent">
 
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-
 
         <androidx.camera.view.PreviewView
             android:id="@+id/previewView"
@@ -188,21 +184,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"/>
 
-        <TextView
-            android:id="@+id/music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Choose music"
-            android:textSize="14sp"
-            android:textColor="@android:color/white"
-            android:layout_centerHorizontal="true"
-            android:drawableLeft="@drawable/ic_music"
-            android:gravity="center"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:drawablePadding="8dp"
-            android:layout_marginTop="16dp"/>
+
 
         <RadioGroup
             android:id="@+id/rate_bar"
@@ -218,18 +200,6 @@
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toTopOf="@+id/record_button">
 
-            <!--  <RadioButton
-                  android:id="@+id/rate_quarter"
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:layout_weight="0.98"
-                  android:background="@drawable/record_rate_bg"
-                  android:gravity="center"
-                  android:text="@string/rate_very_slow"
-                  android:textColor="@color/white"
-                  android:button="@null"
-                  android:textSize="15sp"/>
-  -->
             <RadioButton
                 android:id="@+id/slow"
                 android:layout_width="match_parent"
@@ -267,17 +237,7 @@
                 android:button="@null"
                 android:textSize="15sp"/>
 
-            <!--<RadioButton
-                android:id="@+id/rate_double_power2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.98"
-                android:background="@drawable/record_rate_bg"
-                android:gravity="center"
-                android:text="@string/rate_very_fast"
-                android:textColor="@color/white"
-                android:button="@null"
-                android:textSize="15sp"/>-->
+
         </RadioGroup>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

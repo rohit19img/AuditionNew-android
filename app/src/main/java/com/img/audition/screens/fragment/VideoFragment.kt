@@ -1,29 +1,36 @@
 package com.img.audition.screens.fragment
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.finishAffinity
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
-import androidx.media3.common.util.UnstableApi
+
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.OnSuccessListener
 import com.img.audition.adapters.LanguageSelecteDialog
 import com.img.audition.adapters.VideoAdapter
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.VideoData
 import com.img.audition.dataModel.VideoResponse
-import com.img.audition.databinding.FragmentMusicListBinding
 import com.img.audition.databinding.FragmentVideoBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
@@ -38,7 +45,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi
+
 class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
     val TAG = "VideoFragment"
@@ -49,6 +56,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
     lateinit var appPermission : AppPermission
     lateinit var fusedLocation : FusedLocationProviderClient
+    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     lateinit var userLatLang: UserLatLang
     lateinit var locationManager: LocationManager
     var authToken = ""
@@ -78,6 +86,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         authToken = sessionManager.getToken().toString()
 
 
+
         userLatLang = UserLatLang()
         myApplication.printLogD(userLatLang.lat.toString(),"lat $TAG")
         myApplication.printLogD(userLatLang.long.toString(),"long $TAG")
@@ -89,7 +98,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
             showLangDialog.show(parentFragmentManager,showLangDialog.tag)
         }else{
             if (myApplication.isNetworkConnected()) {
-
+                    askForLocation()
             }else{
                 myApplication.showToast(ConstValFile.Check_Connection)
             }
@@ -119,12 +128,20 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         videoShimmerEffect.visibility = View.VISIBLE
         videoShimmerEffect.startShimmer()
 
+
+        view.notificationButton.setOnClickListener {
+            sendToNotificationActivity()
+        }
+    }
+
+    private fun sendToNotificationActivity() {
+        val intent = Intent(contextFromActivity,NotificationActivity::class.java)
+        contextFromActivity.startActivity(intent)
     }
 
 
-
     private fun showReels() {
-        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
         var apiVideoRequest: Call<VideoResponse>? = null
         myApplication.printLogD(authToken, ConstValFile.TOKEN)
 
@@ -240,7 +257,12 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 if (position == videoList2.size-3){
-                    showReels()
+                    if (myApplication.isNetworkConnected()) {
+                        showReels()
+                    }else{
+                        myApplication.showToast(ConstValFile.Check_Connection)
+                    }
+
                     myApplication.printLogD("Api Call","check 800")
                     myApplication.printLogD(position.toString(),"check 800")
                 }
@@ -265,13 +287,50 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         }
         Log.d(TRACK, "onResume: ")
         super.onResume()
+
+
     }
+
+    private fun askForLocation() {
+        if (ContextCompat.checkSelfPermission(contextFromActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            myApplication.printLogD("Ask from home Activity",TAG)
+        } else {
+            locationManager = contextFromActivity.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                myApplication.onGPS()
+            } else {
+                getLocation()
+            }
+        }
+    }
+    private fun getLocation() {
+        if (ActivityCompat.checkSelfPermission(contextFromActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(contextFromActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+           myApplication.printLogD("ask permission from home activity",TAG)
+        } else {
+            fusedLocation.lastLocation.addOnSuccessListener {location ->
+                if (location != null) {
+                    userLatLang = UserLatLang(location.latitude,location.longitude)
+                    myApplication.printLogI(userLatLang.lat.toString(),TAG + " latitude :")
+                    myApplication.printLogI(userLatLang.long.toString(),TAG + " longitude :")
+                }
+            }
+        }
+    }
+
 
 
     override fun onStart() {
-        showReels()
+        if (myApplication.isNetworkConnected()) {
+            showReels()
+        }else{
+            myApplication.showToast(ConstValFile.Check_Connection)
+        }
         Log.d(TRACK, "onStart: ")
         super.onStart()
     }
+
+
 
 }

@@ -2,21 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature android:name="android.hardware.camera"/>
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage"
-        android:minSdkVersion="30"/>
-
     <application
         android:name=".videoWork.VideoCacheWork"
         android:allowBackup="true"
@@ -31,9 +16,25 @@
         tools:node="merge"
         tools:targetApi="31">
         <activity
+            android:name=".screens.CompilerActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".screens.MusicActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".screens.fragment.NotificationActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
             android:name=".screens.BoostPostActivity"
             android:exported="false"
-            android:screenOrientation="portrait"/>
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".cashfree.PaymentActivity"
             android:exported="false"
@@ -60,8 +61,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.UploadVideoActivity"
-            android:parentActivityName=".screens.HomeActivity"
             android:exported="false"
+            android:parentActivityName=".screens.HomeActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.EditProfileActivity"
@@ -94,6 +95,8 @@
         <activity
             android:name=".screens.CameraActivity"
             android:exported="false"
+            android:launchMode="singleTop"
+            android:parentActivityName=".screens.HomeActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.OtherUserProfileActivity"
@@ -123,8 +126,7 @@
         <activity
             android:name=".screens.HomeActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-          />
+            android:screenOrientation="portrait" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
@@ -154,7 +156,23 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
+        <service
+            android:name=".network.NetworkStateService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
 </manifest>

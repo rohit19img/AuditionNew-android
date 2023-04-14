@@ -9,7 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.media3.common.util.UnstableApi
+
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -18,7 +18,7 @@ import com.img.audition.dataModel.VideoData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
 
-@UnstableApi class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
+ class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val auditionid =  itemView.findViewById<TextView>(R.id.auditionid)
@@ -36,7 +36,7 @@ import com.img.audition.screens.CommanVideoPlayActivity
         holder.apply {
             auditionid.text = list[position].auditionId
             plays.text = list[position].views.toString()
-            Glide.with(context).load(list[position].file).placeholder(R.drawable.splash_icon).diskCacheStrategy(DiskCacheStrategy.ALL).into(videothumb)
+            Glide.with(context).load(list[position].file).placeholder(R.drawable.splash_icon).into(videothumb)
             itemView.setOnClickListener {
                 val bundle = Bundle()
                 bundle.putSerializable(ConstValFile.VideoList,list)

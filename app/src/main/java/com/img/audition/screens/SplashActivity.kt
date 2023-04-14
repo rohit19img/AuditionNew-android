@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
@@ -13,13 +14,14 @@ import com.img.audition.dataModel.LoginResponse
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
-import com.img.audition.network.SessionManager
 import com.img.audition.network.RetrofitClient
+import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 
-@SuppressLint("CustomSplashScreen")
+ @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
     lateinit var sessionManager : SessionManager
     lateinit var myApplication : MyApplication
@@ -35,7 +37,8 @@ class SplashActivity : AppCompatActivity() {
             if (!(sessionManager.isUserLoggedIn())){
                 myApplication.printLogD("Not Login in",TAG)
                 if (!(sessionManager.isGuestLoggedIn())){
-                    guestUserLogin()
+                    onTokenRefresh()
+
                 }else{
                     sendToHomeActivity()
                 }
@@ -51,11 +54,11 @@ class SplashActivity : AppCompatActivity() {
     @SuppressLint("HardwareIds")
     private fun guestUserLogin() {
         val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-        onTokenRefresh()
+
         deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         if (deviceID!=""){
-            val guestRequestModel = GuestLoginRequest(deviceId =deviceID,
-                fcmToken = sessionManager.getNotificationToken())
+
+            val guestRequestModel = GuestLoginRequest(deviceID, sessionManager.getNotificationToken())
             myApplication.printLogI(guestRequestModel.deviceId.toString(),"guestLoginRequest deviceId:")
             myApplication.printLogI(guestRequestModel.fcmToken.toString(),"guestLoginRequest appId:")
 
@@ -98,6 +101,8 @@ class SplashActivity : AppCompatActivity() {
                     myApplication.printLogD(token.toString(),"Firebase Token")
                     refreshedToken[0] = token.toString()
                     sessionManager.setNotificationToken(refreshedToken[0])
+
+                    guestUserLogin()
                 }
             })
         FirebaseMessaging.getInstance().subscribeToTopic("All-user")
@@ -109,5 +114,37 @@ class SplashActivity : AppCompatActivity() {
         homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(homeIntent)
         finish()
+    }
+
+    override fun onDestroy() {
+        myApplication.printLogD("onDestroy ",TAG)
+
+        super.onDestroy()
+    }
+
+    fun deleteCache() {
+        try {
+            val dir: File = cacheDir
+            deleteDir(dir)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun deleteDir(dir: File?): Boolean {
+        return if (dir != null && dir.isDirectory) {
+            val children = dir.list()
+            for (i in children.indices) {
+                val success = deleteDir(File(dir, children[i]))
+                if (!success) {
+                    return false
+                }
+            }
+            dir.delete()
+        } else if (dir != null && dir.isFile) {
+            dir.delete()
+        } else {
+            false
+        }
     }
 }

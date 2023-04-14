@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.media3.common.util.UnstableApi
+
 import com.img.audition.R
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.GetJoinedContestDataResponse
@@ -53,7 +53,7 @@ class JoinedContestFragment : Fragment() {
     private fun showJoinedContest() {
         val liveContestReq = apiInterface.getJoinedContest(sessionManager.getToken())
 
-        liveContestReq.enqueue(@UnstableApi object : Callback<GetJoinedContestDataResponse> {
+        liveContestReq.enqueue( object : Callback<GetJoinedContestDataResponse> {
             override fun onResponse(call: Call<GetJoinedContestDataResponse>, response: Response<GetJoinedContestDataResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val contestData = response.body()!!.data

@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.media3.common.util.UnstableApi
+
 import com.img.audition.R
 import com.img.audition.adapters.VideoItemAdapter
 import com.img.audition.dataModel.VideoResponse
@@ -47,7 +47,7 @@ class CollectionActivity : AppCompatActivity() {
     private fun getSavedVideos() {
         val getUserVideoReq = apiInterface.getSavedVideo(sessionManager.getToken())
 
-        getUserVideoReq.enqueue(@UnstableApi object : Callback<VideoResponse> {
+        getUserVideoReq.enqueue( object : Callback<VideoResponse> {
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val videoData = response.body()!!.data

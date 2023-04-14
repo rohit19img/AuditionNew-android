@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
 import android.util.Log
 import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.media3.common.util.UnstableApi
+
 import androidx.recyclerview.widget.RecyclerView
 import com.img.audition.R
 import com.img.audition.adapters.VideoAdapter
@@ -17,7 +17,7 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.videoWork.VideoItemPlayPause
 
-@UnstableApi class CommanVideoPlayActivity : AppCompatActivity() {
+ class CommanVideoPlayActivity : AppCompatActivity() {
     val TAG = "CommanVideoPlayActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCommanVideoPlayBinding.inflate(layoutInflater)
@@ -42,12 +42,24 @@ import com.img.audition.videoWork.VideoItemPlayPause
 
         if (bundle!=null){
 
+            viewBinding.videoViewpager2.offscreenPageLimit = 2
+
             val videoList = bundle!!.getSerializable(ConstValFile.VideoList) as ArrayList<VideoData>
             val videoPos = bundle!!.getInt(ConstValFile.VideoPosition)
+            for (da in videoList){
+                myApplication.printLogD(da.usersLike.toString(),"like common play")
+                myApplication.printLogD(da.auditionId.toString(),"userid Data common play")
+                myApplication.printLogD(da.caption.toString(),"caption Data common play")
+            }
             val videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoList)
             viewBinding.videoViewpager2.adapter = videoAdapter
             viewBinding.videoViewpager2.currentItem = videoPos
+
             videoItemPlayPause = videoAdapter.onActivityStateChanged()
+        }
+
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
         }
     }
 

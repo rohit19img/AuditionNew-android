@@ -192,6 +192,7 @@
                     </androidx.cardview.widget.CardView>
 
                     <TextView
+                        android:id="@+id/boostText"
                         style="@style/textview_share"
                         android:text="@string/boost_post"
                         />

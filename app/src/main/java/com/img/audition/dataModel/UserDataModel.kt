@@ -142,3 +142,19 @@ data class FollowerList(
     @SerializedName("audition_id"     ) var auditionId     : String? = null,
     @SerializedName("follow_status"     ) var followStatus     : Boolean? = false
 )
+
+data class NotificationDataResponse(
+    @SerializedName("success" ) var success : Boolean?        = null,
+    @SerializedName("message" ) var message : String?         = null,
+    @SerializedName("data"    ) var data    : ArrayList<NotificationData> = arrayListOf()
+)
+
+data class NotificationData(
+    @SerializedName("_id"        ) var Id        : String?  = null,
+    @SerializedName("userid"     ) var userid    : String?  = null,
+    @SerializedName("title"      ) var title     : String?  = null,
+    @SerializedName("seen"       ) var seen      : Int?     = null,
+    @SerializedName("is_deleted" ) var isDeleted : Boolean? = null,
+    @SerializedName("createdAt"  ) var createdAt : String?  = null,
+    @SerializedName("updatedAt"  ) var updatedAt : String?  = null
+)

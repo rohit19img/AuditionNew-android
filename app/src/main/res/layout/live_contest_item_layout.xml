@@ -20,7 +20,7 @@
             android:scaleType="fitXY"
             />
 
-        <androidx.media3.ui.PlayerView
+        <com.google.android.exoplayer2.ui.PlayerView
             android:id="@+id/contestVideo"
             app:resize_mode="fill"
             android:visibility="gone"

@@ -4,7 +4,10 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import androidx.media3.common.util.UnstableApi
+
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.messaging.FirebaseMessaging
 import com.img.audition.dataModel.LoginResponse
 import com.img.audition.dataModel.NumLoginRequest
 import com.img.audition.dataModel.CommanResponse
@@ -19,7 +22,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi class PhoneLoginActivity : AppCompatActivity() {
+ class PhoneLoginActivity : AppCompatActivity() {
 
     val TAG = "PhoneLoginActivity"
     var number = ""
@@ -65,8 +68,8 @@ import retrofit2.Response
                 myApplication.showToast("Enter Valid OTP")
             }else{
                 val number = number
-                val fcmToken = sessionManager.getNotificationToken()
-                loginWithOTP(number,otp,fcmToken)
+                onTokenRefresh(number)
+
             }
         }
 
@@ -75,6 +78,7 @@ import retrofit2.Response
     private fun loginWithOTP(number: String, otp: String, fcmToken: String?) {
 //        myApplication.showToast(otp)
         val  otpRequest = OTPRequest(number,otp.toInt(),fcmToken)
+        myApplication.printLogD(otpRequest.toString(),"phone login")
         val apiOTPRequest = apiInterface.OTP_Login(otpRequest)
         apiOTPRequest.enqueue(object : Callback<LoginResponse>{
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
@@ -118,7 +122,6 @@ import retrofit2.Response
                     viewBinding.otpLayout.visibility = View.VISIBLE
                     viewBinding.getOtpBtn.visibility = View.GONE
                     myApplication.showToast("OTP Sent..")
-
                 }else{
                     myApplication.showToast("Something went wrong..")
                     viewBinding.otpLayout.visibility = View.GONE
@@ -137,5 +140,24 @@ import retrofit2.Response
         homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(homeIntent)
         finish()
+    }
+
+    fun onTokenRefresh(number: String) {
+        val refreshedToken = arrayOf("")
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(object :
+            OnCompleteListener<String?> {
+            override fun onComplete(task: Task<String?>) {
+                if (!task.isSuccessful()) {
+                    myApplication.printLogE(task.exception.toString(),TAG);
+                    return
+                }
+                val token: String? = task.getResult()
+                myApplication.printLogD(token.toString(),"Firebase Token")
+                refreshedToken[0] = token.toString()
+                sessionManager.setNotificationToken(refreshedToken[0])
+                loginWithOTP(number,otp,sessionManager.getNotificationToken())
+            }
+        })
+        FirebaseMessaging.getInstance().subscribeToTopic("All-user")
     }
 }

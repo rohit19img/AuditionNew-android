@@ -73,7 +73,11 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         val auditionID = bundle!!.getString(ConstValFile.AuditionID)
         val userID = bundle!!.getString(ConstValFile.AllUserID)
         val videoID = bundle!!.getString(ConstValFile.VideoID)
-        val userImage = bundle!!.getString(ConstValFile.UserImage)
+        val uIm = bundle!!.getString(ConstValFile.UserImage).toString()
+        var userImage = ""
+        if (uIm.isNotEmpty()){
+            userImage = uIm
+        }
         val postID = bundle!!.getString(ConstValFile.PostID)
 
         getAllComments(postID)
@@ -132,13 +136,13 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
             e.printStackTrace()
         }
         mapData.put("created_at", now.toString())
-        mapData.put("user_id", userID!!)
-        mapData.put("userimage",userImage!!)
-        mapData.put("post_id",postID!!)
+        mapData.put("user_id", userID.toString())
+        mapData.put("userimage",userImage.toString())
+        mapData.put("post_id",postID.toString())
 
         val cData = CommentData()
         cData.auditionID = auditionID.toString()
-        cData.commentBy = auditionID.toString()
+        cData.commentBy = sessionManager.getUserName()!!
         cData.comment = commentText.toString()
         cData.createdAt = now.toString()
         cData.userImage = userImage.toString()

@@ -20,7 +20,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:cardBackgroundColor="@color/bgColorRed"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="6dp">
@@ -50,7 +50,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-
                             android:layout_marginLeft="5dp"
                             android:text="Verify Your Mobile"
                             android:textColor="@color/textColorYellow"
@@ -72,7 +71,7 @@
                         android:padding="10dp"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/black"
-                        android:textColorHint="@color/textHintColor"
+                        android:textColorHint="@color/Gray"
                         android:textSize="13sp" />
 
                     <TextView

@@ -56,8 +56,7 @@ class UserSearch_Adapter(val list: ArrayList<Searchgetset.User>, val context: Co
                 if (list[position].is_self === false) {
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.USER_IDFORIntent, list[position].get_id())
-                    bundle.putBoolean(ConstValFile.UserFollowStatus, false)
-                    bundle.putString("userimg", list[position].image)
+                    bundle.putBoolean(ConstValFile.UserFollowStatus, list[position].followStatus!!)
                     context.startActivity(
                         Intent(context, OtherUserProfileActivity::class.java)
                             .putExtra(ConstValFile.Bundle,bundle)

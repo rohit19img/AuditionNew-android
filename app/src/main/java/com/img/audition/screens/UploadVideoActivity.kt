@@ -1,5 +1,8 @@
 package com.img.audition.screens
 
+
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
 import android.Manifest
 import android.app.ProgressDialog
 import android.content.ContentResolver
@@ -9,14 +12,13 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.media3.common.util.UnstableApi
+
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
@@ -25,17 +27,14 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.CannedAccessControlList
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
+
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.JsonObject
-import com.img.audition.R
 import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.UserSelfProfileResponse
@@ -57,7 +56,7 @@ import java.util.*
 import java.util.regex.Pattern
 
 
-@UnstableApi
+
 class UploadVideoActivity : AppCompatActivity() {
 
     val TAG = "UploadVideoActivity"
@@ -208,8 +207,7 @@ class UploadVideoActivity : AppCompatActivity() {
 
     private fun sendToHomeActivity() {
         val intent = Intent(this@UploadVideoActivity, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
         finish()
     }
@@ -269,7 +267,7 @@ class UploadVideoActivity : AppCompatActivity() {
     private fun createFileAndFolder():String{
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.mp4"
-        val appData = Environment.getExternalStorageDirectory()
+        val appData = filesDir
         myApplication.printLogD(appData.absolutePath,TAG)
 
         val createFile = File(appData,filename)
@@ -288,9 +286,33 @@ class UploadVideoActivity : AppCompatActivity() {
 
 
     fun compressVideo(inputPath:String,outputPath:String){
+
         myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -crf 22 $outputPath"
-        FFmpegKit.executeAsync(cmd,
+        val cmd = "-y -i $inputPath -vcodec libx264 -crf 24 $outputPath"
+
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("log : onSuccess","ffmpeg")
+                myApplication.printLogD("Video Compress Complete",TARCK)
+                if (File(orignalPath).exists()){
+                    File(orignalPath).delete()
+                }
+                orignalPath = outputPath
+
+                myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
+                uploadVideoToS3()
+            }
+
+            override fun onFailure() {
+                myApplication.printLogD("log : onFailure","ffmpeg")
+            }
+
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("log onProgress : $progress","ffmpeg")
+            }
+
+        })
+       /* FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
@@ -309,11 +331,11 @@ class UploadVideoActivity : AppCompatActivity() {
                     state, returnCode,  session.failStackTrace))
             },
             {
-//                myApplication.printLogD("log : $it",TAG)
+                myApplication.printLogD("log : $it","ffmpeg")
             })
         {
-//            myApplication.printLogD("statistics : $it",TAG)
-        }
+            myApplication.printLogD("statistics : $it","ffmpeg")
+        }*/
     }
 
     private fun uploadVideoToS3() {
@@ -428,6 +450,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("postId", postID)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
+        obj.addProperty("lat",userLatLang.lat.toString())
+        obj.addProperty("long",userLatLang.long.toString())
 
         val uploadVideoReq = apiInterface.uploadNormalVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadNormalVideoDataToServer Fun API",TARCK)
@@ -471,6 +495,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("video_or_image",sessionManager.getContestFile())
         obj.addProperty("video_or_image_type",sessionManager.getContestType())
+        obj.addProperty("lat",userLatLang.lat.toString())
+        obj.addProperty("long",userLatLang.long.toString())
 
 
 
@@ -500,13 +526,13 @@ class UploadVideoActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         isFromContest = sessionManager.getIsFromContest()
-        val videoUri = sessionManager.getCreateVideoSession()
-        myApplication.printLogD("$isFromContest onCreate"," isFromContest $TAG")
+        val videoUri = sessionManager.getCreateVideoPath()
+        myApplication.printLogD("$isFromContest onStart"," isFromContest")
         myApplication.printLogD(videoUri!!, "videoUri")
-        orignalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
+//        orignalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
+        orignalPath = videoUri
         myApplication.printLogD(orignalPath, "videoPath")
-        Glide.with(this@UploadVideoActivity).load(orignalPath)
-            .diskCacheStrategy(DiskCacheStrategy.ALL).into(viewBinding.videoThumbnail)
+        Glide.with(this@UploadVideoActivity).load(orignalPath).into(viewBinding.videoThumbnail)
         myApplication.printLogD("$isFromContest onStart"," isFromContest $TAG")
     }
 

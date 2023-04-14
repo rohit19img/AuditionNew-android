@@ -12,8 +12,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
-        maven {url 'https://maven.cashfree.com/release'}
-
+        maven { url 'https://maven.cashfree.com/release'}
     }
 }
 rootProject.name = "Audition"

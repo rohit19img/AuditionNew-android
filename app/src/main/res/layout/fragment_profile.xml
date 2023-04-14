@@ -19,6 +19,7 @@
             android:layout_height="wrap_content"
             android:background="@color/bgColorDarkRed">
 
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -486,7 +487,7 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:textColor="@color/textColorRed"
-                                android:text="Privacy And Safety"
+                                android:text="Privacy And Policy"
                                 android:textSize="14dp" />
                         </LinearLayout>
 

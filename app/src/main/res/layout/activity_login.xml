@@ -47,6 +47,7 @@
             android:orientation="vertical">
 
             <androidx.cardview.widget.CardView
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 app:cardCornerRadius="8dp"
                 android:layout_marginHorizontal="20dp"
@@ -81,6 +82,7 @@
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/googleLogin"
                 android:layout_width="match_parent"
                 app:cardCornerRadius="8dp"
                 android:layout_marginTop="15dp"

@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.media3.common.util.UnstableApi
+
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.img.audition.R
 import com.img.audition.adapters.ReportCategoryAdapter
@@ -23,7 +23,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi class VideoReportDialog(val contextFromActivity:Context ,val vID:String, val viewType :String) : BottomSheetDialogFragment() {
+ class VideoReportDialog(val contextFromActivity:Context ,val vID:String, val viewType :String) : BottomSheetDialogFragment() {
 
     val TAG = "VideoReportDialog"
     private val sessionManager by lazy {

@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.media3.common.util.UnstableApi
+
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.GetLiveContestDataResponse
 import com.img.audition.databinding.FragmentLiveContestBinding
@@ -44,7 +44,6 @@ class LiveContestFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentLiveContestBinding.inflate(inflater,container,false)
 
-        view.contestViewpager2.offscreenPageLimit = 1
         showLiveContest()
         return view.root
     }
@@ -52,7 +51,7 @@ class LiveContestFragment : Fragment() {
     private fun showLiveContest() {
         val liveContestReq = apiInterface.getAllLiveContest(sessionManager.getToken())
 
-        liveContestReq.enqueue(@UnstableApi object : Callback<GetLiveContestDataResponse>{
+        liveContestReq.enqueue( object : Callback<GetLiveContestDataResponse>{
             override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val contestData = response.body()!!.data

@@ -5,33 +5,33 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.util.UnstableApi
+
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
 import com.img.audition.adapters.VideoItemAdapter
-import com.img.audition.dataModel.CommanResponse
-import com.img.audition.dataModel.FollowFollowingResponse
-import com.img.audition.dataModel.GetOtherUserResponse
-import com.img.audition.dataModel.VideoResponse
+import com.img.audition.dataModel.*
 import com.img.audition.databinding.ActivityOtherUserProfileBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.fragment.VideoFragment
 import com.img.audition.screens.fragment.VideoReportDialog
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.ArrayList
 
 
-@UnstableApi class OtherUserProfileActivity : AppCompatActivity() {
+ class OtherUserProfileActivity : AppCompatActivity() {
 
     val TAG = "OtherUserProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -171,7 +171,7 @@ import retrofit2.Response
     private fun getUserVideo(userID: String?) {
         val getUserVideoReq = apiInterface.getOtherUserVideo(sessionManager.getToken(),userID)
 
-        getUserVideoReq.enqueue(@UnstableApi object : Callback<VideoResponse>{
+        getUserVideoReq.enqueue( object : Callback<VideoResponse>{
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val videoData = response.body()!!.data
@@ -281,26 +281,26 @@ import retrofit2.Response
                 myApplication.showToast(ConstValFile.LoginMsg)
                 sendToLoginScreen()
             }else {
-               try {
-                   /*val list = (VideoFragment).videoList2
-                   val adapter = (VideoFragment).videoAdapter
-                   val position = bundle!!.getInt(ConstValFile.UserPositionInList)
-                   if (!(list[position].followStatus!!)){
-                       list[position].followStatus = true
-                       adapter.notifyDataSetChanged()
+                try {
+                    val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
+                    val adapter = (VideoFragment).videoAdapter
+                    val position = bundle!!.getInt(ConstValFile.UserPositionInList)
+                    if (!followStatus){
+                        list[position].followStatus = true
+                        adapter.notifyItemChanged(position)
                         Thread { followUserApi(userID, "followed") }
-                       viewBinding.followBtn.text = ConstValFile.Following
-                       viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
-                   }else{
-                       list[position].followStatus = false
-                       adapter.notifyDataSetChanged()
-                       followUserApi(userID,"unfollowed")
-                       viewBinding.followBtn.text = ConstValFile.Follow
-                       viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.NORMAL)
-                   }*/
-               }catch (e:Exception){
-                   myApplication.printLogE(e.toString(),TAG)
-               }
+                        viewBinding.followBtn.text = ConstValFile.Following
+                        viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
+                    }else{
+                        list[position].followStatus = false
+                        adapter.notifyItemChanged(position)
+                        followUserApi(userID,"unfollowed")
+                        viewBinding.followBtn.text = ConstValFile.Follow
+                        viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.NORMAL)
+                    }
+                }catch (e:Exception){
+                    myApplication.printLogE(e.toString(),TAG)
+                }
             }
         }
     }

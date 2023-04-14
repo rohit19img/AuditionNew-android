@@ -3,13 +3,11 @@ package com.img.audition.screens
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.img.audition.R
 import com.img.audition.adapters.ChatsAdapter
 import com.img.audition.dataModel.ChatsGetSet
 import com.img.audition.databinding.ActivityMessageBinding
@@ -62,19 +60,6 @@ class MessageActivity : AppCompatActivity() {
             finish()
         }
 
-        val image = intent.getStringExtra("image")
-        val username = intent.getStringExtra("name")
-        userid = intent.getStringExtra("userid").toString()
-
-        Log.i("intent_test","image : $image")
-        Log.i("intent_test","username : $username")
-        Log.i("intent_test","userid : $userid")
-
-        viewBinding.name.text = username
-        viewBinding.uname.text = username
-
-        if(!image.equals(""))
-            Glide.with(this@MessageActivity).load(image).into(viewBinding.img)
 
         mSocket = VideoCacheWork.mSocket!!
         viewBinding.chatsRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -217,6 +202,29 @@ class MessageActivity : AppCompatActivity() {
                 myApplication.printLogD("text", t.message!!)
             }
         })
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val image = intent.getStringExtra("image")
+        val username = intent.getStringExtra("name")
+        val url204 = intent.getStringExtra("url204")
+        userid = intent.getStringExtra("userid").toString()
+
+        Log.i("intent_test","image : $image")
+        Log.i("intent_test","username : $username")
+        Log.i("intent_test","userid : $userid")
+
+        viewBinding.name.text = username
+        viewBinding.uname.text = username
+
+        if(image!!.isNotEmpty())
+            Glide.with(this@MessageActivity).load(image).into(viewBinding.img)
+
+        if (url204!!.isNotEmpty()){
+            viewBinding.messageET.setText(url204.toString())
+        }
     }
 
 }

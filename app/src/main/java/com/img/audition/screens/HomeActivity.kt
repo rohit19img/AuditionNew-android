@@ -1,6 +1,8 @@
 package com.img.audition.screens
 
 import android.Manifest
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -13,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.media3.common.util.UnstableApi
+
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.img.audition.R
@@ -22,12 +24,13 @@ import com.img.audition.databinding.ActivityHomeBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.NetworkStateService
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
 import java.io.File
 import java.io.IOException
 
-@UnstableApi class HomeActivity : AppCompatActivity() {
+ class HomeActivity : AppCompatActivity() {
     val TAG = "HomeActivity"
     lateinit var appPermission : AppPermission
     lateinit var fusedLocation : FusedLocationProviderClient
@@ -50,7 +53,21 @@ import java.io.IOException
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
-        askForPermissionsAndroidUpperVerssion();
+
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val runningTasks = activityManager.getRunningTasks(1)
+        val currentActivity = runningTasks[0].topActivity!!.className
+
+        if (currentActivity != HomeActivity::class.java.name) {
+            val intent = Intent(applicationContext, NetworkStateService::class.java)
+            startService(intent)
+            Log.d("internet", "HomeActivity: // App is running in the background")
+        } else {
+            val intent = Intent(applicationContext, NetworkStateService::class.java)
+            stopService(intent)
+            Log.d("internet", "HomeActivity: // App is running in the foreground")
+        }
+
 
         appPermission =  AppPermission(this@HomeActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@HomeActivity)
@@ -180,20 +197,5 @@ import java.io.IOException
         startActivity(intent)
     }
 
-    private fun askForPermissionsAndroidUpperVerssion() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivity(intent)
-                return
-            }
-            createDir()
-        }
-    }
 
-    fun createDir() {
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-    }
 }

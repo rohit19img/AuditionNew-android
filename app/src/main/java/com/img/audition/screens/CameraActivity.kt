@@ -7,10 +7,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.view.View
+import android.widget.RadioButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
@@ -21,8 +20,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.util.Consumer
-import androidx.media3.common.util.UnstableApi
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.img.audition.R
 import com.img.audition.cameraX.getNameString
 import com.img.audition.customView.RecordButton
@@ -30,17 +29,17 @@ import com.img.audition.databinding.ActivityCameraBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import com.img.audition.screens.fragment.MusicListFragment
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 
-@UnstableApi class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
+ class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
 
     private var maxVideoDuration:Long = 15 * 1000
     private var minVideoDuration:Long = 5 * 1000
     private val curreentVideoDuration = mutableListOf<Int>()
+    private var videoSize :Long = 0
 
     private var videoFilePath = ""
 
@@ -52,7 +51,6 @@ import java.util.concurrent.TimeUnit
     var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
 
     companion object {
-        private const val MUSIC_TAG = "music_tag"
 
         val TAG  = "MainActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
@@ -93,7 +91,6 @@ import java.util.concurrent.TimeUnit
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
 
-        askForPermissionsAndroidUpperVerssion();
         viewBinding.switchCamera.setOnClickListener {
             if (lensFacing == CameraSelector.DEFAULT_FRONT_CAMERA)
                 lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
@@ -126,9 +123,6 @@ import java.util.concurrent.TimeUnit
             t.start()
         }
 
-        viewBinding.music.setOnClickListener {
-            showMusicSheet()
-        }
 
 
         viewBinding.done.visibility = View.INVISIBLE
@@ -149,8 +143,21 @@ import java.util.concurrent.TimeUnit
 
     }
 
-    private fun sendToVideoPreview(videoUri:String) {
-        sessionManager.setCreateVideoSession(videoUri)
+    private fun sendToVideoPreview(videoUri: String, videoDuration: Long) {
+        val videoSpeedSelectedRadio = findViewById<RadioButton>(viewBinding.rateBar.checkedRadioButtonId)
+        var videoSpeedState = ""
+        when (viewBinding.rateBar.checkedRadioButtonId) {
+            R.id.slow -> {
+                videoSpeedState = videoSpeedSelectedRadio.text.toString()
+            }
+            R.id.fast -> {
+                videoSpeedState = videoSpeedSelectedRadio.text.toString()
+            }
+            else -> {
+                videoSpeedState = videoSpeedSelectedRadio.text.toString()
+            }
+        }
+        sessionManager.setCreateVideoSession(videoUri,videoSpeedState,videoDuration)
         val intent = Intent(this@CameraActivity,PreviewActivity::class.java)
         startActivity(intent)
     }
@@ -315,6 +322,7 @@ import java.util.concurrent.TimeUnit
         val stats = event.recordingStats
         val size = stats.numBytesRecorded / 1000
         val time = TimeUnit.MICROSECONDS.toSeconds(stats.recordedDurationNanos)
+        videoSize = size
         var text = "${state}: recorded ${size}KB, in ${time}second"
         if(event is VideoRecordEvent.Finalize){
             text = "${text}\nFile saved to: ${event.outputResults.outputUri}"
@@ -331,8 +339,10 @@ import java.util.concurrent.TimeUnit
 
             viewBinding.showPreviewBtn.setOnClickListener{
                 if (event is VideoRecordEvent.Finalize){
+                    val stats1 = event.recordingStats
+                    val videoDuration = TimeUnit.MICROSECONDS.toSeconds(stats1.recordedDurationNanos)
                     videoFilePath = event.outputResults.outputUri.toString()
-                    sendToVideoPreview(videoFilePath)
+                    sendToVideoPreview(videoFilePath,videoDuration)
                     myApplication.printLogD(videoFilePath,"VideoFilePath")
 //                myApplication.showToast(videoFilePath)
                 }
@@ -363,27 +373,6 @@ import java.util.concurrent.TimeUnit
         }
     }
 
-    private fun showMusicSheet() {
-        var musicFragment = supportFragmentManager.findFragmentByTag(MUSIC_TAG)
-        if (musicFragment == null) {
-            musicFragment = MusicListFragment.newInstance()
-
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.replace(viewBinding.frameContainer.id,musicFragment)
-            transaction.commit()
-        }
-        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
-        if (behavior.state != BottomSheetBehavior.STATE_EXPANDED) {
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        } else {
-            behavior.state = BottomSheetBehavior.STATE_HIDDEN
-        }
-    }
-
-    fun closeBottomSheet() {
-        val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
-        behavior.state = BottomSheetBehavior.STATE_HIDDEN
-    }
 
 
     private fun createFileAndFolder():String{
@@ -422,20 +411,26 @@ import java.util.concurrent.TimeUnit
     }
 
 
-    private fun askForPermissionsAndroidUpperVerssion() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivity(intent)
-                return
-            }
-            createDir()
-        }
-    }
 
-    fun createDir() {
-        if (!dir.exists()) {
-            dir.mkdirs()
+
+    override fun onBackPressed() {
+        if (videoSize>0){
+            val sweetAlertDialog = SweetAlertDialog(this@CameraActivity, SweetAlertDialog.WARNING_TYPE)
+            sweetAlertDialog.titleText = "Discard Video"
+            sweetAlertDialog.contentText = "Do you want discard the video"
+            sweetAlertDialog.confirmText = "Yes"
+            sweetAlertDialog.setConfirmClickListener {
+                sweetAlertDialog.dismiss()
+                finish()
+            }
+            sweetAlertDialog.cancelText = "No"
+            sweetAlertDialog.setCancelClickListener {
+                sweetAlertDialog.dismiss()
+            }
+            sweetAlertDialog.show()
+        }else{
+            super.onBackPressed()
         }
+
     }
 }

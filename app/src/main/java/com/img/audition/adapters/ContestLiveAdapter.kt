@@ -6,25 +6,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.APITags
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.CameraActivity
 import com.img.audition.screens.LoginActivity
 import com.img.audition.videoWork.VideoCacheWork
 
-@UnstableApi class ContestLiveAdapter(val context: Context,val contestList:ArrayList<LiveContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
+ class ContestLiveAdapter(val context: Context,val contestList:ArrayList<LiveContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
     val TAG = "ContestLiveAdapter"
     private var cPos = 0
     private val myApplication by lazy {
@@ -101,8 +101,8 @@ import com.img.audition.videoWork.VideoCacheWork
             }else{
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
-
-                val mediaItem = MediaItem.fromUri(contest.file.toString())
+                myApplication.printLogD(APITags.APIBASEURL+contest.file, "contest video Url")
+                val mediaItem = MediaItem.fromUri(APITags.APIBASEURL+contest.file.toString())
                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)

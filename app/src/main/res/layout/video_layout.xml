@@ -5,15 +5,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
-    <androidx.media3.ui.PlayerView
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/videoExoView"
         app:resize_mode="fill"
+        android:orientation="vertical"
         app:surface_type="texture_view"
         app:keep_content_on_player_reset="true"
         app:use_controller="false"
-        app:show_buffering="never"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        app:show_buffering="never" />
 
     <LinearLayout
         android:id="@+id/playPauseVolume"

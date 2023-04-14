@@ -46,6 +46,14 @@
 
        </LinearLayout>
 
+        <ImageView
+            android:id="@+id/videoItemDelete"
+            android:visibility="gone"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="0dp"
+            style="@style/imageButtonStyle"
+            android:paddingBottom="5dp"
+            android:src="@drawable/delete_item_ic"/>
     </RelativeLayout>
 
 </RelativeLayout>

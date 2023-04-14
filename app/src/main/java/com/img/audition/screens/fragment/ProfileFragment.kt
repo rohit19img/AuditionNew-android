@@ -2,6 +2,7 @@ package com.img.audition.screens.fragment
 
 import android.app.AlertDialog
 import android.content.*
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.media3.common.util.UnstableApi
+
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -32,7 +33,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi class ProfileFragment(val contextFromActivity: Context) : Fragment() {
+
+class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     val TAG = "ProfileFragment"
 
     private lateinit var _viewBinding : FragmentProfileBinding
@@ -104,6 +106,13 @@ import retrofit2.Response
 
         view.verify.setOnClickListener {
             sendToVerificationActivity()
+        }
+
+        view.privacysaftey.setOnClickListener {
+            val url = "http://143.110.184.198/privacy-policy.html"
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(url)
+            startActivity(i)
         }
 
         view.followListBtn.setOnClickListener {
@@ -218,7 +227,7 @@ import retrofit2.Response
 
     private fun getUserSelfVideo() {
         val userVideoReq = apiInterface.getUserSelfVideo(sessionManager.getToken())
-        userVideoReq.enqueue(@UnstableApi object : Callback<VideoResponse>{
+        userVideoReq.enqueue( object : Callback<VideoResponse>{
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val videoData = response.body()!!.data
@@ -262,6 +271,7 @@ import retrofit2.Response
                         if (userData.image.toString().isNotEmpty()){
                             Glide.with(contextFromActivity).load(userData.image.toString())
                                 .placeholder(R.drawable.person_ic).into(userImageView)
+                            sessionManager.setUserProfileImage(userData.image.toString())
                         }else{
                             userImageView.setImageResource(R.drawable.person_ic)
                         }

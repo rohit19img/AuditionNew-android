@@ -6,7 +6,10 @@ class ConstValFile {
 
     companion object{
 
+
         const val TYPE_IMAGE = "image"
+        const val CompileTask = "compileTask"
+        const val TaskMuxing = "TaskMuxing"
         const val UploadSuccess = "Uploaded Successfully."
         const val UploadFailed = "Uploading Failed."
         const val Block = "blocked"
@@ -27,6 +30,9 @@ class ConstValFile {
         const val UserPositionInList  = "UserPositionInList"
         const val VideoList = "VideoList"
         const val VideoFilePath = "videoFilePath"
+        const val TrimAudioUrl = "trimAudioUrl"
+        const val VideoSpeedState = "videoSpeedState"
+        const val VideoDuration = "videoDuration"
         const val BASEURL = "http://139.59.30.125:6060"
         const val SOCKET_URL = "http://139.59.30.125:6060"
         const val LoginMsg: String = "Login Required.."

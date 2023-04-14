@@ -11,7 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.util.UnstableApi
+
 import com.android.volley.*
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
@@ -35,7 +35,7 @@ import retrofit2.Response
 import java.io.File
 import java.util.*
 
-@UnstableApi class EditProfileActivity : AppCompatActivity() {
+ class EditProfileActivity : AppCompatActivity() {
     val TAG = "EditProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityEditProfileBinding.inflate(layoutInflater)
@@ -162,7 +162,7 @@ import java.util.*
                 dialog.text = d
             }, mYear, mMonth, mDay
         )
-        mDatePicker.datePicker.maxDate = (System.currentTimeMillis() - 1000)
+        mDatePicker.datePicker.maxDate = ((System.currentTimeMillis() - (5.681e+11)).toLong())
         mDatePicker.setTitle("Select Birth Date")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mDatePicker.datePicker.firstDayOfWeek = Calendar.MONDAY

@@ -163,7 +163,7 @@ interface ApiInterface {
     @POST("search")
     fun search(
         @Header("Authorization") Auth: String?,
-        @Body login: JsonObject?
+        @Body searchObj: JsonObject?
     ): Call<Searchgetset>
 
     @GET("leagueDetails")
@@ -187,12 +187,24 @@ interface ApiInterface {
         @Body boostPost: JsonObject?
     ): Call<BoostPostGetSet>
 
-    @GET("userFullDetails")
-    fun userprofile(@Header("Authorization") Auth: String?): Call<Profilegetset>
+
 
     @GET("getLikeCategory")
     fun getVoteCategory(@Header("Authorization") Auth: String?): Call<VoteDataResponse>
 
     @POST("userGiveVote")
-    fun voteToUserVideo(@Header("Authorization") Auth: String?, @Body login: JsonObject?): Call<CommanResponse>
+    fun voteToUserVideo(@Header("Authorization") Auth: String?, @Body voteObj: JsonObject?): Call<CommanResponse>
+
+    @GET("get_notification")
+    fun getNotification(@Header("Authorization") Auth: String?): Call<NotificationDataResponse>
+
+    @GET("delete_video")
+    fun deleteUserSelfVideo(
+        @Header("Authorization") Auth: String?,
+        @Query("id") contestId: String?
+    ): Call<CommanResponse>
+
+    @POST("socialauthentication")
+    fun socialLogin(@Body socialLoginObj: JsonObject?): Call<LoginResponse>
+
 }

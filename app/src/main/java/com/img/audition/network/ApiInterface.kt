@@ -207,4 +207,12 @@ interface ApiInterface {
     @POST("socialauthentication")
     fun socialLogin(@Body socialLoginObj: JsonObject?): Call<LoginResponse>
 
+    @GET("trending")
+    fun getTrendingVideo(@Header("Authorization") Auth: String?): Call<TrendingVideoResponse>
+
+    @POST("requestwithdraw")
+    fun withdrawRequest(@Header("Authorization") Auth: String?,@Body jsonObject: JsonObject): Call<CommanResponse>
+    @GET("getBlockedUser")
+    fun getBlockedUser(@Header("Authorization") Auth: String?): Call<BlockedUserResponse>
+
 }

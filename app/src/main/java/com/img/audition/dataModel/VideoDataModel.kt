@@ -32,7 +32,7 @@ data class VideoData(
     @SerializedName("views"          ) var views         : Int?              = null,
     @SerializedName("vId"            ) var vId           : String?           = null,
     @SerializedName("hashtag"        ) var hashtag       : ArrayList<String> = arrayListOf(),
-    @SerializedName("hashtagId"      ) var hashtagId     : ArrayList<String> = arrayListOf(),
+//    @SerializedName("hashtagId"      ) var hashtagId     : ArrayList<String> = arrayListOf(),
     @SerializedName("createdAt"      ) var createdAt     : String?           = null,
     @SerializedName("updatedAt"      ) var updatedAt     : String?           = null,
     @SerializedName("string"         ) var string        : String?           = null,
@@ -44,8 +44,10 @@ data class VideoData(
     @SerializedName("audition_id"    ) var auditionId    : String?           = null,
     @SerializedName("image"          ) var image         : String?           = null,
     @SerializedName("isSaved"        ) var isSaved       : Boolean?          = null,
-    @SerializedName("isBoosted"      ) var isBoosted     : Boolean?          = false
-) : java.io.Serializable
+    @SerializedName("isBoosted"      ) var isBoosted     : Boolean?          = false,
+    @SerializedName("hashName"       ) var hashName      : String?           = null,
+
+    ) : java.io.Serializable
 
 
 data class VoteDataResponse(
@@ -60,4 +62,22 @@ data class VoteData(
     @SerializedName("vote"          ) var vote         : String? = null,
     @SerializedName("__v"           ) var _v           : Int?    = null,
     @SerializedName("emoji"         ) var emoji        : String? = null
+)
+
+
+data class TrendingVideoResponse(
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : TrendingVideoData?    = TrendingVideoData()
+)
+data class TrendingVideoData(
+    @SerializedName("data"   ) var data   : ArrayList<TrendingVideo>   = arrayListOf(),
+    @SerializedName("images" ) var images : ArrayList<String> = arrayListOf()
+)
+
+data class TrendingVideo(
+    @SerializedName("_id"    ) var Id     : String?           = null,
+    @SerializedName("name"   ) var name   : String?           = null,
+    @SerializedName("views"  ) var views  : Int?              = null,
+    @SerializedName("videos" ) var videos : ArrayList<VideoData> = arrayListOf()
 )

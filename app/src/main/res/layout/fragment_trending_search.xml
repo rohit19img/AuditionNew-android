@@ -3,22 +3,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".screens.fragment.TrendingSearchFragment">
 
     <EditText
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:gravity="center_vertical"
-        android:iconifiedByDefault="false"
-        android:padding="12dp"
-        android:inputType="text"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:drawableLeft="@drawable/search_ic"
         android:drawablePadding="5dp"
+        android:gravity="center_vertical"
+        android:hint="Search"
+        android:iconifiedByDefault="false"
         android:imeOptions="actionSearch"
-        android:textSize="@dimen/_12sdp"
-        android:hint="Search" />
+        android:inputType="text"
+        android:padding="12dp"
+        android:textSize="@dimen/_12sdp" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_below="@id/searchBar"
@@ -32,27 +36,40 @@
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/bannerSlider"
+                android:layout_marginHorizontal="@dimen/_8sdp"
                 android:layout_width="match_parent"
-                android:padding="2dp"
-                android:layout_margin="2dp"
-                android:layout_height="100dp"
-                android:visibility="gone" />
+                android:layout_height="90dp"
+                />
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/userRecycle"
+                android:layout_marginHorizontal="@dimen/_8sdp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/hashtagRecycle"
+                android:layout_marginHorizontal="@dimen/_8sdp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
             <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/trendingHashtagCycle"
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/trending_hashtag_cycle"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_marginHorizontal="@dimen/_8sdp"
                 android:id="@+id/videoRecycle"
                 android:layout_width="match_parent"
+                tools:listitem="@layout/videolistrecycledesign"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 

@@ -72,6 +72,9 @@ import java.util.*
         requestQueue = Volley.newRequestQueue(this@EditProfileActivity)
 
 
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
         appPermission =  AppPermission(this@EditProfileActivity,
             ConstValFile.PERMISSION_LIST,
             ConstValFile.REQUEST_PERMISSION_CODE_STORAGE)

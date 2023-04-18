@@ -25,18 +25,19 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.android.exoplayer2.ExoPlaybackException.TYPE_SOURCE
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.FirebaseFirestore
 import com.img.audition.R
@@ -61,7 +62,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 
-
+@UnstableApi
 class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
     val TAG = "VideoAdapter"
 
@@ -125,6 +126,12 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
         val list = videoList[position]
         holder.apply {
             //vote
+
+            if (list.userId.equals(sessionManager.getUserSelfID())){
+                followBtn.visibility = View.GONE
+            }else{
+                followBtn.visibility = View.VISIBLE
+            }
             if (!(list.userId.equals(sessionManager.getUserSelfID()))){
                 if (list.voteStatus!=null)
                 {
@@ -343,7 +350,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                     audioImage.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.volume_off_ic))
                 }
             }
-            exoPlayer.addListener(object : Player.Listener{
+            exoPlayer.addListener( object : Player.Listener{
                 override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                     when (playbackState) {
                         ExoPlayer.STATE_ENDED -> {

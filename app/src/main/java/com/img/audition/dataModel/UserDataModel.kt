@@ -158,3 +158,16 @@ data class NotificationData(
     @SerializedName("createdAt"  ) var createdAt : String?  = null,
     @SerializedName("updatedAt"  ) var updatedAt : String?  = null
 )
+
+data class BlockedUserResponse(
+    @SerializedName("success" ) var success : Boolean?         = null,
+    @SerializedName("message" ) var message : String?          = null,
+    @SerializedName("data"   ) var data   : ArrayList<BlockedUserData> = arrayListOf()
+)
+
+data class BlockedUserData(
+    @SerializedName("_id"         ) var Id         : String? = null,
+    @SerializedName("image"       ) var image      : String? = null,
+    @SerializedName("name"        ) var name       : String? = null,
+    @SerializedName("audition_id" ) var auditionId : String? = null
+)

@@ -27,7 +27,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.gson.JsonObject
 import com.img.audition.dataModel.BoostPostGetSet
 import com.img.audition.R
-import com.img.audition.dataModel.Profilegetset
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.globalAccess.ConstValFile

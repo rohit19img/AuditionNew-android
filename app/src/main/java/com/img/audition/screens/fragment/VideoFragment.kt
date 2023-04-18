@@ -40,7 +40,6 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.SplashActivity
 import com.img.audition.videoWork.VideoItemPlayPause
-import com.img.audition.videoWork.playPauseVideo
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

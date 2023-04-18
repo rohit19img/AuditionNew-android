@@ -10,7 +10,6 @@ class Searchgetset {
     class Data : Serializable {
         var users: ArrayList<User>? = null
         var hashtags: ArrayList<Hashtag>? = null
-        var videos: ArrayList<VideoData>? = null
         var data: ArrayList<VideoData>? = null
     }
 

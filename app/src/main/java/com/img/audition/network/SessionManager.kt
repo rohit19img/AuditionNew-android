@@ -163,8 +163,14 @@ class SessionManager(context: Context) {
 
     fun setCreateVideoSession(videoTempUrl: String?, videoSpeedState: String, videoDuration: Long) {
         prefEditorVideoSession.putString(ConstValFile.VideoFilePath,videoTempUrl)
+        prefEditorVideoSession.putString(ConstValFile.VideoOriginalPath,videoSpeedState)
         prefEditorVideoSession.putString(ConstValFile.VideoSpeedState,videoSpeedState)
         prefEditorVideoSession.putLong(ConstValFile.VideoDuration,videoDuration)
+        prefEditorVideoSession.commit()
+    }
+
+    fun setCreateVideoSpeedState(videoSpeedState: String?) {
+        prefEditorVideoSession.putString(ConstValFile.VideoSpeedState,videoSpeedState)
         prefEditorVideoSession.commit()
     }
 
@@ -173,6 +179,14 @@ class SessionManager(context: Context) {
         prefEditorVideoSession.commit()
     }
 
+    fun setVideoOriginalPath(videoOriginalPath:String) {
+        prefEditorVideoSession.putString(ConstValFile.VideoOriginalPath,videoOriginalPath)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getVideoOriginalPath(): String? {
+        return sharedPrefAudioVideoSession.getString(ConstValFile.VideoOriginalPath,"")
+    }
     fun getTrimAudioPath(): String? {
         return sharedPrefAudioVideoSession.getString(ConstValFile.TrimAudioUrl,"")
     }

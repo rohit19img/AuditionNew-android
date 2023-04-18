@@ -2,27 +2,34 @@ package com.img.audition.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.flask.colorpicker.ColorPickerView
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
+import com.img.audition.R
 import com.img.audition.databinding.ActivityPreviewBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import java.io.File
+import java.io.*
 import kotlin.math.sqrt
 
 
+@UnstableApi
 class PreviewActivity : AppCompatActivity() {
 
     //For Movable text
@@ -41,6 +48,11 @@ class PreviewActivity : AppCompatActivity() {
     private var xCoOrdinate = 0f
     private  var yCoOrdinate = 0f
 
+    private var textColor = -16777216
+    private var hexColor = "#000000"
+    var x_Pos = 10
+    var y_Pos = 10
+    var textAlignCmd = "x=(w-text_w)/2:y=(h-text_h)/2"
     //end of Movable text
 
     val TAG = "PreviewActivity"
@@ -59,12 +71,10 @@ class PreviewActivity : AppCompatActivity() {
 
     private var isFromContest = false
 
-
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
-
 
         videoPlayer = ExoPlayer.Builder(this@PreviewActivity).build()
         viewBinding.backPressIC.setOnClickListener {
@@ -76,40 +86,34 @@ class PreviewActivity : AppCompatActivity() {
             sendToMusicActivity()
         }
 
-        viewBinding.addTextBtn.setOnClickListener {
-            if (viewBinding.videoEtLyout.visibility == View.VISIBLE){
-                viewBinding.videoEtLyout.visibility = View.GONE
-            }else{
-                viewBinding.videoEtLyout.visibility = View.VISIBLE
-            }
+
+        viewBinding.addFilterBtn.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.ColorFilter)
+            sendToCompilerActivity(bundle)
         }
 
         viewBinding.colorPicker.setOnClickListener {
             colorPicker()
         }
 
-        viewBinding.textSizeBtn.setOnClickListener {
-            if (viewBinding.textSizePicker.visibility == View.VISIBLE){
-                viewBinding.textSizePicker.visibility = View.GONE
-            }else{
-                viewBinding.textSizePicker.visibility = View.VISIBLE
-            }
-        }
-
-        viewBinding.textSizePicker.maxValue = 44
-        viewBinding.textSizePicker.minValue = 10
-        viewBinding.textSizePicker.value = 16
-        viewBinding.textSizePicker.setOnValueChangedListener { _, _, newVal ->
-            viewBinding.videoEtText.textSize = newVal.toFloat()
-            val videoTextSize = newVal
-        }
-
-        viewBinding.movableText.setOnTouchListener(OnTouchListener { view, motionEvent ->
+     /*   movableText.setOnTouchListener(OnTouchListener { view, motionEvent ->
             val moveText = view as TextView
             moveText.bringToFront()
             viewTransformation(moveText, motionEvent)
             true
-        })
+        })*/
+
+
+
+
+
+    }
+
+    private fun sendToCompilerActivity(bundle: Bundle) {
+        val intent = Intent(this@PreviewActivity,CompilerActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
     }
 
     private fun sendToUploadVideoActivity() {
@@ -164,6 +168,177 @@ class PreviewActivity : AppCompatActivity() {
 
     override fun onResume() {
 
+        when(sessionManager.getCreateVideoSpeedState()!!){
+            ConstValFile.SlowVideo ->{
+                viewBinding.normalVideo.visibility = View.VISIBLE
+                viewBinding.fastVideo.visibility = View.VISIBLE
+                viewBinding.slowVideo.visibility = View.GONE
+            }
+            ConstValFile.FastVideo ->{
+                viewBinding.normalVideo.visibility = View.VISIBLE
+                viewBinding.fastVideo.visibility = View.GONE
+                viewBinding.slowVideo.visibility = View.VISIBLE
+            }
+            else ->{
+                viewBinding.normalVideo.visibility = View.GONE
+                viewBinding.fastVideo.visibility = View.VISIBLE
+                viewBinding.slowVideo.visibility = View.VISIBLE
+            }
+        }
+        viewBinding.slowVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.SlowVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.SlowVideo)
+            sendToCompilerActivity(bundle)
+        }
+
+        viewBinding.fastVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.FastVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.FastVideo)
+            sendToCompilerActivity(bundle)
+        }
+
+        viewBinding.normalVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.NormalVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.NormalVideo)
+            sendToCompilerActivity(bundle)
+        }
+
+        val movableText = TextView(this)
+
+        movableText.textSize = 20F
+        movableText.setPadding(10,10,10,10)
+
+        viewBinding.saveTextOnSurface.setOnClickListener {
+            when (viewBinding.textAlign.checkedRadioButtonId) {
+                R.id.topLeft -> {
+                    textAlignCmd = "x=10:y=10"
+                    val params = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    viewBinding.rootLayout.removeView(movableText)
+                    movableText.visibility = View.VISIBLE
+                    params.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE)
+                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
+                    viewBinding.rootLayout.removeView(movableText)
+                    viewBinding.rootLayout.addView(movableText,params)
+                }
+                R.id.topRight -> {
+                    textAlignCmd = "x=w-text_w-10:y=10"
+                    val params = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    viewBinding.rootLayout.removeView(movableText)
+                    movableText.visibility = View.VISIBLE
+                    params.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE)
+                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
+                    viewBinding.rootLayout.removeView(movableText)
+                    viewBinding.rootLayout.addView(movableText,params)
+
+                }
+                R.id.bottomLeft -> {
+                    textAlignCmd = "x=10:y=h-text_h-10"
+                    val params = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    viewBinding.rootLayout.removeView(movableText)
+                    movableText.visibility = View.VISIBLE
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM , RelativeLayout.TRUE)
+                    params.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE)
+                    viewBinding.rootLayout.removeView(movableText)
+                    viewBinding.rootLayout.addView(movableText,params)
+
+                }
+                R.id.bottomRight -> {
+                    textAlignCmd = "x=w-text_w-10:y=h-text_h-10"
+                    val params = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    viewBinding.rootLayout.removeView(movableText)
+                    movableText.visibility = View.VISIBLE
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM , RelativeLayout.TRUE)
+                    params.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE)
+                    viewBinding.rootLayout.removeView(movableText)
+                    viewBinding.rootLayout.addView(movableText,params)
+
+                }
+                else -> {
+                    textAlignCmd = "x=(w-text_w)/2:y=(h-text_h)/2"
+                    val params = RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    viewBinding.rootLayout.removeView(movableText)
+                    movableText.visibility = View.VISIBLE
+                    params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE)
+                    viewBinding.rootLayout.removeView(movableText)
+                    viewBinding.rootLayout.addView(movableText,params)
+
+                }
+            }
+
+            val text = viewBinding.videoEtText.text.trim()
+            movableText.text = text
+            movableText.setTextColor(textColor)
+            viewBinding.saveTextInVideoBtn.visibility  = View.VISIBLE
+
+            viewBinding.videoEtLyout.visibility = View.GONE
+
+        }
+
+        viewBinding.addTextBtn.setOnClickListener {
+            movableText.visibility = View.GONE
+            if (viewBinding.videoEtLyout.visibility == View.VISIBLE){
+                viewBinding.videoEtLyout.visibility = View.GONE
+            }else{
+                viewBinding.videoEtLyout.visibility = View.VISIBLE
+            }
+        }
+
+        viewBinding.saveTextInVideoBtn.setOnClickListener {
+            movableText.visibility  = View.GONE
+            val textView = TextView(this@PreviewActivity)
+            textView.text = movableText.text.toString()
+            textView.isDrawingCacheEnabled = true
+            textView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            textView.layout(0, 0, textView.measuredWidth, textView.measuredHeight);
+
+            textView.buildDrawingCache(true)
+            val bitmap: Bitmap = getTransparentBitmapCopy(textView.drawingCache)
+            textView.isDrawingCacheEnabled = false
+
+
+
+//            val pngImage = encodeToBase64(bitmap)
+            val pngImage = storeImage(bitmap)
+
+            val textSizea = movableText.textSize.toInt()
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.VideoText, movableText.text.toString())
+            bundle.putString(ConstValFile.VideoTextSize,textSizea.toString())
+            bundle.putString(ConstValFile.VideoTextColor,hexColor)
+            bundle.putString(ConstValFile.TextAlignCmd,textAlignCmd)
+            bundle.putString(ConstValFile.VideoTextXpos,x_Pos.toString())
+            bundle.putString(ConstValFile.VideoTextYpos,x_Pos.toString())
+
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.AddText)
+            sendToCompilerActivity(bundle)
+        }
+
+
+
+
+
+
+        movableText.visibility  = View.GONE
         viewBinding.videoExoView.player = videoPlayer
         val videoUri = sessionManager.getCreateVideoPath()
         val videoSpeedState = sessionManager.getCreateVideoSpeedState()
@@ -222,8 +397,8 @@ class PreviewActivity : AppCompatActivity() {
             ) { d, lastSelectedColor, allColors ->
                 viewBinding.videoEtText.setTextColor(lastSelectedColor)
                 Log.d("check", "onClick: lastSelectedColor : $lastSelectedColor")
-                val txtColor = lastSelectedColor
-                val hexColor = String.format("#%06X", 0xFFFFFF and lastSelectedColor)
+                textColor = lastSelectedColor
+                hexColor = String.format("#%06X", 0xFFFFFF and lastSelectedColor)
                 Log.d("check", "onClick: lastSelectedColor : $hexColor")
             }
             .setNegativeButton(
@@ -234,8 +409,8 @@ class PreviewActivity : AppCompatActivity() {
     }
 
     private fun viewTransformation(view: View, event: MotionEvent) {
-        var x_Pos = 0
-        var y_Pos = 0
+
+
         when (event.action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_DOWN -> {
                 xCoOrdinate = view.x - event.rawX
@@ -326,5 +501,57 @@ class PreviewActivity : AppCompatActivity() {
         val x = event.getX(0) + event.getX(1)
         val y = event.getY(0) + event.getY(1)
         point[x / 2] = y / 2
+    }
+
+    private fun getTransparentBitmapCopy(source: Bitmap): Bitmap {
+        val width = source.width
+        val height = source.height
+        val copy = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(width * height)
+        source.getPixels(pixels, 0, width, 0, 0, width, height)
+        copy.setPixels(pixels, 0, width, 0, 0, width, height)
+        return copy
+    }
+    fun encodeToBase64(image: Bitmap): String {
+        val baos = ByteArrayOutputStream()
+        image.compress(Bitmap.CompressFormat.PNG, 100, baos)
+        val b: ByteArray = baos.toByteArray()
+        val imageEncoded: String = Base64.encodeToString(b, Base64.DEFAULT)
+        Log.e("LOOK", imageEncoded)
+        return imageEncoded
+    }
+
+    private fun storeImage(image: Bitmap):String {
+        val pictureFile = createFileAndFolder()
+        try {
+            val fos = FileOutputStream(pictureFile)
+            image.compress(Bitmap.CompressFormat.PNG, 90, fos)
+            fos.close()
+        } catch (e: FileNotFoundException) {
+            Log.d(TAG, "File not found: " + e.message)
+        } catch (e: IOException) {
+            Log.d(TAG, "Error accessing file: " + e.message)
+        }
+        return pictureFile
+    }
+
+    private fun createFileAndFolder():String{
+        val timestamp = System.currentTimeMillis()
+        val filename = "$timestamp.png"
+        val appData = getExternalFilesDir(null)
+        myApplication.printLogD(appData!!.absolutePath, TAG)
+
+        val createFile = File(appData,filename)
+        if (!(createFile.exists())){
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath, TAG)
+            }catch (i: IOException){
+                myApplication.printLogE(i.toString(), TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
     }
 }

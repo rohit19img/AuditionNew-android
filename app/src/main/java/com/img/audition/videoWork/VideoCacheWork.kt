@@ -4,16 +4,19 @@ import android.app.Application
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
-import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
-
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.img.audition.globalAccess.ConstValFile
 import io.socket.client.IO
 import io.socket.client.Socket
 import java.io.File
 import java.net.URISyntaxException
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import java.lang.RuntimeException
 
+
+@UnstableApi
 class VideoCacheWork : Application(), CameraXConfig.Provider {
     companion object{
         lateinit var simpleCache: SimpleCache
@@ -31,7 +34,7 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
         try {
             mSocket = IO.socket(ConstValFile.SOCKET_URL)
         } catch (e : URISyntaxException) {
-            throw java.lang.RuntimeException(e)
+            throw RuntimeException(e)
         }
 
         mSocket!!.connect()

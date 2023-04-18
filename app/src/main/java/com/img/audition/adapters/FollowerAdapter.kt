@@ -69,9 +69,11 @@ class FollowerAdapter(val context: Context, val followerList : ArrayList<Followe
                 if (data.followStatus!!){
                     followBtnText.text = ConstValFile.Unfollow
                     followUserApi(data.Id,"unfollowed")
+                    data.followStatus = false
                 }else{
                     followBtnText.text = ConstValFile.Following
                     followUserApi(data.Id,"followed")
+                    data.followStatus = true
                 }
                 notifyDataSetChanged()
             }
@@ -85,7 +87,7 @@ class FollowerAdapter(val context: Context, val followerList : ArrayList<Followe
             itemView.setOnClickListener {
                 val bundle = Bundle()
                 bundle.putString(ConstValFile.USER_IDFORIntent,data.Id)
-                bundle.putBoolean(ConstValFile.UserFollowStatus, true)
+                bundle.putBoolean(ConstValFile.UserFollowStatus, data.followStatus!!)
                 sendToVideoUserProfile(bundle)
             }
         }

@@ -118,6 +118,20 @@
 
         </LinearLayout>
 
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/withdrawMsg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:hint="message"
+            android:textColor="@color/textColorYellow"
+            android:textSize="14sp"/>
+
     </LinearLayout>
 
  </LinearLayout>

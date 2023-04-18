@@ -7,6 +7,18 @@ class ConstValFile {
     companion object{
 
 
+        const val VideoText = "VideoText"
+        const val VideoTextSize = "VideoTextSize"
+        const val VideoTextColor = "VideoTextColor"
+        const val VideoTextXpos = "VideoTextXpos"
+        const val VideoTextYpos = "VideoTextYpos"
+        const val TextAlignCmd = "textAlignCmd"
+        const val SlowVideo = "SlowVideo"
+        const val FastVideo = "FastVideo"
+        const val NormalVideo = "NormalVideo"
+        const val ColorFilter = "ColorFilter"
+        const val AddText = "AddText"
+        const val VideoOriginalPath ="videoOriginalPath"
         const val TYPE_IMAGE = "image"
         const val CompileTask = "compileTask"
         const val TaskMuxing = "TaskMuxing"
@@ -78,13 +90,17 @@ class ConstValFile {
         const val REQUEST_PERMISSION_CODE_STORAGE = 1004
         const val REQUEST_PERMISSION_CODE = 1000
 
+
+        const val FONT = "Font"
+        const val DEFAULT_FONT = "notosans_regular.ttf"
+        const val FontName = "notosans_regular"
+
         val PERMISSION_LIST = listOf<String>(
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
     }
 
 }

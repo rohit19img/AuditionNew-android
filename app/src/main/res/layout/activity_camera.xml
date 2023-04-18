@@ -187,6 +187,7 @@
 
 
         <RadioGroup
+            android:visibility="gone"
             android:id="@+id/rate_bar"
             android:layout_width="match_parent"
             android:layout_height="40dp"

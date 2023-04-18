@@ -6,16 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.img.audition.R
@@ -27,10 +24,14 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.NetworkStateService
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
+import org.apache.commons.io.IOUtils
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.IOException
 
- class HomeActivity : AppCompatActivity() {
+
+class HomeActivity : AppCompatActivity() {
     val TAG = "HomeActivity"
     lateinit var appPermission : AppPermission
     lateinit var fusedLocation : FusedLocationProviderClient
@@ -91,13 +92,14 @@ import java.io.IOException
                     loadFragment(TrendingSearchFragment(this@HomeActivity))
                     true
                 }R.id.contest->{
-                    loadFragment(ContestFragment())
+                    loadFragment(ContestFragment(this@HomeActivity))
                     true
                 }
                 R.id.createVideo->{
                     if (!(sessionManager.isUserLoggedIn())){
                         sendToLoginScreen()
                     }else{
+                        fontToDevice(R.font.notosans_medium,ConstValFile.FontName,this@HomeActivity)
                         sendForCreateVideo()
                     }
                     false
@@ -117,6 +119,8 @@ import java.io.IOException
             }
         }
     }
+
+
 
     private fun loadFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
@@ -195,6 +199,26 @@ import java.io.IOException
         val intent = Intent(this@HomeActivity, CameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
+    }
+
+    fun fontToDevice(resourceId: Int, resourceName: String, context: Context): File {
+        val path: String =
+            (filesDir.absolutePath + File.separator + ConstValFile.FONT) + File.separator
+        val folder = File(path)
+        if (!folder.exists()) folder.mkdirs()
+        val dataPath = "$path$resourceName.ttf"
+        val f1 = File(dataPath)
+        Log.d("check", "path: FontPath: $dataPath")
+        val In = context.resources.openRawResource(resourceId)
+        try {
+            FileOutputStream(f1).use { outputStream -> IOUtils.copy(In, outputStream) }
+        } catch (e: FileNotFoundException) {
+            Log.d("check", "path: fontToDevice: $e")
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return File(dataPath)
     }
 
 

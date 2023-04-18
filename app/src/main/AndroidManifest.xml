@@ -16,20 +16,25 @@
         tools:node="merge"
         tools:targetApi="31">
         <activity
-            android:name=".screens.CompilerActivity"
+            android:name=".screens.BlockedUsersActivity"
+            android:exported="false"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".screens.CompilerActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.MusicActivity"
+            android:exported="false"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.fragment.NotificationActivity"
+            android:exported="false"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.BoostPostActivity"
             android:exported="false"

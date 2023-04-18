@@ -8,12 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.img.audition.dataModel.JoinedContestData
 import com.img.audition.databinding.JoinedContestCycleDesignBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -23,7 +26,7 @@ import com.img.audition.screens.ContestDetailsActivity
 import com.img.audition.videoWork.VideoCacheWork
 import java.text.SimpleDateFormat
 
-
+@UnstableApi
 class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<JoinedContestData>) :
     RecyclerView.Adapter<ContestJoinedAdapter.MyViewHolder>()
 {
@@ -125,7 +128,7 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
 
-                val mediaItem = MediaItem.fromUri(contest.file.toString())
+                val mediaItem = MediaItem.fromUri("http://139.59.30.125:12345/"+contest.file.toString())
                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
@@ -165,6 +168,19 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
         }
         super.onViewAttachedToWindow(holder)
     }
-
+    override fun onViewDetachedFromWindow(holder: MyViewHolder) {
+        holder.apply {
+            val contest = contestList[position]
+            if (!(contest.fileType.equals(ConstValFile.TYPE_IMAGE))) {
+                if (exoPlayer.isPlaying) {
+                    playerViewExo.player!!.playWhenReady = false
+                    playerViewExo.player!!.seekTo(0)
+                    playerViewExo.player!!.pause()
+                    playerViewExo.player!!.stop()
+                }
+            }
+        }
+        super.onViewDetachedFromWindow(holder)
+    }
 
 }

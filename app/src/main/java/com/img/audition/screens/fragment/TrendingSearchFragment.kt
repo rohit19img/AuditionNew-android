@@ -1,5 +1,6 @@
 package com.img.audition.screens.fragment
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.text.Editable
@@ -10,16 +11,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
-
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.JsonObject
-import com.img.audition.adapters.HashtagSearch_Adapter
-import com.img.audition.adapters.UserSearch_Adapter
-import com.img.audition.adapters.VideoSearch_Adapter
+import com.img.audition.R
+import com.img.audition.adapters.*
 import com.img.audition.dataModel.Searchgetset
+import com.img.audition.dataModel.TrendingVideoData
+import com.img.audition.dataModel.TrendingVideoResponse
 import com.img.audition.dataModel.VideoData
-import com.img.audition.databinding.FragmentProfileBinding
 import com.img.audition.databinding.FragmentTrendingSearchBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
@@ -28,8 +27,20 @@ import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
+import kotlin.collections.ArrayList
 
 class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
+
+    val bannerList = arrayListOf(
+        R.drawable.banner3,
+        R.drawable.banner1,
+        R.drawable.banner2,
+        R.drawable.banner4
+    )
+    val timer = Timer()
+
+    val TAG = "TrendingSearchFragment"
     private val sessionManager by lazy {
         SessionManager(contextFromHome)
     }
@@ -48,6 +59,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
     private lateinit var _viewBinding : FragmentTrendingSearchBinding
     private val view get() = _viewBinding!!
 
+    private var trendHashVideoList = ArrayList<TrendingVideoData>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,7 +71,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
         _viewBinding.apply {
             userRecycle.layoutManager = GridLayoutManager(contextFromHome,2)
             hashtagRecycle.layoutManager = GridLayoutManager(contextFromHome,1)
-            videoRecycle.layoutManager = GridLayoutManager(contextFromHome,2)
+            videoRecycle.layoutManager = GridLayoutManager(contextFromHome,3)
 
             searchBar.addTextChangedListener(
                 object : TextWatcher{
@@ -94,11 +106,21 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
             }
         }
 
-        searchlist("")
 
         return _viewBinding.root
     }
 
+    override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view1, savedInstanceState)
+        getTrendingVideo()
+        searchlist("")
+
+        val imagSlider = ImageSlider(view1.context,bannerList)
+        view.bannerSlider.adapter = imagSlider
+
+        timer.scheduleAtFixedRate(BannerSlider(),2000,3000)
+
+    }
     fun searchlist(searchData : String){
         val obj = JsonObject()
         obj.addProperty("search", searchData)
@@ -142,4 +164,38 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
     }
 
+    private fun getTrendingVideo() {
+        val trendingVideoReq  = apiInterface.getTrendingVideo(sessionManager.getToken())
+        trendingVideoReq.enqueue(object : Callback<TrendingVideoResponse> {
+            override fun onResponse(call: Call<TrendingVideoResponse>, response: Response<TrendingVideoResponse>) {
+
+                if (response.isSuccessful && response.body()!!.success!!) {
+
+                    val data = response.body()!!.data
+                    trendHashVideoList.add(data!!)
+                    myApplication.printLogD(trendHashVideoList.size.toString(),"trending 1")
+                    val adapter = TrendingHashtag(contextFromHome,trendHashVideoList)
+                    view.trendingHashtagCycle.adapter = adapter
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
+                }
+
+            }
+
+            override fun onFailure(call: Call<TrendingVideoResponse>, t: Throwable) {
+               myApplication.printLogE(t.message.toString(),TAG)
+            }
+        })
+    }
+
+    inner class BannerSlider : TimerTask(){
+        override fun run() {
+            (contextFromHome as Activity).runOnUiThread(Runnable {
+                if (view.bannerSlider.currentItem < bannerList.size - 1) {
+                    view.bannerSlider.currentItem =view.bannerSlider.currentItem + 1
+                } else view.bannerSlider.currentItem = 0
+            })
+        }
+
+    }
 }

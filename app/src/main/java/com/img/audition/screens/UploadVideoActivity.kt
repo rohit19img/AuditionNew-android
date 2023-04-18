@@ -1,8 +1,6 @@
 package com.img.audition.screens
 
 
-import VideoHandle.EpEditor
-import VideoHandle.OnEditorListener
 import android.Manifest
 import android.app.ProgressDialog
 import android.content.ContentResolver
@@ -27,6 +25,8 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.CannedAccessControlList
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
 
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -290,7 +290,7 @@ class UploadVideoActivity : AppCompatActivity() {
         myApplication.printLogD("InSide Compress Video",TARCK)
         val cmd = "-y -i $inputPath -vcodec libx264 -crf 24 $outputPath"
 
-        EpEditor.execCmd(cmd,0,object : OnEditorListener {
+        /*EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("log : onSuccess","ffmpeg")
                 myApplication.printLogD("Video Compress Complete",TARCK)
@@ -311,8 +311,8 @@ class UploadVideoActivity : AppCompatActivity() {
                 myApplication.printLogD("log onProgress : $progress","ffmpeg")
             }
 
-        })
-       /* FFmpegKit.executeAsync(cmd,
+        })*/
+        FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
@@ -335,7 +335,7 @@ class UploadVideoActivity : AppCompatActivity() {
             })
         {
             myApplication.printLogD("statistics : $it","ffmpeg")
-        }*/
+        }
     }
 
     private fun uploadVideoToS3() {

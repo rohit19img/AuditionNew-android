@@ -10,7 +10,7 @@
 
 
 
-    <com.google.android.exoplayer2.ui.PlayerView
+    <androidx.media3.ui.PlayerView
         android:id="@+id/audioPlayerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

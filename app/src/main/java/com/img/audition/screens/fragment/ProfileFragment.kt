@@ -108,6 +108,10 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
             sendToVerificationActivity()
         }
 
+        view.blockedUsers.setOnClickListener {
+            sendToBlockedUserActivity()
+        }
+
         view.privacysaftey.setOnClickListener {
             val url = "http://143.110.184.198/privacy-policy.html"
             val i = Intent(Intent.ACTION_VIEW)
@@ -160,6 +164,12 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
     }
+
+    private fun sendToBlockedUserActivity() {
+        val intent = Intent(contextFromActivity,BlockedUsersActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun sendToVerificationActivity() {
         val intent = Intent(contextFromActivity,VerificationActivity::class.java)
         startActivity(intent)

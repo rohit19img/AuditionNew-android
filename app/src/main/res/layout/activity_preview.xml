@@ -8,10 +8,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
+        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         >
-        <com.google.android.exoplayer2.ui.PlayerView
+        <androidx.media3.ui.PlayerView
             android:id="@+id/videoExoView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -37,22 +38,19 @@
             android:paddingStart="0dp"
             android:src="@drawable/back_arrow_ic" />
 
-        <TextView
-            android:id="@+id/music"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Choose music"
-            android:textSize="14sp"
-            android:textColor="@android:color/white"
-            android:layout_centerHorizontal="true"
-            android:drawableLeft="@drawable/ic_music"
-            android:gravity="center"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:drawablePadding="8dp"
-            android:layout_marginTop="2dp"/>
 
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/saveTextInVideoBtn"
+            style="@style/textViewStyle1"
+            android:text="Save Text"
+            android:background="@drawable/cardview_look"
+            android:textColor="@color/textColorWhite"
+            android:backgroundTint="@color/bgColorYellow"
+            android:layout_alignParentEnd="true"
+            android:padding="5dp"
+            android:layout_marginVertical="5dp"
+            android:layout_marginHorizontal="10dp"/>
 
         <TextView
             style="@style/textViewStyle"
@@ -83,33 +81,79 @@
             android:layout_height="wrap_content">
 
             <ImageButton
+                style="@style/imageButtonStyle"
+                android:id="@+id/music"
+                android:src="@drawable/add_music_ic"
+                android:contentDescription="Add Music"/>
+
+            <ImageButton
                 android:id="@+id/addTextBtn"
                 style="@style/imageButtonStyle"
                 android:src="@drawable/add_text_ic"
                 app:tint="@color/bgColorWhite"
                 android:contentDescription="Add Text" />
 
+            <TextView
+                android:id="@+id/slowVideo"
+                style="@style/imageButtonStyle"
+                android:layout_height="35dp"
+                android:text="Slow"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/textColorWhite"/>
+
+            <TextView
+                android:visibility="gone"
+                android:id="@+id/normalVideo"
+                style="@style/imageButtonStyle"
+                android:layout_height="35dp"
+                android:text="Normal"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/textColorWhite"/>
+
+            <TextView
+                android:id="@+id/fastVideo"
+                style="@style/imageButtonStyle"
+                android:layout_height="35dp"
+                android:text="Fast"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/textColorWhite"/>
+
+            <ImageButton
+                android:visibility="gone"
+                android:id="@+id/addFilterBtn"
+                style="@style/imageButtonStyle"
+                android:src="@drawable/ic_flash_on"
+                app:tint="@color/bgColorWhite"
+                android:contentDescription="Add Text" />
 
         </LinearLayout>
 
-        <TextView
+       <!-- <TextView
             android:id="@+id/movable_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:gravity="center"
             android:hint="Video Text"
             android:textColor="@color/textColorBlack"
-            android:textSize="16sp"/>
+            android:textSize="16sp" />-->
 
         <RelativeLayout
             android:visibility="gone"
             android:id="@+id/video_et_lyout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_marginTop="100dp"
             android:elevation="1dp">
 
             <EditText
+                android:inputType="text"
                 android:id="@+id/video_et_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -119,102 +163,132 @@
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@null"
                 android:cursorVisible="true"
-                android:hint="Start Typing.."
+                android:hint="Add Text.."
                 android:padding="@dimen/_5sdp"
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
                 android:textCursorDrawable="@null"
                 android:textSize="30sp" />
 
+            <ImageView
+                android:id="@+id/color_picker"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:src="@drawable/color_ic" />
+
+
             <LinearLayout
-                android:id="@+id/text_style"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/video_et_text"
-                android:background="@color/white"
-                android:orientation="horizontal">
+                android:layout_toStartOf="@id/saveTextOnSurface"
+                android:orientation="horizontal"
+                >
+                <RadioGroup
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:id="@+id/textAlign"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_rate_bar"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/record_button">
 
-                <ImageView
-                    android:id="@+id/color_picker"
-                    style="@style/imageButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/color_picker_svg"
-                    app:tint="@color/commanBackground" />
 
-                <!--  <ImageView
-                    android:id="@+id/italic_text"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/_26sdp"
-                    android:layout_margin="@dimen/_4sdp"
-                    android:layout_weight="1"
-                    android:src="@drawable/italic"
-                    app:tint="@color/commanBackground" />
 
-                <ImageView
-                    android:id="@+id/bold_text"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/_24sdp"
-                    android:layout_margin="@dimen/_4sdp"
-                    android:layout_weight="1"
-                    android:src="@drawable/bold_text_svg"
-                    app:tint="@color/commanBackground" />
+                    <RadioButton
+                        android:id="@+id/topLeft"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/record_rate_bg"
+                        android:gravity="center"
+                        android:text="Top Left"
+                        android:textColor="@drawable/radio_button_text_color"
+                        android:checked="true"
+                        android:button="@null"
+                        android:textSize="10sp"/>
 
-                <ImageView
-                    android:id="@+id/italic_bold_text"
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/_24sdp"
-                    android:layout_margin="@dimen/_4sdp"
-                    android:layout_weight="1"
-                    android:src="@drawable/italic_bold"
-                    app:tint="@color/commanBackground" />
--->
-                <ImageView
+                    <RadioButton
+                        android:id="@+id/topRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/record_rate_bg"
+                        android:gravity="center"
+                        android:text="Top Right"
+                        android:textColor="@drawable/radio_button_text_color"
+                        android:button="@null"
+                        android:textSize="10sp"/>
 
-                    android:id="@+id/text_size_btn"
-                    style="@style/imageButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/text_size_svg"
-                    app:tint="@color/commanBackground" />
+                    <RadioButton
+                        android:id="@+id/centerText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/record_rate_bg"
+                        android:gravity="center"
+                        android:checked="true"
+                        android:text="Center"
+                        android:textColor="@drawable/radio_button_text_color"
+                        android:button="@null"
+                        android:textSize="10sp"/>
 
+                    <RadioButton
+                        android:id="@+id/bottomLeft"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/record_rate_bg"
+                        android:gravity="center"
+                        android:text="Bottom Left"
+                        android:textColor="@drawable/radio_button_text_color"
+                        android:button="@null"
+                        android:textSize="10sp"/>
+
+                    <RadioButton
+                        android:id="@+id/bottomRight"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/record_rate_bg"
+                        android:gravity="center"
+                        android:text="Bottom Right"
+                        android:textColor="@drawable/radio_button_text_color"
+                        android:button="@null"
+                        android:textSize="10sp"/>
+
+
+                </RadioGroup>
 
             </LinearLayout>
 
-            <NumberPicker
-                android:id="@+id/text_size_picker"
+            <TextView
+                android:id="@+id/saveTextOnSurface"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/video_et_text"
-                android:theme="@style/textSize_Picker"
-                android:visibility="gone" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/text_style"
+                android:layout_height="35dp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:backgroundTint="@color/commanBackground"
-                app:cardCornerRadius="10dp">
-
-                <TextView
-                    android:id="@+id/save_textBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_4sdp"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:layout_marginEnd="@dimen/_4sdp"
-                    android:layout_marginBottom="@dimen/_4sdp"
-                    android:paddingLeft="@dimen/_10sdp"
-                    android:paddingRight="@dimen/_10sdp"
-                    android:text="Done"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_14sdp" />
-
-            </androidx.cardview.widget.CardView>
+                android:layout_below="@id/video_et_text"
+                android:background="@color/bgColorYellow"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginEnd="@dimen/_4sdp"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:text="Done"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="15sp"/>
 
         </RelativeLayout>
     </RelativeLayout>

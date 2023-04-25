@@ -170,7 +170,7 @@
             app:layout_constraintBottom_toBottomOf="@id/record_button"/>
 
         <ImageView
-            android:id="@+id/photo"
+            android:id="@+id/selectFromGallery"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/ic_photo"

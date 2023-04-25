@@ -4,13 +4,18 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Size
 import android.view.View
-import android.widget.RadioButton
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.extensions.ExtensionMode
 import androidx.camera.extensions.ExtensionsManager
@@ -20,7 +25,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.util.Consumer
-
+import androidx.media3.common.util.UnstableApi
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.img.audition.R
 import com.img.audition.cameraX.getNameString
@@ -31,15 +36,17 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 
- class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener{
+@UnstableApi
+class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener {
 
-    private var maxVideoDuration:Long = 15 * 1000
-    private var minVideoDuration:Long = 5 * 1000
+    private var maxVideoDuration: Long = 15 * 1000
+    private var minVideoDuration: Long = 5 * 1000
     private val curreentVideoDuration = mutableListOf<Int>()
-    private var videoSize :Long = 0
+    private var videoSize: Long = 0
 
     private var videoFilePath = ""
 
@@ -47,16 +54,18 @@ import java.util.concurrent.TimeUnit
         SessionManager(this@CameraActivity)
     }
     private var isFromContest = false
+    private var isComplete = false
 
     var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
 
     companion object {
 
-        val TAG  = "MainActivity"
+        val TAG = "MainActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
+        private const val REQUEST_TAKE_GALLERY_VIDEO = 200
         private val REQUIRED_PERMISSIONS =
-            mutableListOf (
+            mutableListOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO
             ).apply {
@@ -70,11 +79,11 @@ import java.util.concurrent.TimeUnit
     private lateinit var recordingState: VideoRecordEvent
     private var videoCapture: VideoCapture<Recorder>? = null
     private var currentRecording: Recording? = null
-
+    private var cameraExecutor = Executors.newSingleThreadExecutor()
 
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
-        ActivityCameraBinding.inflate(layoutInflater)
+       ActivityCameraBinding.inflate(layoutInflater)
     }
     private val myApplication by lazy {
         MyApplication(this@CameraActivity)
@@ -83,7 +92,7 @@ import java.util.concurrent.TimeUnit
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
-    private var lensFacing = CameraSelector.DEFAULT_BACK_CAMERA
+    private var lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA
     var mode = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,15 +114,29 @@ import java.util.concurrent.TimeUnit
             t.start()
         }
 
+
+
+
+
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
         viewBinding.flash.setOnClickListener {
             mode = !mode
-            if (mode){
-                viewBinding.flash.setImageDrawable(ContextCompat.getDrawable(this@CameraActivity,R.drawable.ic_flash_on))
-            }else{
-                viewBinding.flash.setImageDrawable(ContextCompat.getDrawable(this@CameraActivity,R.drawable.ic_flash_off))
+            if (mode) {
+                viewBinding.flash.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@CameraActivity,
+                        R.drawable.ic_flash_on
+                    )
+                )
+            } else {
+                viewBinding.flash.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        this@CameraActivity,
+                        R.drawable.ic_flash_off
+                    )
+                )
             }
             val t: Thread = object : Thread() {
                 override fun run() {
@@ -135,30 +158,22 @@ import java.util.concurrent.TimeUnit
             t.start()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
         }
         viewBinding.recordButton.setOnGestureListener(this)
-
 
 
     }
 
     private fun sendToVideoPreview(videoUri: String, videoDuration: Long) {
-        val videoSpeedSelectedRadio = findViewById<RadioButton>(viewBinding.rateBar.checkedRadioButtonId)
-        var videoSpeedState = ""
-        when (viewBinding.rateBar.checkedRadioButtonId) {
-            R.id.slow -> {
-                videoSpeedState = videoSpeedSelectedRadio.text.toString()
-            }
-            R.id.fast -> {
-                videoSpeedState = videoSpeedSelectedRadio.text.toString()
-            }
-            else -> {
-                videoSpeedState = videoSpeedSelectedRadio.text.toString()
-            }
-        }
-        sessionManager.setCreateVideoSession(videoUri,videoSpeedState,videoDuration)
-        val intent = Intent(this@CameraActivity,PreviewActivity::class.java)
+        sessionManager.clearVideoSession()
+        sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
+        val bundle = Bundle()
+        bundle.putString(ConstValFile.CompileTask,ConstValFile.CompressVideo)
+        val intent = Intent(this@CameraActivity,CompilerActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        Thread.sleep(200)
         startActivity(intent)
     }
 
@@ -168,9 +183,8 @@ import java.util.concurrent.TimeUnit
         curreentVideoDuration.forEach {
             duration = it
         }
-        myApplication.printLogD("onDown: duration : $duration",TAG)
-        if (!this::recordingState.isInitialized || recordingState is VideoRecordEvent.Finalize)
-        {
+        myApplication.printLogD("onDown: duration : $duration", TAG)
+        if (!this::recordingState.isInitialized || recordingState is VideoRecordEvent.Finalize) {
             val t: Thread = object : Thread() {
                 override fun run() {
                     startRecording()
@@ -178,22 +192,23 @@ import java.util.concurrent.TimeUnit
             }
             t.start()
 
-        }else{
-            myApplication.printLogD("onDown: $recordingState",TAG)
+        } else {
+            myApplication.printLogD("onDown: $recordingState", TAG)
 
-            when(recordingState){
+            when (recordingState) {
                 is VideoRecordEvent.Pause -> currentRecording?.resume()
             }
         }
     }
 
     override fun onUp() {
-        currentRecording?.pause()
+        if (!isComplete)
+            currentRecording?.pause()
     }
 
     override fun onClick() {}
 
-    private fun startCamera(mode:Boolean) {
+    private fun startCamera(mode: Boolean) {
 
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -201,13 +216,22 @@ import java.util.concurrent.TimeUnit
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-                /*.setTargetAspectRatio(AspectRatio.RATIO_16_9)
+            /*.setTargetAspectRatio(AspectRatio.RATIO_16_9)
                 .setTargetRotation(viewBinding.previewView.display.rotation)*/
             val preview = Preview.Builder()
                 .build()
+
                 .also {
                     it.setSurfaceProvider(viewBinding.previewView.surfaceProvider)
                 }
+
+            // ImageAnalysis UseCase
+            /*val analysisUseCase = ImageAnalysis.Builder()
+                .setTargetResolution(Size(1280, 720))
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, FaceAnalyzer(lifecycle,overlay))
+                }*/
 
             val recorder = Recorder.Builder()
                 .setQualitySelector(QualitySelector.from(Quality.HD))
@@ -215,15 +239,13 @@ import java.util.concurrent.TimeUnit
             videoCapture = VideoCapture.withOutput(recorder)
 
 
-
-
-            val extensionsManager = ExtensionsManager.getInstanceAsync(this,cameraProvider).get()
+            val extensionsManager = ExtensionsManager.getInstanceAsync(this, cameraProvider).get()
             val cameraSelector = lensFacing
 
 
             try {
 
-                if (extensionsManager.isExtensionAvailable(cameraSelector,ExtensionMode.BOKEH)){
+                if (extensionsManager.isExtensionAvailable(cameraSelector, ExtensionMode.BOKEH)) {
                     cameraProvider.unbindAll()
                     val bokehCameraSelector = extensionsManager
                         .getExtensionEnabledCameraSelector(
@@ -231,33 +253,35 @@ import java.util.concurrent.TimeUnit
                             ExtensionMode.FACE_RETOUCH
                         )
                     val cam = cameraProvider.bindToLifecycle(
-                        this, bokehCameraSelector, preview,videoCapture)
-                    if ( cam.cameraInfo.hasFlashUnit() ) {
+                        this, bokehCameraSelector,videoCapture,preview)
+                    if (cam.cameraInfo.hasFlashUnit()) {
                         cam.cameraControl.enableTorch(mode); // or false
                     }
-                }else{
+                } else {
                     cameraProvider.unbindAll()
                     val cam = cameraProvider.bindToLifecycle(
-                        this, cameraSelector, preview,videoCapture)
-                    if ( cam.cameraInfo.hasFlashUnit() ) {
+                        this, cameraSelector,videoCapture,preview)
+                    if (cam.cameraInfo.hasFlashUnit()) {
                         cam.cameraControl.enableTorch(mode); // or false
                     }
                 }// Unbind use cases before rebinding
 
-            } catch(exc: Exception) {
-                myApplication.printLogE("Use case binding failed ${exc.toString()}",TAG)
+            } catch (exc: Exception) {
+                myApplication.printLogE("Use case binding failed ${exc.toString()}", TAG)
             }
         }, ContextCompat.getMainExecutor(this))
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+            baseContext, it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray) {
+        IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
@@ -271,36 +295,42 @@ import java.util.concurrent.TimeUnit
     private fun startRecording() {
 
 
-       /* val name = "audition-recording-" +
+        /* val name = "audition-recording-" +
                 SimpleDateFormat(FILENAME_FORMAT, Locale.US)
                     .format(System.currentTimeMillis()) + ".mp4"*/
 
-       /* val contentValues = ContentValues().apply {
+        /* val contentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, name)
         }*/
 
-       /* val mediaStoreOutputOptions = MediaStoreOutputOptions
+        /* val mediaStoreOutputOptions = MediaStoreOutputOptions
             .Builder(contentResolver,MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
             .setContentValues(contentValues)
             .build()*/
+        isComplete = false
         val videoCapture = this.videoCapture ?: return
-        val fileOutputOptions = FileOutputOptions.Builder(File(createFileAndFolder())).build()
+        videoFilePath = createFileAndFolder()
+        val fileOutputOptions = FileOutputOptions.Builder(File(videoFilePath)).build()
 
 
         currentRecording = videoCapture.output
 
             .prepareRecording(this, fileOutputOptions)
-            .apply { if (PermissionChecker.checkSelfPermission(this@CameraActivity,
-                    Manifest.permission.RECORD_AUDIO) ==
-                PermissionChecker.PERMISSION_GRANTED)
-            {
-                withAudioEnabled()
-            } }
+            .apply {
+                if (PermissionChecker.checkSelfPermission(
+                        this@CameraActivity,
+                        Manifest.permission.RECORD_AUDIO
+                    ) ==
+                    PermissionChecker.PERMISSION_GRANTED
+                ) {
+                    withAudioEnabled()
+                }
+            }
             .start(ContextCompat.getMainExecutor(this), captureListener)
     }
 
-    private val captureListener = Consumer<VideoRecordEvent>{ event ->
-        if (event !is VideoRecordEvent.Status){
+    private val captureListener = Consumer<VideoRecordEvent> { event ->
+        if (event !is VideoRecordEvent.Status) {
             recordingState = event
         }
 
@@ -314,17 +344,17 @@ import java.util.concurrent.TimeUnit
 
     }
 
-    fun updateUI(event: VideoRecordEvent){
+    fun updateUI(event: VideoRecordEvent) {
         val state = if (event is VideoRecordEvent.Status) recordingState.getNameString()
         else event.getNameString()
-        myApplication.printLogD("updateUI: $state",TAG)
+        myApplication.printLogD("updateUI: $state", TAG)
 
         val stats = event.recordingStats
         val size = stats.numBytesRecorded / 1000
         val time = TimeUnit.MICROSECONDS.toSeconds(stats.recordedDurationNanos)
         videoSize = size
         var text = "${state}: recorded ${size}KB, in ${time}second"
-        if(event is VideoRecordEvent.Finalize){
+        if (event is VideoRecordEvent.Finalize) {
             text = "${text}\nFile saved to: ${event.outputResults.outputUri}"
 
         }
@@ -332,90 +362,38 @@ import java.util.concurrent.TimeUnit
         runOnUiThread {
             viewBinding.done.setOnClickListener {
                 viewBinding.done.isSelected = false
+                viewBinding.done.isClickable = false
                 currentRecording?.stop()
-                viewBinding.done.visibility = View.GONE
-                viewBinding.showPreviewBtn.visibility = View.VISIBLE
+                isComplete = true
+                viewBinding.showPreviewBtn.visibility = View.GONE
+                sendToVideoPreview(videoFilePath, time)
             }
 
-            viewBinding.showPreviewBtn.setOnClickListener{
-                if (event is VideoRecordEvent.Finalize){
-                    val stats1 = event.recordingStats
-                    val videoDuration = TimeUnit.MICROSECONDS.toSeconds(stats1.recordedDurationNanos)
-                    videoFilePath = event.outputResults.outputUri.toString()
-                    sendToVideoPreview(videoFilePath,videoDuration)
-                    myApplication.printLogD(videoFilePath,"VideoFilePath")
-//                myApplication.showToast(videoFilePath)
-                }
-            }
         }
 
-        myApplication.printLogD("updateUI: $size KB $time seconds",TAG)
+        myApplication.printLogD("updateUI: $size KB $time seconds", TAG)
 
         runOnUiThread {
-            myApplication.printLogD("updateUI: $time time , $maxVideoDuration videoDuration",TAG)
-            if (time>=minVideoDuration){
+            myApplication.printLogD("updateUI: $time time , $maxVideoDuration videoDuration", TAG)
+            if (time >= minVideoDuration) {
                 viewBinding.done.visibility = View.VISIBLE
                 minVideoDuration = 20 * 1000
             }
-            if (time>=maxVideoDuration){
-                if (currentRecording == null || recordingState is VideoRecordEvent.Finalize) {
+            if (time >= maxVideoDuration-100) {
+                currentRecording?.stop()
+                isComplete = true
+                myApplication.showToast("Video Reached Max Duration..")
+//                sendToVideoPreview(videoFilePath, time)
 
-                }else{
-                    val recording = currentRecording
-                    if (recording != null) {
-                        recording.stop()
-                        currentRecording = null
-                        myApplication.showToast("Video Max Duration Reached")
-                    }
-                }
             }
             viewBinding.lineView.setLoadingProgress(time * 1.0f / maxVideoDuration)
         }
     }
 
-
-
-    private fun createFileAndFolder():String{
-        val timestamp = System.currentTimeMillis()
-        val filename = "$timestamp.mp4"
-        val appData = getExternalFilesDir(null)
-        myApplication.printLogD(appData!!.absolutePath,TAG)
-
-        val createFile = File(appData,filename)
-        if (!(createFile.exists())){
-            try {
-                createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath,TAG)
-            }catch (i: IOException){
-                myApplication.printLogE(i.toString(),TAG)
-            }
-        }
-
-        return createFile.absolutePath
-
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewBinding.done.visibility = View.GONE
-        viewBinding.showPreviewBtn.visibility = View.GONE
-        maxVideoDuration  = 15 * 1000
-        minVideoDuration = 5 * 1000
-        viewBinding.lineView.setLoadingProgress(0F)
-        viewBinding.lineView.deleteProgress()
-        isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest,false)
-        myApplication.printLogD("$isFromContest onStart"," isFromContest + $TAG")
-        if (!(isFromContest)){
-            sessionManager.clearContestSession()
-        }
-    }
-
-
-
-
     override fun onBackPressed() {
-        if (videoSize>0){
-            val sweetAlertDialog = SweetAlertDialog(this@CameraActivity, SweetAlertDialog.WARNING_TYPE)
+        if (videoSize > 0) {
+            val sweetAlertDialog =
+                SweetAlertDialog(this@CameraActivity, SweetAlertDialog.WARNING_TYPE)
             sweetAlertDialog.titleText = "Discard Video"
             sweetAlertDialog.contentText = "Do you want discard the video"
             sweetAlertDialog.confirmText = "Yes"
@@ -428,9 +406,86 @@ import java.util.concurrent.TimeUnit
                 sweetAlertDialog.dismiss()
             }
             sweetAlertDialog.show()
-        }else{
+        } else {
             super.onBackPressed()
         }
+
+    }
+
+    private fun createFileAndFolder(): String {
+        val timestamp = System.currentTimeMillis()
+        val filename = "$timestamp.mp4"
+        val appData = getExternalFilesDir(null)
+        myApplication.printLogD(appData!!.absolutePath, TAG)
+
+        val createFile = File(appData, filename)
+        if (!(createFile.exists())) {
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath, TAG)
+            } catch (i: IOException) {
+                myApplication.printLogE(i.toString(), TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewBinding.done.visibility = View.GONE
+        viewBinding.showPreviewBtn.visibility = View.GONE
+        maxVideoDuration = 15 * 1000
+        minVideoDuration = 5 * 1000
+        viewBinding.lineView.setLoadingProgress(0F)
+        viewBinding.lineView.deleteProgress()
+        isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
+        myApplication.printLogD("$isFromContest onStart", " isFromContest + $TAG")
+        if (!(isFromContest)) {
+            sessionManager.clearContestSession()
+            viewBinding.selectFromGallery.visibility = View.GONE
+        } else {
+            viewBinding.selectFromGallery.visibility = View.VISIBLE
+        }
+
+
+        viewBinding.selectFromGallery.setOnClickListener {
+            selectVideoFromDevice()
+        }
+    }
+
+    private fun selectVideoFromDevice() {
+        val intent = Intent()
+        intent.type = "video/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(
+            Intent.createChooser(intent, "Select Video"),
+            REQUEST_TAKE_GALLERY_VIDEO
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_TAKE_GALLERY_VIDEO) {
+                val videoUri: Uri? = data!!.data
+
+                val retriever =  MediaMetadataRetriever()
+                retriever.setDataSource(this@CameraActivity, videoUri);
+                val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                retriever.release()
+                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                val selectVideoDuration = time!!.toLong()
+
+                if (selectVideoDuration<=15000){
+                    sendToVideoPreview(videoUri.toString(),selectVideoDuration)
+                }else{
+                    myApplication.showToast("Please select 15 second video")
+                }
+            }
+        }
+
 
     }
 }

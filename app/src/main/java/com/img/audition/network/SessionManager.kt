@@ -202,6 +202,11 @@ class SessionManager(context: Context) {
         return sharedPrefAudioVideoSession.getLong(ConstValFile.VideoDuration,0)
     }
 
+    fun setCreateVideoDuration(videoDuration : Long) {
+        prefEditorVideoSession.putLong(ConstValFile.VideoDuration,videoDuration)
+        prefEditorVideoSession.commit()
+    }
+
     fun setCreateVideoPath(videoTempUrl: String?) {
         prefEditorVideoSession.putString(ConstValFile.VideoFilePath,videoTempUrl)
         prefEditorVideoSession.commit()

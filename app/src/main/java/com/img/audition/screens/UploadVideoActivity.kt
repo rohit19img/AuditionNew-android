@@ -25,8 +25,7 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.CannedAccessControlList
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
+
 
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -39,6 +38,7 @@ import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityUploadVideoBinding
+
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -217,7 +217,7 @@ class UploadVideoActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    override fun onBackPressed() {
+   /* override fun onBackPressed() {
         val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.WARNING_TYPE)
         sweetAlertDialog.titleText = "Discard Video"
         sweetAlertDialog.contentText = "Do you want discard the video"
@@ -235,7 +235,8 @@ class UploadVideoActivity : AppCompatActivity() {
             sweetAlertDialog.dismiss()
         }
         sweetAlertDialog.show()
-    }
+        super.onBackPressed()
+    }*/
 
     fun sendToMain() {
         val intent = Intent(this@UploadVideoActivity, HomeActivity::class.java)
@@ -288,9 +289,9 @@ class UploadVideoActivity : AppCompatActivity() {
     fun compressVideo(inputPath:String,outputPath:String){
 
         myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -crf 24 $outputPath"
+        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 24 $outputPath"
 
-        /*EpEditor.execCmd(cmd,0,object : OnEditorListener {
+      /*  EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("log : onSuccess","ffmpeg")
                 myApplication.printLogD("Video Compress Complete",TARCK)
@@ -312,7 +313,7 @@ class UploadVideoActivity : AppCompatActivity() {
             }
 
         })*/
-        FFmpegKit.executeAsync(cmd,
+        /*FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
@@ -335,7 +336,7 @@ class UploadVideoActivity : AppCompatActivity() {
             })
         {
             myApplication.printLogD("statistics : $it","ffmpeg")
-        }
+        }*/
     }
 
     private fun uploadVideoToS3() {

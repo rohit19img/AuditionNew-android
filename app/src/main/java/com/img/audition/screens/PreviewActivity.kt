@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.graphics.Color
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -96,16 +97,6 @@ class PreviewActivity : AppCompatActivity() {
         viewBinding.colorPicker.setOnClickListener {
             colorPicker()
         }
-
-     /*   movableText.setOnTouchListener(OnTouchListener { view, motionEvent ->
-            val moveText = view as TextView
-            moveText.bringToFront()
-            viewTransformation(moveText, motionEvent)
-            true
-        })*/
-
-
-
 
 
     }
@@ -301,10 +292,20 @@ class PreviewActivity : AppCompatActivity() {
             }
         }
 
+        movableText.setOnTouchListener(View.OnTouchListener { view, motionEvent ->
+            val moveText = view as TextView
+            moveText.bringToFront()
+            viewTransformation(moveText, motionEvent)
+            true
+        })
+
+
         viewBinding.saveTextInVideoBtn.setOnClickListener {
             movableText.visibility  = View.GONE
             val textView = TextView(this@PreviewActivity)
             textView.text = movableText.text.toString()
+            textView.setTextColor(android.graphics.Color.parseColor(hexColor))
+            textView.textSize = movableText.textSize
             textView.isDrawingCacheEnabled = true
             textView.measure(
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -322,12 +323,12 @@ class PreviewActivity : AppCompatActivity() {
 
             val textSizea = movableText.textSize.toInt()
             val bundle = Bundle()
-            bundle.putString(ConstValFile.VideoText, movableText.text.toString())
+            bundle.putString(ConstValFile.VideoText, pngImage)
             bundle.putString(ConstValFile.VideoTextSize,textSizea.toString())
             bundle.putString(ConstValFile.VideoTextColor,hexColor)
             bundle.putString(ConstValFile.TextAlignCmd,textAlignCmd)
             bundle.putString(ConstValFile.VideoTextXpos,x_Pos.toString())
-            bundle.putString(ConstValFile.VideoTextYpos,x_Pos.toString())
+            bundle.putString(ConstValFile.VideoTextYpos,y_Pos.toString())
 
             bundle.putString(ConstValFile.CompileTask,ConstValFile.AddText)
             sendToCompilerActivity(bundle)

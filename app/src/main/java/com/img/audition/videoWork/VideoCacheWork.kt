@@ -24,6 +24,7 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
         lateinit var standaloneDatabaseProvider: StandaloneDatabaseProvider
         private const val exoCacheSize: Long = 20 * 1024 * 1024 // Setting cache size to be ~ 20 MB
         public var mSocket: Socket? = null
+
     }
 
 

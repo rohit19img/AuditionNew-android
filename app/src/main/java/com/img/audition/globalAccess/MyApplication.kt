@@ -58,7 +58,7 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
          val sweetAlertDialog = SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
          sweetAlertDialog.titleText = "Enable GPS"
          sweetAlertDialog.contentText = "Please Enable GPS"
-         sweetAlertDialog.confirmText = "₹ Yes"
+         sweetAlertDialog.confirmText = "Yes"
          sweetAlertDialog.setConfirmClickListener {
              sweetAlertDialog.dismiss()
              try {

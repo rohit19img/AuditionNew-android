@@ -1,6 +1,7 @@
 package com.img.audition.adapters
 
 
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -17,9 +18,14 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.img.audition.R
@@ -35,18 +41,9 @@ import com.masoudss.lib.SeekBarOnProgressChanged
 import com.masoudss.lib.WaveformSeekBar
 import java.io.File
 import java.io.IOException
+import java.net.URL
 import java.util.*
-import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
+
 
 @UnstableApi
 class MusicAdapter(val contextFromActivity: Context, private var musicList: ArrayList<MusicData>) : RecyclerView.Adapter<MusicAdapter.MyMusicHolder>() {
@@ -187,11 +184,13 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         audioName!!.text = title
         audioSingerName!!.text = subTitle
 
+
         val byteThread = Thread {
             try { audioWaveSeekbar!!.setSampleFrom( audioFile) }
             catch (e: Exception) { e.printStackTrace() }
         }
         byteThread.start()
+
 
         audioPlayer.setDataSource(audioFile)
         audioPlayer.prepareAsync()
@@ -231,6 +230,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         }
 
         trimAndUseBtn!!.setOnClickListener {
+
 
             val fromTrimDuration = audioPlayer.currentPosition.toLong()
             val totalAudioDuration = audioPlayer.duration
@@ -279,9 +279,9 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
 
 
         val cmd =
-            "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -vcodec copy $trimFilePath"
+            "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
 
-        /*EpEditor.execCmd(cmd,0,object : OnEditorListener {
+     /*   EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("TrimAudio Complete","TrimAudio")
                 sessionManager.setCreateAudioSession(trimFilePath)
@@ -299,7 +299,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             }
         })*/
 
-        FFmpegKit.executeAsync(cmd,
+       /* FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
@@ -320,7 +320,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             })
         {
             myApplication.printLogD("statistics : $it","TrimAudio")
-        }
+        }*/
     }
 
     private fun createFileAndFolder():String{
@@ -346,6 +346,42 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     fun filterList(filterList: ArrayList<MusicData>) {
         musicList = filterList
         notifyDataSetChanged()
+    }
+
+    fun getLE2(buffer: ByteArray): Long {
+        var value = buffer[1].toLong() and 0xFF
+        value = (value shl 8) + (buffer[0].toLong() and 0xFF)
+        return value
+    }
+
+    private fun getByteArrayOfAudio(audioFile: String, audioWaveSeekbar: WaveformSeekBar?): IntArray {
+        var waveArray =  intArrayOf()
+        Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
+        Thread {
+            try {
+                Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
+                val inputStream = URL(audioFile).openStream()
+                var read: Int
+                val bytes_tmp = ByteArray(44)
+                read = inputStream.read(bytes_tmp, 0, bytes_tmp.size)
+                val bytes = ByteArray(2)
+                var longtmp: Long
+                while (read != -1) {
+                    read = inputStream.read(bytes, 0, bytes.size)
+                    longtmp = getLE2(bytes)
+                    waveArray += longtmp.toInt()
+                    Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
+                }
+                Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
+                inputStream.close()
+            } catch (e: java.lang.Exception) {
+                Log.d("audioArray", "LoadAudio: in fun $e")
+            }
+        }.start()
+
+        Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
+        audioWaveSeekbar?.setSampleFrom(waveArray)
+        return waveArray
     }
 }
 

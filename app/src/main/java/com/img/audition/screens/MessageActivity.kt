@@ -61,6 +61,14 @@ class MessageActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getChatData()
+
+
+
         mSocket = VideoCacheWork.mSocket!!
         viewBinding.chatsRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
 
@@ -165,11 +173,6 @@ class MessageActivity : AppCompatActivity() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        getChatData()
-    }
-
     fun getChatData() {
 
         val responseCall: Call<ChatsGetSet> =
@@ -207,10 +210,10 @@ class MessageActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
+        userid = intent.getStringExtra("userid").toString()
         val image = intent.getStringExtra("image")
         val username = intent.getStringExtra("name")
         val url204 = intent.getStringExtra("url204")
-        userid = intent.getStringExtra("userid").toString()
 
         Log.i("intent_test","image : $image")
         Log.i("intent_test","username : $username")
@@ -222,8 +225,10 @@ class MessageActivity : AppCompatActivity() {
         if(image!!.isNotEmpty())
             Glide.with(this@MessageActivity).load(image).into(viewBinding.img)
 
-        if (url204!!.isNotEmpty()){
-            viewBinding.messageET.setText(url204.toString())
+        if (url204!=null){
+            if (url204!!.isNotEmpty()){
+                viewBinding.messageET.setText(url204.toString())
+            }
         }
     }
 

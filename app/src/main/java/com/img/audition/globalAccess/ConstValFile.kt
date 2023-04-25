@@ -1,6 +1,8 @@
 package com.img.audition.globalAccess
 
 import android.Manifest
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 class ConstValFile {
 
@@ -16,6 +18,7 @@ class ConstValFile {
         const val SlowVideo = "SlowVideo"
         const val FastVideo = "FastVideo"
         const val NormalVideo = "NormalVideo"
+        const val CompressVideo = "CompressVideo"
         const val ColorFilter = "ColorFilter"
         const val AddText = "AddText"
         const val VideoOriginalPath ="videoOriginalPath"

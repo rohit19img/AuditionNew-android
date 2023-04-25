@@ -214,6 +214,7 @@
                                 android:textSize="13sp" />
 
                             <TextView
+                                android:visibility="gone"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/_10sdp"
@@ -288,6 +289,7 @@
                                 android:layout_toEndOf="@id/ic_bio"
                                 android:background="@drawable/et_design"
                                 android:gravity="start"
+                                android:maxLength="150"
                                 android:hint="Bio"
                                 android:inputType="textMultiLine"
                                 android:maxLines="5"

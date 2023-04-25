@@ -18,8 +18,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-
-
     buildTypes {
         release {
             minifyEnabled false
@@ -33,8 +31,8 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    buildFeatures {
-        viewBinding true
+    viewBinding {
+        enabled = true
     }
 
 }
@@ -110,7 +108,7 @@ dependencies {
     implementation 'com.cashfree.pg:android-sdk:1.7.28'
 
     //ffmpeg
-    implementation 'com.arthenica:ffmpeg-kit-full-gpl:5.1'
+//    implementation 'com.arthenica:ffmpeg-kit-full-gpl:5.1'
 //     implementation 'com.github.yangjie10930:EpMedia:v1.0.1'
 
 
@@ -134,5 +132,10 @@ dependencies {
     //textview color picker
     implementation 'com.github.QuadFlask:colorpicker:0.0.15'
 
+    //face
+//    implementation 'com.google.mlkit:face-detection:16.1.5'
 
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+    //trinity
+//    implementation 'com.github.wlanjie:trinity:0.2.9.1'
 }

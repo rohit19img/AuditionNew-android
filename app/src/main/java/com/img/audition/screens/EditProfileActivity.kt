@@ -104,6 +104,7 @@ import java.util.*
         }
 
         viewBinding.changePhoto.setOnClickListener {
+
             if (appPermission.checkPermissions()){
                 selectImage()
             }else{

@@ -66,8 +66,36 @@
     <string name="caption_effect_bottom_animation">special effects</string>
     <string name="text_count_outof">The number of characters exceeds the limit</string>
     <string name="subtitle_text_color">Fill</string>
-
+    <string name="version_info">v%s (%d)</string>
+    <string name="lens_groups">Lens groups</string>
     <string name="subtitle_text_stroke">stroke</string>
+    <string name="reset">Reset</string>
+    <string name="share_video">Share video</string>
+    <string name="share_image">Share image</string>
+    <string name="lock_portrait_orientation">lock_portrait_orientation</string>
+    <string name="mini_preview_off">Mini Preview OFF</string>
+    <string name="mini_preview_on">Mini Preview ON</string>
+    <string name="capture_photo_off">Photo Capture OFF</string>
+    <string name="capture_photo_on">Photo Capture ON</string>
+
+    <string name="ring_flash_off">Ring Flash OFF</string>
+
+    <string name="ring_flash_on">Ring Flash ON</string>
+
+    <string name="custom_lenses_carousel_off">Custom Carousel OFF</string>
+    <string name="custom_lenses_carousel_on">Custom Carousel ON</string>
+    <string name="mute_audio_off">Mute Audio OFF</string>
+    <string name="transition_shared_dummy">transition_shared_dummy</string>
+    <string name="camera_kit_unsupported">CameraKit is not supported on this device</string>
+    <string name="camera_kit_error">Error in Camera Kit</string>
+    <string name="required_permissions_not_granted">Required permissions not granted by the user: %s</string>
+    <string name="mute_audio_on">Mute Audio ON</string>
+    <string name="diagnostics_off">Diagnostics OFF</string>
+    <string name="diagnostics_on">Diagnostics ON</string>
+    <string name="dump_diagnostics">Dump</string>
+    <string name="prefetch_lenses">Prefetch lenses</string>
+    <string name="update_lens_groups">Update lens groups</string>
+    <string name="trigger_legal_prompt">Trigger legal prompt</string>
     <string-array name="preview_render_preference">
         <item>FIT</item>
         <item>CROP</item>
@@ -103,7 +131,6 @@
         <item>44100</item>
         <item>22050</item>
     </string-array>
-
     <string-array name="india_states">
         <item>Select State</item>
         <item>Andaman and Nicobar Islands</item>
@@ -142,5 +169,8 @@
         <item>Uttaranchal</item>
         <item>Uttar Pradesh</item>
         <item>West Bengal</item>
+    </string-array>
+    <string-array name="snap_kit_scopes">
+        <item>https://auth.snapchat.com/oauth2/api/camkit_lens_push_to_device</item>
     </string-array>
 </resources>

@@ -61,9 +61,11 @@ class UploadVideoActivity : AppCompatActivity() {
 
     val TAG = "UploadVideoActivity"
     val TARCK = "check 100"
+
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
     }
+
     private val sessionManager by lazy {
         SessionManager(this@UploadVideoActivity)
     }
@@ -290,6 +292,11 @@ class UploadVideoActivity : AppCompatActivity() {
 
         myApplication.printLogD("InSide Compress Video",TARCK)
         val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 24 $outputPath"
+
+        //
+        orignalPath = inputPath
+        uploadVideoToS3()
+        //
 
       /*  EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {

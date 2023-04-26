@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.img.audition.R
@@ -24,6 +25,7 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.NetworkStateService
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
+import com.img.audition.snapCameraKit.SnapCameraActivity
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileNotFoundException
@@ -31,7 +33,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 
-class HomeActivity : AppCompatActivity() {
+@UnstableApi class HomeActivity : AppCompatActivity() {
     val TAG = "HomeActivity"
     lateinit var appPermission : AppPermission
     lateinit var fusedLocation : FusedLocationProviderClient
@@ -55,7 +57,7 @@ class HomeActivity : AppCompatActivity() {
         setContentView(viewBinding.root)
 
 
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         val runningTasks = activityManager.getRunningTasks(1)
         val currentActivity = runningTasks[0].topActivity!!.className
 
@@ -196,7 +198,7 @@ class HomeActivity : AppCompatActivity() {
     private fun sendForCreateVideo() {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest,false)
-        val intent = Intent(this@HomeActivity, CameraActivity::class.java)
+        val intent = Intent(this@HomeActivity, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
     }

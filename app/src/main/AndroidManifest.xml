@@ -16,6 +16,12 @@
         tools:node="merge"
         tools:targetApi="31">
         <activity
+            android:name=".snapCameraKit.SnapPreviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".snapCameraKit.SnapCameraActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.BlockedUsersActivity"
             android:exported="false"
             android:launchMode="singleTop"
@@ -134,6 +140,15 @@
             android:screenOrientation="portrait" />
 
         <meta-data
+            android:name="com.snap.camerakit.app.id"
+            android:value="b6045b5c-05c8-4ffa-a767-fed3047652d1" />
+        <meta-data
+            android:name="com.snap.camerakit.api.token"
+            android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-U1RBR0lOR341YWI3ZTJjZS02NTg0LTRjZWItOWE4NS05NWQ2NjViYzJjNzcifQ.60yX_HWLomYzhWEU46ujw9rPfzSItsDpwmBiby-g4JU" />
+        <meta-data
+            android:name="com.snap.kit.scopes"
+            android:resource="@array/snap_kit_scopes" />
+        <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/logo" />
         <meta-data
@@ -178,6 +193,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
 </manifest>

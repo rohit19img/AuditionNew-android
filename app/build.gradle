@@ -16,6 +16,8 @@ android {
         versionCode 2
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+
     }
 
     buildTypes {
@@ -138,6 +140,18 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     //trinity
 //    implementation 'com.github.wlanjie:trinity:0.2.9.1'
+
+
+    //snapChat cameraKit
+    implementation "com.snap.camerakit:camerakit:1.21.1"
+    implementation "com.snap.camerakit:camerakit-kotlin:1.21.1"
+    implementation "com.snap.camerakit:support-camera-layout:1.21.1"
+    implementation "com.snap.camerakit:lenses-bundle:1.21.1"
+    implementation "com.snap.camerakit:support-camerax:1.21.1"
+    implementation "com.snap.camerakit:camerakit-extension-lens-push-to-device:1.21.1"
+    implementation "com.snap.camerakit:support-lenses-carousel:1.21.1"
+    implementation "com.snap.camerakit:camerakit-extension-auth-token-provider-loginkit:1.21.1"
+
 
 
 }

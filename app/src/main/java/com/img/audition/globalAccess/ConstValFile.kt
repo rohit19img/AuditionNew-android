@@ -9,6 +9,10 @@ class ConstValFile {
     companion object{
 
 
+        const val VideoHashTag = "VideoHashTag"
+        const val SongUrl = "SongUrl"
+        const val SongID = "SongID"
+        const val isFromGallery ="VideoFrom"
         const val VideoText = "VideoText"
         const val VideoTextSize = "VideoTextSize"
         const val VideoTextColor = "VideoTextColor"

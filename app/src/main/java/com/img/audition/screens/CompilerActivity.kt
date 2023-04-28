@@ -2,6 +2,8 @@ package com.img.audition.screens
 
 
 
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -18,6 +20,7 @@ import com.img.audition.databinding.ActivityCompilerBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
+import com.img.audition.snapCameraKit.SnapPreviewActivity
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -26,6 +29,7 @@ import java.nio.ByteBuffer
 @UnstableApi
 class CompilerActivity : AppCompatActivity() {
     val TAG = "CompilerActivity"
+    val TARCK = "check 100"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCompilerBinding.inflate(layoutInflater)
     }
@@ -206,7 +210,7 @@ class CompilerActivity : AppCompatActivity() {
     }
 
     fun funComipler(cmd: String, outputPath: String){
-      /*  EpEditor.execCmd(cmd,0, object : OnEditorListener {
+        EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("Compile Complete",TAG)
 
@@ -218,19 +222,19 @@ class CompilerActivity : AppCompatActivity() {
                 val selectVideoDuration = time!!.toLong()
                 sessionManager.setCreateVideoPath(outputPath)
                 sessionManager.setCreateVideoDuration(selectVideoDuration)
-                startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
+                startActivity(Intent(this@CompilerActivity, SnapPreviewActivity::class.java))
                 finish()
             }
             override fun onFailure() {
                 myApplication.printLogD("Compile : onFailure",TAG)
                 myApplication.showToast("Failed, Try Again..")
-                startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
+                startActivity(Intent(this@CompilerActivity,SnapPreviewActivity::class.java))
                 finish()
             }
             override fun onProgress(progress: Float) {
                 myApplication.printLogD("Compile onProgress : $progress",TAG)
             }
-        })*/
+        })
 
         /*FFmpegKit.executeAsync(cmd,
           { session ->
@@ -349,7 +353,7 @@ class CompilerActivity : AppCompatActivity() {
         muxer.release();
 
         sessionManager.setCreateVideoPath(outputPath)
-        startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
+        startActivity(Intent(this@CompilerActivity,SnapPreviewActivity::class.java))
         finish()
     }
 
@@ -357,43 +361,51 @@ class CompilerActivity : AppCompatActivity() {
     fun compressVideo(){
 
         val outputPath = createFileAndFolder()
-        val inputPath = sessionManager.getCreateVideoPath()
+        val inputPath = sessionManager.getCreateVideoPath().toString()
+        myApplication.printLogD("InSide Compress Video",TARCK)
+        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 28 $outputPath"
 
-        myApplication.printLogD("InSide Compress Video",TAG)
-        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 20 $outputPath"
 
-      /*  EpEditor.execCmd(cmd,0,object : OnEditorListener {
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
-                myApplication.printLogD("Video Compress Complete",TAG)
-                sessionManager.setCreateVideoPath(outputPath)
-                if (File(inputPath!!).exists()){
-                    File(inputPath).delete()
+                myApplication.printLogD("log : onSuccess",TARCK)
+                myApplication.printLogD("Video Compress Complete",TARCK)
+                if (!sessionManager.getIsVideoFromGallery()){
+                    if (File(inputPath).exists()){
+                        File(inputPath).delete()
+                    }
                 }
-                startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
-                finish()
+                val retriever =  MediaMetadataRetriever()
+                retriever.setDataSource(this@CompilerActivity, Uri.parse(outputPath));
+                val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                retriever.release()
+                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                val selectVideoDuration = time!!.toLong()
+                sessionManager.setCreateVideoPath(outputPath)
+                sessionManager.setCreateVideoDuration(selectVideoDuration)
+                sendToUploadVideoActivity()
             }
 
             override fun onFailure() {
-                myApplication.printLogD("log : onFailure",TAG)
-                startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
-                finish()
+                myApplication.printLogD("log : onFailure",TARCK)
             }
 
             override fun onProgress(progress: Float) {
-                myApplication.printLogD("log onProgress : $progress",TAG)
+                myApplication.printLogD("log onProgress : $progress",TARCK)
             }
 
-        })*/
+        })
+
         /*FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
                 if (ReturnCode.isSuccess(returnCode)){
                     myApplication.printLogD("Video Compress Complete",TARCK)
-                    if (File(orignalPath).exists()){
-                        File(orignalPath).delete()
+                    if (File(videoOriginalPath).exists()){
+                        File(videoOriginalPath).delete()
                     }
-                    orignalPath = outputPath
+                    videoOriginalPath = outputPath
 
                     myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
                     uploadVideoToS3()
@@ -410,4 +422,9 @@ class CompilerActivity : AppCompatActivity() {
         }*/
     }
 
+    private fun sendToUploadVideoActivity() {
+        val intent = Intent(this@CompilerActivity,UploadVideoActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
 }

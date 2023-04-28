@@ -16,6 +16,13 @@
         tools:node="merge"
         tools:targetApi="31">
         <activity
+            android:name=".screens.SongsVideoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.HashtagVideoActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+        <activity
             android:name=".snapCameraKit.SnapPreviewActivity"
             android:exported="false" />
         <activity
@@ -142,6 +149,11 @@
         <meta-data
             android:name="com.snap.camerakit.app.id"
             android:value="b6045b5c-05c8-4ffa-a767-fed3047652d1" />
+        <!--
+     <meta-data
+            android:name="com.snap.camerakit.api.token"
+            android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-UFJPRFVDVElPTn4zYjM4NDljOS1lMWE3LTQyYjUtOWFiOC01ZmVkZGM1MTg3MjIifQ.GR9osml4jEpZi_jRp1ID0NrYk1Tlgex8lXZxJadVYVo" />
+        -->
         <meta-data
             android:name="com.snap.camerakit.api.token"
             android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-U1RBR0lOR341YWI3ZTJjZS02NTg0LTRjZWItOWE4NS05NWQ2NjViYzJjNzcifQ.60yX_HWLomYzhWEU46ujw9rPfzSItsDpwmBiby-g4JU" />

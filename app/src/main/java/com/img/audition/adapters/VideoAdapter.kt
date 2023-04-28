@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalAnimationApi::class)
 
 package com.img.audition.adapters
 
@@ -15,7 +14,12 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
 import android.text.method.ScrollingMovementMethod
+import android.text.style.ClickableSpan
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
@@ -23,19 +27,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.Icon
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -66,6 +57,7 @@ import com.img.audition.screens.*
 import com.img.audition.screens.fragment.CommentBottomSheet
 import com.img.audition.screens.fragment.ProfileFragment
 import com.img.audition.screens.fragment.VideoReportDialog
+import com.img.audition.videoWork.FollowFollowingTrack
 import com.img.audition.videoWork.VideoCacheWork
 import com.img.audition.videoWork.VideoItemPlayPause
 import io.socket.client.Socket
@@ -75,9 +67,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.util.regex.Pattern
 
 @UnstableApi
-class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>() {
+class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), FollowFollowingTrack {
     val TAG = "VideoAdapter"
 
     var Ar = arrayOf(-1,0)
@@ -92,6 +85,19 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
     var cPos = 0
 
     var mSocket: Socket = VideoCacheWork.mSocket!!
+
+    override fun onIntentReceived(followStatus: Boolean, userID: String, position: Int) {
+        myApplication.printLogD("Intent followStatus : $followStatus","onIntentReceived")
+        myApplication.printLogD("Intent userID : $userID","onIntentReceived")
+        myApplication.printLogD("Intent position : $position","onIntentReceived")
+
+        for (dd in videoList){
+            if (dd.userId == userID){
+                dd.followStatus = followStatus
+                notifyDataSetChanged()
+            }
+        }
+    }
 
     inner class VideoViewHolder(itemView: VideoLayoutBinding) : RecyclerView.ViewHolder(itemView.root) {
         val playerViewExo = itemView.videoExoView
@@ -197,16 +203,54 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
             }
             if (list.caption.toString().isNotEmpty()){
                 caption.visibility = View.VISIBLE
-                caption.text = list.caption
+                val longString = list.caption.toString()
+                val spannable = SpannableStringBuilder(longString)
+
+                // Find all hashtags in the string using a regular expression
+                val pattern = Pattern.compile("#(\\w+)")
+                val matcher = pattern.matcher(longString)
+
+                while (matcher.find()) {
+                    val hashtag = matcher.group()
+                    val start = longString.indexOf(hashtag)
+                    val end = start + hashtag.length
+                    // Create a clickable span for each hashtag
+                    val clickableSpan = object : ClickableSpan() {
+                        override fun onClick(view: View) {
+                            // Handle hashtag click here
+                            val clickedString = (view as TextView).text.toString()
+                            val clickedHashtag = clickedString.substring(start, end)
+
+                            sendHashTagVideo(clickedHashtag)
+                        }
+
+                        override fun updateDrawState(textPaint: TextPaint) {
+                            super.updateDrawState(textPaint)
+                            // Customize the appearance of the clickable text
+                            textPaint.color = Color.WHITE
+                            textPaint.isUnderlineText = false
+                            textPaint.typeface = Typeface.DEFAULT_BOLD
+
+                        }
+
+                    }
+
+                    // Set the clickable span on the corresponding text range
+                    spannable.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+                }
+
+                // Set the modified text with clickable hashtags on the TextView
+                caption.text = spannable
+                // Make sure the clickable links work by enabling movement method
+                caption.movementMethod = LinkMovementMethod.getInstance()
+
             }else{
                 caption.visibility = View.GONE
             }
 
 
             likeBtn.setOnClickListener {
-
-
-
 
                 if (list.likeStatus!!){
                     likeBtn.isSelected = false
@@ -260,6 +304,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.USER_IDFORIntent,list.userId)
                     bundle.putInt(ConstValFile.UserPositionInList,position)
+                    myApplication.printLogD("videoAdapter $position","check 900")
                     bundle.putSerializable("list", videoList)
                     bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
                     sendToVideoUserProfile(bundle)
@@ -276,12 +321,34 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                 moredialog(position)
             }
 
+            userName.setOnClickListener {
+                if (!(list.isSelf)!!){
+
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.USER_IDFORIntent,list.userId)
+                    bundle.putInt(ConstValFile.UserPositionInList,position)
+                    bundle.putSerializable("list", videoList)
+                    bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
+                    sendToVideoUserProfile(bundle)
+                }else{
+                    sendToUserSelfProfile()
+                }
+            }
 
             likeCount.text = list.likeCount.toString()
             shareCount.text = list.shares.toString()
             Glide.with(contextFromActivity).load(list.image).placeholder(R.drawable.person_ic).into(userProfile)
             userName.text = list.auditionId
             audioName.text = list.auditionId +" - Original Audio"
+
+            audioName.setOnClickListener {
+               if (list.songId!=null && list.songId!!.isNotEmpty()){
+                   myApplication.printLogD(list.songId!!,"songID")
+                   sendSongVideoActivity(list.songId!!)
+               }else{
+                   showToast("This Audio Not Available")
+               }
+            }
 
             commentBtn.setOnClickListener {
                 val bundle = Bundle()
@@ -327,7 +394,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                     myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}","check 100")
                     myApplication.printLogD("onViewAttachedToWindow: Url ${videoList[cPos].file}","check 100")
                     exoPlayer.seekTo(0)
-
+                    exoPlayer.prepare()
                     exoPlayer.playWhenReady = true
                 }else{
                     exoPlayer.seekTo(0)
@@ -335,15 +402,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                 }
             }
 
-            val jsonObject = JSONObject()
-            try {
-                jsonObject.put("userId", sessionManager.getUserSelfID())
-                jsonObject.put("videoId", list.Id)
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
 
-            mSocket.emit("view", jsonObject)
 
 
             playPauseVolumeBtn.setOnClickListener {
@@ -393,7 +452,6 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                     super.onPlayerError(error)
                     when(error.errorCode){
                         TYPE_SOURCE ->{
-                            myApplication.showToast("Source Error..")
                             val list = videoList[position]
                             val mediaItem = MediaItem.fromUri(list.file.toString())
                             val videoMediaSource = mediaSource.createMediaSource(mediaItem)
@@ -443,6 +501,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                 holder.apply {
                     if (cPos>=0){
                         if (cPos == position){
+                            exoPlayer.prepare()
                             exoPlayer.playWhenReady = true
                         }else{
                             exoPlayer.seekTo(0)
@@ -529,7 +588,21 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                             holder_current.exoPlayer.playWhenReady = false
                             myApplication.printLogD("video pause","isPlaying")
                         }else{
-                            holder_current.exoPlayer.playWhenReady = true
+                            holder_current.exoPlayer.prepare()
+                            val jsonObject = JSONObject()
+                            try {
+                                jsonObject.put("userId", sessionManager.getUserSelfID())
+                                jsonObject.put("videoId", videoList[visiblePosition].Id)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+
+                            mSocket.emit("view", jsonObject)
+                            myApplication.printLogI("socket View","socket")
+                            myApplication.printLogD(jsonObject.toString(),"socket data")
+
+                            myApplication.printLogD("video Url ${ videoList[visiblePosition].file}","currentVideo Url")
+                            holder_current.exoPlayer.play()
                             myApplication.printLogD("video play","isPlaying")
                         }
                     }
@@ -557,6 +630,8 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                             Log.i("SocketCheck", "Scroll : $jsonObject")
 
                             mSocket.emit("scroll", jsonObject)
+                            myApplication.printLogI("socket Scroll","socket")
+                            myApplication.printLogD(jsonObject.toString(),"socket data")
                         }catch (e:Exception){
                             myApplication.printLogE(e.toString(),TAG)
                         }
@@ -856,6 +931,15 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
         contextFromActivity.startActivity(intent)
     }
 
+    fun sendHashTagVideo(hashTag:String){
+        val bundle = Bundle()
+        bundle.putString(ConstValFile.VideoHashTag,hashTag)
+        sessionManager.setVideoHashTag(hashTag)
+        val intent = Intent(contextFromActivity, HashtagVideoActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        contextFromActivity.startActivity(intent)
+    }
+
     private fun likeVideo(id: String?, status: String) {
         myApplication.printLogD("likeVideo: $id $status",TAG)
         val liekeReq = apiInterface.viedolike(sessionManager.getToken(),id,status)
@@ -948,6 +1032,16 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
 
         voteDialog.show()
     }
+
+    private fun sendSongVideoActivity(songId:String){
+        val bundle = Bundle()
+        bundle.putString(ConstValFile.SongID,songId)
+        sessionManager.setVideoSongID(songId)
+        val intent = Intent(contextFromActivity, SongsVideoActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        contextFromActivity.startActivity(intent)
+    }
+
 }
 
 

@@ -111,7 +111,7 @@ dependencies {
 
     //ffmpeg
 //    implementation 'com.arthenica:ffmpeg-kit-full-gpl:5.1'
-//     implementation 'com.github.yangjie10930:EpMedia:v1.0.1'
+     implementation 'com.github.yangjie10930:EpMedia:v1.0.1'
 
 
 

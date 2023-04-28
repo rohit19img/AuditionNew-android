@@ -283,7 +283,7 @@
                             <EditText
                                 android:id="@+id/bio"
                                 android:layout_width="match_parent"
-                                android:layout_height="110dp"
+                                android:layout_height="100dp"
                                 android:layout_marginStart="@dimen/_10sdp"
                                 android:layout_marginEnd="@dimen/_10sdp"
                                 android:layout_toEndOf="@id/ic_bio"
@@ -292,7 +292,7 @@
                                 android:maxLength="150"
                                 android:hint="Bio"
                                 android:inputType="textMultiLine"
-                                android:maxLines="5"
+                                android:maxLines="3"
                                 android:padding="@dimen/_10sdp"
                                 android:textColor="@color/black"
                                 android:textColorHint="@color/textColorGray"

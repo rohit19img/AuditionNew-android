@@ -71,3 +71,4 @@ data class TransactionData(
     @SerializedName("paymentstatus"  ) var paymentstatus : String? = null
 
 )
+

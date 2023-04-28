@@ -16,13 +16,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.img.audition.R
 import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import com.img.audition.screens.CameraActivity
 import com.img.audition.screens.LoginActivity
+import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.PlayPauseContestVideo
 import com.img.audition.videoWork.VideoCacheWork
 
@@ -93,13 +94,8 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 } else {
                     if (!(contest.isJoined!!)) {
                         myApplication.printLogD("User Not Joined", TAG)
-                        sessionManager.createContestSession(
-                            contest.entryfee!!,
-                            contest.Id,
-                            contest.fileType,
-                            contest.file,
-                            true
-                        )
+                        sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                        Thread.sleep(300)
                         sendForCreateVideo()
                     } else {
                         myApplication.printLogD("User Joined", TAG)
@@ -120,7 +116,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 val imageUrl = ConstValFile.BASEURL + contest.file.toString()
                 playerViewExo.visibility = View.GONE
                 contestImage.visibility = View.VISIBLE
-                Glide.with(context).load(imageUrl).into(contestImage)
+                Glide.with(context).load(imageUrl).placeholder(R.drawable.splash_icon).into(contestImage)
             } else {
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
@@ -222,7 +218,8 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
     private fun sendForCreateVideo() {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest, true)
-        val intent = Intent(context, CameraActivity::class.java)
+        sessionManager.setIsFromContest(true)
+        val intent = Intent(context, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)
         context.startActivity(intent)
     }

@@ -22,15 +22,20 @@ import androidx.media3.datasource.DefaultDataSourceFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.*
 import androidx.media3.ui.PlayerView
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.img.audition.R
-import com.img.audition.databinding.ActivityPreviewBinding
 import com.img.audition.databinding.ActivitySnapPreviewBinding
+import com.img.audition.globalAccess.ConstValFile
+import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.CompilerActivity
+import com.img.audition.screens.HomeActivity
+import com.img.audition.screens.MusicActivity
 import com.img.audition.screens.UploadVideoActivity
 import java.io.File
 import java.io.IOException
@@ -48,6 +53,11 @@ class SnapPreviewActivity : AppCompatActivity() {
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivitySnapPreviewBinding.inflate(layoutInflater)
+    }
+
+    val TAG = "SnapPreviewActivity"
+    private val myApplication by lazy {
+        MyApplication(this@SnapPreviewActivity)
     }
 
     companion object {
@@ -96,7 +106,7 @@ class SnapPreviewActivity : AppCompatActivity() {
     private var exportedMediaUri: Uri? = null
 
     lateinit var videoPlayer : ExoPlayer
-
+    private var isFromContest = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -152,7 +162,8 @@ class SnapPreviewActivity : AppCompatActivity() {
              finish()
          }*/
 
-    }
+
+   }
 
    /* private fun setupMediaIfNeeded() {
         if (player == null && mediaMimeType == MIME_TYPE_VIDEO_MP4) {
@@ -308,6 +319,17 @@ class SnapPreviewActivity : AppCompatActivity() {
         super.onDestroy()
     }*/
 
+    private fun sendToMusicActivity() {
+        val intent = Intent(this@SnapPreviewActivity, MusicActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun sendToCompilerActivity(bundle: Bundle) {
+        val intent = Intent(this@SnapPreviewActivity, CompilerActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
+    }
+
 
     override fun onPause() {
         videoPlayer.pause()
@@ -315,16 +337,23 @@ class SnapPreviewActivity : AppCompatActivity() {
         super.onPause()
     }
 
+    override fun onStart() {
+        super.onStart()
+        sessionManager.setIsFromContest(isFromContest)
+    }
+
 
     override fun onResume() {
 
         viewBinding.videoPreview.player = videoPlayer
         val videoUri = sessionManager.getCreateVideoPath()
+        Log.d("video url", "onResume: $videoUri")
         val videoSpeedState = sessionManager.getCreateVideoSpeedState()
         val videoDuration = sessionManager.getCreateVideoDuration()
 //        myApplication.printLogD("videoUri : $videoUri videoState: $videoSpeedState videoDuration: $videoDuration",TAG)
-//        isFromContest = sessionManager.getIsFromContest()
-//        myApplication.printLogD("$isFromContest onCreate", " isFromContest $TAG")
+        isFromContest = sessionManager.getIsFromContest()
+        myApplication.printLogD("$isFromContest SnapPReview1", " isFromContest")
+        myApplication.printLogD("${sessionManager.getIsFromContest()} SnapPReview2", " isFromContest")
         val mediaItem = MediaItem.fromUri(videoUri!!)
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
@@ -356,14 +385,98 @@ class SnapPreviewActivity : AppCompatActivity() {
         viewBinding.sendToUploadBtn.setOnClickListener {
             videoPlayer.pause()
             videoPlayer.stop()
-            sendToUploadVideoActivity()
+            sendToCompressAndUploadVideoActivity()
+        }
+
+        viewBinding.music.setOnClickListener {
+            videoPlayer.volume = 0F
+            sendToMusicActivity()
+        }
+
+        when(sessionManager.getCreateVideoSpeedState()!!){
+            ConstValFile.SlowVideo ->{
+                viewBinding.normalVideo.visibility = View.GONE
+                viewBinding.fastVideo.visibility = View.GONE
+                viewBinding.slowVideo.visibility = View.GONE
+            }
+            ConstValFile.FastVideo ->{
+                viewBinding.normalVideo.visibility = View.GONE
+                viewBinding.fastVideo.visibility = View.GONE
+                viewBinding.slowVideo.visibility = View.GONE
+            }
+            else ->{
+                viewBinding.normalVideo.visibility = View.GONE
+                viewBinding.fastVideo.visibility = View.GONE
+                viewBinding.slowVideo.visibility = View.GONE
+            }
+        }
+
+        viewBinding.fastVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.FastVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.FastVideo)
+            sendToCompilerActivity(bundle)
+        }
+
+
+
+        viewBinding.slowVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.SlowVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask, ConstValFile.SlowVideo)
+            sendToCompilerActivity(bundle)
+        }
+
+        viewBinding.normalVideo.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.NormalVideo)
+            val bundle = Bundle()
+            bundle.putString(ConstValFile.CompileTask,ConstValFile.NormalVideo)
+            sendToCompilerActivity(bundle)
         }
 
         super.onResume()
     }
 
-    private fun sendToUploadVideoActivity() {
-        val intent = Intent(this@SnapPreviewActivity, UploadVideoActivity::class.java)
+    private fun sendToCompressAndUploadVideoActivity() {
+        val bundle = Bundle()
+        bundle.putString(ConstValFile.CompileTask,ConstValFile.CompressVideo)
+        val intent = Intent(this@SnapPreviewActivity,CompilerActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        val sweetAlertDialog = SweetAlertDialog(this@SnapPreviewActivity, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Discard Video"
+        sweetAlertDialog.contentText = "Do you want discard the video"
+        sweetAlertDialog.confirmText = "Yes"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            if (sessionManager.getIsVideoFromGallery()){
+                 sessionManager.clearVideoSession()
+                sendToMain()
+            }else{
+                if (File(sessionManager.getCreateVideoPath()!!).exists()){
+                    File(sessionManager.getCreateVideoPath()!!).delete()
+                    sessionManager.clearVideoSession()
+                }
+                sendToMain()
+            }
+
+        }
+        sweetAlertDialog.cancelText = "No"
+        sweetAlertDialog.setCancelClickListener {
+            sweetAlertDialog.dismiss()
+        }
+        sweetAlertDialog.show()
+    }
+
+    private fun sendToMain() {
+        val intent = Intent(this@SnapPreviewActivity, HomeActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }

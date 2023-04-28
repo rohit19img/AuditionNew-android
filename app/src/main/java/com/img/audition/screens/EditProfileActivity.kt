@@ -1,16 +1,20 @@
 package com.img.audition.screens
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 import com.android.volley.*
 import com.android.volley.toolbox.Volley
@@ -72,6 +76,8 @@ import java.util.*
         requestQueue = Volley.newRequestQueue(this@EditProfileActivity)
 
 
+        askForStorage()
+
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
@@ -105,18 +111,34 @@ import java.util.*
 
         viewBinding.changePhoto.setOnClickListener {
 
-            if (appPermission.checkPermissions()){
-                selectImage()
+            if (ContextCompat.checkSelfPermission(
+                        this@EditProfileActivity,
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    ) != PackageManager.PERMISSION_GRANTED
+                ){
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                    ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                )
             }else{
-                appPermission.checkPermissions()
+                selectImage()
             }
         }
 
         viewBinding.userImage.setOnClickListener {
-            if (appPermission.checkPermissions()){
-                selectImage()
+            if (ContextCompat.checkSelfPermission(
+                        this@EditProfileActivity,
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    ) != PackageManager.PERMISSION_GRANTED
+                ){
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                    ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                )
             }else{
-                appPermission.checkPermissions()
+                selectImage()
             }
         }
         getUserSelfDetails()
@@ -388,5 +410,21 @@ import java.util.*
             }
         })
     }
+
+     private fun askForStorage() {
+         if (ContextCompat.checkSelfPermission(
+                 this@EditProfileActivity,
+                 Manifest.permission.READ_MEDIA_IMAGES
+             ) != PackageManager.PERMISSION_GRANTED
+         ) {
+             ActivityCompat.requestPermissions(
+                 this,
+                 arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                 ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+             )
+         } else {
+            myApplication.printLogD("storage granted",TAG)
+         }
+     }
 
 }

@@ -68,9 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:fontFamily="sans-serif"
-                android:hint="3 April 2023 10.08AM"
                 android:textColor="@color/textColorYellow"
-                android:textColorHint="@color/textColorYellow"
                 android:textSize="10sp" />
 
 

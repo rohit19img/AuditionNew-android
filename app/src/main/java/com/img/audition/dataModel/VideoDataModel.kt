@@ -3,6 +3,7 @@ package com.img.audition.dataModel
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import java.io.File
 
 
 data class VideoResponse(
@@ -30,6 +31,8 @@ data class VideoData(
     @SerializedName("shares"         ) var shares        : Int?              = null,
     @SerializedName("postId"         ) var postId        : String?           = null,
     @SerializedName("views"          ) var views         : Int?              = null,
+    @SerializedName("songId"         ) var songId        : String?          = null,
+    @SerializedName("song"           ) var song          : Song?             = Song(),
     @SerializedName("vId"            ) var vId           : String?           = null,
     @SerializedName("hashtag"        ) var hashtag       : ArrayList<String> = arrayListOf(),
 //    @SerializedName("hashtagId"      ) var hashtagId     : ArrayList<String> = arrayListOf(),
@@ -80,4 +83,70 @@ data class TrendingVideo(
     @SerializedName("name"   ) var name   : String?           = null,
     @SerializedName("views"  ) var views  : Int?              = null,
     @SerializedName("videos" ) var videos : ArrayList<VideoData> = arrayListOf()
+)
+
+data class UploadMusicResponse(
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("data"    ) var data    : UploadMusicData?    = UploadMusicData()
+
+)
+
+data class UploadMusicData(
+    @SerializedName("title"            ) var title          : String?  = null,
+    @SerializedName("track_aac_format" ) var trackAacFormat : String?  = null,
+    @SerializedName("subtitle"         ) var subtitle       : String?  = null,
+    @SerializedName("file"             ) var file           : String?  = null,
+    @SerializedName("Image"            ) var Image          : String?  = null,
+    @SerializedName("userid"           ) var userid         : String?  = null,
+    @SerializedName("byUser"           ) var byUser         : Boolean? = null,
+    @SerializedName("_id"              ) var Id             : String?  = null,
+    @SerializedName("createdAt"        ) var createdAt      : String?  = null,
+    @SerializedName("updatedAt"        ) var updatedAt      : String?  = null
+)
+
+data class Song (
+
+    @SerializedName("_id"              ) var Id             : String?  = null,
+    @SerializedName("title"            ) var title          : String?  = null,
+    @SerializedName("track_aac_format" ) var trackAacFormat : String?  = null,
+    @SerializedName("subtitle"         ) var subtitle       : String?  = null,
+    @SerializedName("file"             ) var file           : String?  = null,
+    @SerializedName("Image"            ) var Image          : String?  = null,
+    @SerializedName("userid"           ) var userid         : String?  = null,
+    @SerializedName("byUser"           ) var byUser         : Boolean? = null,
+    @SerializedName("createdAt"        ) var createdAt      : String?  = null,
+    @SerializedName("updatedAt"        ) var updatedAt      : String?  = null
+
+): java.io.Serializable
+
+data class SongVideoResponse(
+
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("data"    ) var data    : SongVideoData?    = SongVideoData()
+)
+
+data class SongVideoData (
+
+    @SerializedName("_id"              ) var Id             : String?           = null,
+    @SerializedName("title"            ) var title          : String?           = null,
+    @SerializedName("track_aac_format" ) var trackAacFormat : String?           = null,
+    @SerializedName("subtitle"         ) var subtitle       : String?           = null,
+    @SerializedName("file"             ) var file           : String?           = null,
+    @SerializedName("Image"            ) var Image          : String?           = null,
+    @SerializedName("userid"           ) var userid         : String?           = null,
+    @SerializedName("byUser"           ) var byUser         : Boolean?          = null,
+    @SerializedName("createdAt"        ) var createdAt      : String?           = null,
+    @SerializedName("updatedAt"        ) var updatedAt      : String?           = null,
+    @SerializedName("musicDetails"     ) var musicDetails   : MusicDetails?     = MusicDetails(),
+    @SerializedName("videos"           ) var videos         : ArrayList<VideoData> = arrayListOf()
+
+) : java.io.Serializable
+
+data class MusicDetails (
+
+    @SerializedName("_id"         ) var Id         : String? = null,
+    @SerializedName("audition_id" ) var auditionId : String? = null
+
 )

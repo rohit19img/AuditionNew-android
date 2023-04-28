@@ -23,6 +23,7 @@
         android:background="@color/bgColorWhite"
         app:itemIconTint="@drawable/change_nav_icon_color"
         android:layout_alignParentBottom="true"
+        app:itemIconSize="30dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         app:labelVisibilityMode="unlabeled"

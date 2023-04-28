@@ -2,6 +2,8 @@ package com.img.audition.adapters
 
 
 
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -98,8 +100,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                     }
                 audioData.isPlay = true
                 notifyDataSetChanged()
-
-
 
 
                 val mediaItem = MediaItem.fromUri(Uri.parse(ConstValFile.BASEURL+audioData.trackAacFormat.toString()))
@@ -281,7 +281,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         val cmd =
             "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
 
-     /*   EpEditor.execCmd(cmd,0,object : OnEditorListener {
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("TrimAudio Complete","TrimAudio")
                 sessionManager.setCreateAudioSession(trimFilePath)
@@ -297,7 +297,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             override fun onProgress(progress: Float) {
                 myApplication.printLogD("TrimAudio onProgress : $progress","TrimAudio")
             }
-        })*/
+        })
 
        /* FFmpegKit.executeAsync(cmd,
             { session ->

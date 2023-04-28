@@ -60,6 +60,15 @@ interface ApiInterface {
     @GET(APITags.GetUserVideo)
     fun getUserSelfVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
 
+    @GET(APITags.GetHashTagVideo)
+    fun getHashTagVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") hashTag :String): Call<VideoResponse>
+
+    @GET(APITags.GetMusicVideo)
+    fun getMusicVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") musicId :String): Call<SongVideoResponse>
+    @Multipart
+    @POST(APITags.UploadMusic)
+    fun uploadVideoMusic(@Header(APITags.AUTHORIZATION) Auth: String?,@Part typename: MultipartBody.Part, @Part audioFile: MultipartBody.Part) : Call<UploadMusicResponse>
+
     @GET(APITags.LogoutUser)
     fun logoutUser(@Header(APITags.AUTHORIZATION) Auth: String?): Call<CommanResponse>
 

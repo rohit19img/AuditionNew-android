@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -18,8 +20,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.util.UnstableApi
 import com.img.audition.R
 import com.img.audition.globalAccess.ConstValFile
+import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import com.img.audition.screens.CompilerActivity
 import com.snap.camerakit.LegalProcessor
 import com.snap.camerakit.Session
 import com.snap.camerakit.connectOutput
@@ -29,12 +31,13 @@ import com.snap.camerakit.extension.lens.p2d.service.configurePushToDevice
 import com.snap.camerakit.lenses.*
 import com.snap.camerakit.support.widget.CameraLayout
 import com.snap.camerakit.support.widget.LensesCarouselView
+import com.snap.camerakit.support.widget.SnapButtonView
 import com.snap.camerakit.support.widget.arCoreSupportedAndInstalled
 import com.snap.camerakit.versionFrom
 import java.io.Closeable
 import java.util.*
 
-private const val TAG = "MainActivity"
+private const val TAG = "SnapCameraActivity"
 private const val BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL = "use_custom_lenses_carousel"
 private const val BUNDLE_ARG_MUTE_AUDIO = "mute_audio"
 private const val BUNDLE_ARG_ENABLE_DIAGNOSTICS = "enable_diagnostics"
@@ -42,6 +45,7 @@ private const val CONFIG_KEY_DIAGNOSTICS_ENABLE = "com.snap.camerakit.diagnostic
 private const val CONFIG_VALUE_DIAGNOSTICS_ENABLE =
     "MEUCIQCzXSKUlMwq2l9+wS6L4cnbEXP11jQPlCyXuAFMNsr9SgIgFYO+C44ddwekBcsBY5Ti6C9ZV5OwFdaWDEQ5AlqQx5A="
 private const val ACTION_DIAGNOSTICS_DUMP = "com.snap.camerakit.diagnostics.DUMP"
+private const val REQUEST_TAKE_GALLERY_VIDEO = 200
 private val LENS_GROUPS = arrayOf(
     LENS_GROUP_ID_BUNDLED, // lens group for bundled lenses available in lenses-bundle artifact.
     LensPushToDeviceService.LENS_GROUP_ID, // lens group for lenses obtained using Push to Device functionality.
@@ -56,9 +60,21 @@ private const val KEY_LENS_GROUPS = "lens_groups"
 
 @UnstableApi class SnapCameraActivity : AppCompatActivity() {
 
+    private val TRACK = "Capture Track"
     private val sessionManager by lazy {
         SessionManager(this@SnapCameraActivity)
     }
+
+    private var isFromContest = false
+    private var hashTag = ""
+    private val myApplication by lazy {
+        MyApplication(this@SnapCameraActivity)
+    }
+
+    private val bundle by lazy {
+        intent.getBundleExtra(ConstValFile.Bundle)
+    }
+
 
     private lateinit var cameraLayout: CameraLayout
     private lateinit var sharedPreferences: SharedPreferences
@@ -109,10 +125,7 @@ private const val KEY_LENS_GROUPS = "lens_groups"
 
         // Some content may request additional data such as user name to personalize lenses. Providing this data is
         // optional, the MockUserProcessorSource class demonstrates a basic example to implement a source of the data.
-        val mockUserProcessorSource = MockUserProcessorSource(
-            userDisplayName = "Jane Doe",
-            userBirthDate = Date(136985835000L)
-        )
+        val mockUserProcessorSource = MockUserProcessorSource(userDisplayName = "${sessionManager.getUserName()}")
 
         // This sample uses the CameraLayout helper view that consolidates most common CameraKit use cases
         // into a single class that takes care of runtime permissions and managing CameraKit Session built
@@ -127,6 +140,7 @@ private const val KEY_LENS_GROUPS = "lens_groups"
                 layoutInflater.inflate(R.layout.lenses_carousel_widget_layout, this, true)
                 // CaptureButton should be in front to overlap the lenses carousel.
                 captureButton.bringToFront()
+
             }
             // CameraLayout provides a way to register callbacks for configuring CameraKit Session that
             // is created internally and made available via the onSessionAvailable callback below.
@@ -180,9 +194,12 @@ private const val KEY_LENS_GROUPS = "lens_groups"
                 .addTo(closeOnDestroy)
         }
 
+//        cameraLayout.drawin gTime = 10000
+
         cameraLayout.onSessionAvailable { session ->
             // Adjust lenses volume considering current muteAudio value.
             session.adjustLensesVolume(muteAudio)
+
 
             // An example of how dynamic launch data can be used. Vendor specific metadata is added into
             // LaunchData so it can be used by lens on launch.
@@ -330,8 +347,16 @@ private const val KEY_LENS_GROUPS = "lens_groups"
             }
         }
 
+
+
         cameraLayout.onVideoTaken { file ->
-            sendToVideoPreview(file.absolutePath,0)
+            val retriever =  MediaMetadataRetriever()
+            retriever.setDataSource(this@SnapCameraActivity, Uri.fromFile(file));
+            val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+            retriever.release()
+            myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+            val selectVideoDuration = time!!.toLong()
+            sendToVideoPreview(file.absolutePath, selectVideoDuration)
 //            SnapPreviewActivity.startUsing(this@SnapCameraActivity, cameraLayout, file, MIME_TYPE_VIDEO_MP4)
         }
 
@@ -374,6 +399,9 @@ private const val KEY_LENS_GROUPS = "lens_groups"
             lens.facingPreference
         }
 
+        cameraLayout.captureButton.setOnClickListener {
+            myApplication.printLogD("OnClick",TRACK)
+        }
 
         // Present basic app version information to make it easier for QA to report it.
         rootLayout.findViewById<TextView>(R.id.version_info).apply {
@@ -460,6 +488,8 @@ private const val KEY_LENS_GROUPS = "lens_groups"
     private fun sendToVideoPreview(videoUri: String, videoDuration: Long) {
         sessionManager.clearVideoSession()
         sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
+        sessionManager.setVideoHashTag(hashTag)
+        sessionManager.setIsFromContest(isFromContest)
         val intent = Intent(this@SnapCameraActivity,SnapPreviewActivity::class.java)
         startActivity(intent)
     }
@@ -501,6 +531,66 @@ private const val KEY_LENS_GROUPS = "lens_groups"
         }
         lenses.audio.adjust(adjustVolume) { success ->
             Log.d(TAG, "Adjust volume to $adjustVolume success: $success")
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
+        hashTag = bundle!!.getString(ConstValFile.VideoHashTag, "")
+        sessionManager.setIsFromContest(isFromContest)
+        if (!(isFromContest)) {
+//            sessionManager.clearContestSession()
+            findViewById<ImageView>(R.id.selectFromGallery).visibility = View.GONE
+            myApplication.printLogD("$isFromContest onStart1", " isFromContest + $TAG")
+        } else {
+
+            findViewById<ImageView>(R.id.selectFromGallery).visibility = View.VISIBLE
+            myApplication.printLogD("$isFromContest onStart2", " isFromContest + $TAG")
+        }
+
+        findViewById<ImageView>(R.id.selectFromGallery).setOnClickListener {
+            selectVideoFromDevice()
+        }
+
+        findViewById<ImageView>(R.id.backPressIC).setOnClickListener {
+            onBackPressed()
+        }
+
+
+    }
+
+    private fun selectVideoFromDevice() {
+        val intent = Intent()
+        intent.type = "video/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(
+            Intent.createChooser(intent, "Select Video"),
+            REQUEST_TAKE_GALLERY_VIDEO
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_TAKE_GALLERY_VIDEO) {
+                val videoUri: Uri? = data!!.data
+
+                val retriever =  MediaMetadataRetriever()
+                retriever.setDataSource(this@SnapCameraActivity, videoUri);
+                val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                retriever.release()
+                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                val selectVideoDuration = time!!.toLong()
+
+                if (selectVideoDuration<=15000){
+                    sendToVideoPreview(videoUri.toString(),selectVideoDuration)
+                    sessionManager.setIsVideoFromGallery(true)
+                }else{
+                    myApplication.showToast("Please select 15 second video")
+                }
+            }
         }
     }
 }

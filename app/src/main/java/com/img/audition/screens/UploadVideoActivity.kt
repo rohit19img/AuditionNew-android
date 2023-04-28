@@ -1,6 +1,8 @@
 package com.img.audition.screens
 
 
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
 import android.Manifest
 import android.app.ProgressDialog
 import android.content.ContentResolver
@@ -16,6 +18,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.media3.common.util.UnstableApi
 
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amazonaws.auth.BasicAWSCredentials
@@ -26,7 +29,6 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.CannedAccessControlList
 
-
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -35,6 +37,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.JsonObject
 import com.img.audition.dataModel.CommanResponse
+import com.img.audition.dataModel.UploadMusicResponse
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.UserSelfProfileResponse
 import com.img.audition.databinding.ActivityUploadVideoBinding
@@ -46,6 +49,9 @@ import com.img.audition.network.APITags
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -55,12 +61,13 @@ import java.sql.Timestamp
 import java.util.*
 import java.util.regex.Pattern
 
-
-
-class UploadVideoActivity : AppCompatActivity() {
+@UnstableApi class UploadVideoActivity : AppCompatActivity() {
 
     val TAG = "UploadVideoActivity"
     val TARCK = "check 100"
+    private var videoSongName = ""
+    private var videoSongID = ""
+
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
@@ -73,6 +80,7 @@ class UploadVideoActivity : AppCompatActivity() {
     private val myApplication by lazy {
         MyApplication(this@UploadVideoActivity)
     }
+
 
     private val firebaseDB by lazy {
         FirebaseFirestore.getInstance()
@@ -89,11 +97,13 @@ class UploadVideoActivity : AppCompatActivity() {
     lateinit var locationManager: LocationManager
     lateinit var appPermission : AppPermission
 
-    private var orignalPath: String = ""
+    private var videoOriginalPath: String = ""
+    private var audioOriginalPath: String = ""
     private var videoCaption: String = ""
     private var videoHashTag: String = ""
     private var videoTimeStamp: String = ""
     lateinit var progressDialog: ProgressDialog
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -102,7 +112,6 @@ class UploadVideoActivity : AppCompatActivity() {
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@UploadVideoActivity)
         userLatLang = UserLatLang()
         askForLocation()
-
 
         progressDialog = ProgressDialog(this@UploadVideoActivity)
         progressDialog.setCancelable(false)
@@ -114,28 +123,7 @@ class UploadVideoActivity : AppCompatActivity() {
             onBackPressed()
         }
 
-        viewBinding.uploadVideoBtn.setOnClickListener {
-            viewBinding.uploadVideoBtn.isSelected = false
-            myApplication.printLogD("on Upload Button Click ",TARCK)
-            if (!(sessionManager.isUserLoggedIn())) {
-                myApplication.printLogD("Send TO Login Page",TARCK)
-                sendToLoginActivity()
-            } else {
-                myApplication.printLogD("$isFromContest uploadVideoBtn"," isFromContest $TAG")
-                if (isFromContest){
-                    progressDialog.show()
-                    val contestFees = sessionManager.getContestEntryFee()
-                    myApplication.printLogD("Call getUserWalletBalance",TARCK)
-                    myApplication.printLogD("$contestFees contestFees ",TARCK)
-                    getUserWalletBalance(contestFees)
-                }else{
-                    progressDialog.show()
-                    myApplication.printLogD("Call uploadVideoMainFun",TARCK)
-                    uploadVideoMainFun()
-                }
 
-            }
-        }
     }
 
     private fun uploadVideoMainFun() {
@@ -154,10 +142,14 @@ class UploadVideoActivity : AppCompatActivity() {
                 Log.d("checkHash", "postWrite: hashTag InLoop : " + findMatchHash.group(1))
             }
         }
-        val outputPath = createFileAndFolder()
+
+       /* val outputPath = createFileAndFolder()
         myApplication.printLogD("Call Compress Video Fun",TARCK)
-        compressVideo(orignalPath,outputPath)
-    }
+        compressVideo(videoOriginalPath,outputPath)*/
+
+        extractAudioFromVideo(videoOriginalPath)
+
+        }
 
     private fun askForLocation() {
         if (ContextCompat.checkSelfPermission(
@@ -225,8 +217,8 @@ class UploadVideoActivity : AppCompatActivity() {
         sweetAlertDialog.contentText = "Do you want discard the video"
         sweetAlertDialog.confirmText = "Yes"
         sweetAlertDialog.setConfirmClickListener {
-            if (File(orignalPath).exists()){
-                File(orignalPath).delete()
+            if (File(videoOriginalPath).exists()){
+                File(videoOriginalPath).delete()
                 sessionManager.clearVideoSession()
             }
             sweetAlertDialog.dismiss()
@@ -288,27 +280,23 @@ class UploadVideoActivity : AppCompatActivity() {
     }
 
 
-    fun compressVideo(inputPath:String,outputPath:String){
+    /*fun compressVideo(inputPath:String,outputPath:String){
 
         myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 24 $outputPath"
+        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 28 $outputPath"
 
-        //
-        orignalPath = inputPath
-        uploadVideoToS3()
-        //
 
-      /*  EpEditor.execCmd(cmd,0,object : OnEditorListener {
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("log : onSuccess","ffmpeg")
                 myApplication.printLogD("Video Compress Complete",TARCK)
-                if (File(orignalPath).exists()){
-                    File(orignalPath).delete()
+                if (!sessionManager.getIsVideoFromGallery()){
+                    if (File(videoOriginalPath).exists()){
+                        File(videoOriginalPath).delete()
+                    }
                 }
-                orignalPath = outputPath
-
-                myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
-                uploadVideoToS3()
+                videoOriginalPath = outputPath
+                extractAudioFromVideo(videoOriginalPath)
             }
 
             override fun onFailure() {
@@ -319,17 +307,18 @@ class UploadVideoActivity : AppCompatActivity() {
                 myApplication.printLogD("log onProgress : $progress","ffmpeg")
             }
 
-        })*/
-        /*FFmpegKit.executeAsync(cmd,
+        })
+
+        FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
                 if (ReturnCode.isSuccess(returnCode)){
                     myApplication.printLogD("Video Compress Complete",TARCK)
-                    if (File(orignalPath).exists()){
-                        File(orignalPath).delete()
+                    if (File(videoOriginalPath).exists()){
+                        File(videoOriginalPath).delete()
                     }
-                    orignalPath = outputPath
+                    videoOriginalPath = outputPath
 
                     myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
                     uploadVideoToS3()
@@ -343,8 +332,8 @@ class UploadVideoActivity : AppCompatActivity() {
             })
         {
             myApplication.printLogD("statistics : $it","ffmpeg")
-        }*/
-    }
+        }
+    }*/
 
     private fun uploadVideoToS3() {
         myApplication.printLogD("Inside uploadVideoToS3 Fun",TARCK)
@@ -358,7 +347,7 @@ class UploadVideoActivity : AppCompatActivity() {
             TransferUtility.builder().s3Client(s3).context(this@UploadVideoActivity).build()
 
         val filePermission = CannedAccessControlList.PublicRead
-        val file = File(orignalPath)
+        val file = File(videoOriginalPath)
         val nameOfS3VideoFile = "audition/video-" + file.name;
 
         Log.i("UploadTest","${nameOfS3VideoFile}")
@@ -457,10 +446,14 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("typename", "")
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("postId", postID)
+        obj.addProperty("songid", videoSongID)
+        myApplication.printLogD(videoSongID,"videoSongID")
+        obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("lat",userLatLang.lat.toString())
         obj.addProperty("long",userLatLang.long.toString())
 
+        myApplication.printLogD(obj.toString(),"videoObj")
         val uploadVideoReq = apiInterface.uploadNormalVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadNormalVideoDataToServer Fun API",TARCK)
         uploadVideoReq.enqueue(object : Callback<CommanResponse>{
@@ -472,6 +465,7 @@ class UploadVideoActivity : AppCompatActivity() {
                     sweetAlertDialog.contentText = ConstValFile.UploadSuccess
                     sweetAlertDialog.show()
                     sweetAlertDialog.setConfirmClickListener {
+                        sweetAlertDialog.dismiss()
                         sendToHomeActivity()
                     }
                 }
@@ -481,7 +475,6 @@ class UploadVideoActivity : AppCompatActivity() {
                 myApplication.showToast(ConstValFile.UploadFailed)
             }
         })
-
 
     }
 
@@ -500,6 +493,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("postId", postID)
         obj.addProperty("contestId", sessionManager.getContestID())
         obj.addProperty("status", "contest")
+        obj.addProperty("songid", videoSongID)
+        obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("video_or_image",sessionManager.getContestFile())
         obj.addProperty("video_or_image_type",sessionManager.getContestType())
@@ -535,13 +530,40 @@ class UploadVideoActivity : AppCompatActivity() {
         super.onStart()
         isFromContest = sessionManager.getIsFromContest()
         val videoUri = sessionManager.getCreateVideoPath()
+
+        viewBinding.captionForVideoET.setText(sessionManager.getVideoHashTag().toString())
+        myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} onStart","videoHashTag")
         myApplication.printLogD("$isFromContest onStart"," isFromContest")
         myApplication.printLogD(videoUri!!, "videoUri")
-//        orignalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
-        orignalPath = videoUri
-        myApplication.printLogD(orignalPath, "videoPath")
-        Glide.with(this@UploadVideoActivity).load(orignalPath).into(viewBinding.videoThumbnail)
+//        videoOriginalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
+        videoOriginalPath = videoUri
+        myApplication.printLogD(videoOriginalPath, "videoPath")
+        Glide.with(this@UploadVideoActivity).load(videoOriginalPath).into(viewBinding.videoThumbnail)
         myApplication.printLogD("$isFromContest onStart"," isFromContest $TAG")
+
+
+        viewBinding.uploadVideoBtn.setOnClickListener {
+            viewBinding.uploadVideoBtn.isSelected = false
+            myApplication.printLogD("on Upload Button Click ",TARCK)
+            if (!(sessionManager.isUserLoggedIn())) {
+                myApplication.printLogD("Send TO Login Page",TARCK)
+                sendToLoginActivity()
+            } else {
+                myApplication.printLogD("$isFromContest uploadVideoBtn"," isFromContest $TAG")
+                if (isFromContest){
+                    progressDialog.show()
+                    val contestFees = sessionManager.getContestEntryFee()
+                    myApplication.printLogD("Call getUserWalletBalance",TARCK)
+                    myApplication.printLogD("$contestFees contestFees ",TARCK)
+                    getUserWalletBalance(contestFees)
+                }else{
+                    progressDialog.show()
+                    myApplication.printLogD("Call uploadVideoMainFun",TARCK)
+                    uploadVideoMainFun()
+                }
+
+            }
+        }
     }
 
     private fun getUserWalletBalance(contestFees: Int) {
@@ -606,5 +628,108 @@ class UploadVideoActivity : AppCompatActivity() {
         })
     }
 
+
+    fun extractAudioFromVideo(inputPath:String){
+
+        val outputPath = createAudioFilePath()
+        myApplication.printLogD("InSide extractAudioFromVideo",TARCK)
+        val cmd = "-y -i $inputPath -vn -acodec copy $outputPath"
+
+
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("log : onSuccess","ffmpeg")
+                myApplication.printLogD("Audio extract Complete",TARCK)
+                audioOriginalPath = outputPath
+                myApplication.printLogD("extractAudioFromVideo Path  : $audioOriginalPath",TARCK)
+                myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
+                uploadAudioToServer(outputPath)
+            }
+
+            override fun onFailure() {
+                myApplication.printLogD("log : onFailure",TARCK)
+            }
+
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("log onProgress : $progress",TARCK)
+            }
+
+        })
+
+        /*FFmpegKit.executeAsync(cmd,
+            { session ->
+                val state = session.state
+                val returnCode = session.returnCode
+                if (ReturnCode.isSuccess(returnCode)){
+                    myApplication.printLogD("audio extract Complete",TARCK)
+
+                }
+                // CALLED WHEN SESSION IS EXECUTED
+                Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
+                    state, returnCode,  session.failStackTrace))
+            },
+            {
+                myApplication.printLogD("log : $it","ffmpeg")
+            })
+        {
+            myApplication.printLogD("statistics : $it","ffmpeg")
+        }*/
+    }
+
+    private fun createAudioFilePath():String{
+        val timestamp = System.currentTimeMillis()
+        videoSongName = "Original-Sound-by-${sessionManager.getUserName()}-$timestamp.aac"
+        val appData = filesDir
+        myApplication.printLogD(appData.absolutePath,TAG)
+
+        val createFile = File(appData,videoSongName)
+        if (!(createFile.exists())){
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath,TAG)
+            }catch (i: IOException){
+                myApplication.printLogE(i.toString(),TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+
+    fun uploadAudioToServer(audiFile:String){
+        val fileSong = File(audiFile)
+
+        val reqData = MultipartBody.Part.createFormData("typename","musicUpload/mp3")
+        val reqFile = MultipartBody.Part.createFormData("audio",videoSongName,fileSong.asRequestBody())
+
+        val audioReq = apiInterface.uploadVideoMusic(sessionManager.getToken(),reqData,reqFile)
+        audioReq.enqueue(object : Callback<UploadMusicResponse>{
+            override fun onResponse(call: Call<UploadMusicResponse>, response: Response<UploadMusicResponse>) {
+               myApplication.printLogD(response.toString(),"uploadAudioToServer")
+                if (response.isSuccessful && response.body()!!.success!!){
+                    val data = response.body()!!.data!!
+                    val songID = data.Id.toString()
+                    if (songID==sessionManager.getVideoSongID()){
+                        videoSongID = sessionManager.getVideoSongID()!!
+                        uploadVideoToS3()
+                    }else{
+                        videoSongID = songID
+                        uploadVideoToS3()
+                    }
+
+                }
+            }
+
+            override fun onFailure(call: Call<UploadMusicResponse>, t: Throwable) {
+                myApplication.printLogD(t.toString(),"uploadAudioToServer")
+            }
+        })
+
+    }
 
 }

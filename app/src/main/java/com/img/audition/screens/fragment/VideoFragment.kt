@@ -1,6 +1,7 @@
 package com.img.audition.screens.fragment
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -39,6 +40,7 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.SplashActivity
+import com.img.audition.videoWork.FollowFollowingTrack
 import com.img.audition.videoWork.VideoItemPlayPause
 import retrofit2.Call
 import retrofit2.Callback
@@ -68,8 +70,12 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
     companion object{
         lateinit var videoAdapter: VideoAdapter
+        lateinit var followFollowingTrackIntent : FollowFollowingTrack
     }
     val videoList2 = ArrayList<VideoData>()
+
+
+
 
     lateinit var viewPager : ViewPager2
 
@@ -171,8 +177,10 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
                         if (videoList2.size == 0){
                            try {
                                videoList2.addAll(videoList1)
+                               myApplication.printLogD("Add video first Time","video add")
                                videoAdapter = VideoAdapter(contextFromActivity,videoList2)
                                viewPager.adapter = videoAdapter
+                               followFollowingTrackIntent = videoAdapter
                                videoItemPlayPause = videoAdapter.onActivityStateChanged()
                            }catch (e:Exception){
                                myApplication.printLogE(e.toString(),TAG)
@@ -180,6 +188,8 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
                         }else{
                             videoList2.addAll(videoList1)
+                            myApplication.printLogD("Add video first Time","video add")
+
                             videoAdapter.notifyItemInserted(videoList2.size - 1)
                             videoItemPlayPause = videoAdapter.onActivityStateChanged()
 
@@ -249,7 +259,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels)
                 if (position == videoList2.size-2){
 //                    showReels()
-                    myApplication.printLogD("call again showReels",TAG)
                 }
             }
 
@@ -258,14 +267,13 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
                 if (position == videoList2.size-3){
                     if (myApplication.isNetworkConnected()) {
                         showReels()
+                        myApplication.printLogD("Api Call","check 800")
+                        myApplication.printLogD(position.toString(),"check 800")
                     }else{
                         myApplication.showToast(ConstValFile.Check_Connection)
                     }
 
-                    myApplication.printLogD("Api Call","check 800")
-                    myApplication.printLogD(position.toString(),"check 800")
                 }
-
 
                 try {
                     val cPos = position
@@ -329,7 +337,4 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         Log.d(TRACK, "onStart: ")
         super.onStart()
     }
-
-
-
 }

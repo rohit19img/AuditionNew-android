@@ -25,6 +25,7 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.VideoFragment
 import com.img.audition.screens.fragment.VideoReportDialog
+import com.img.audition.videoWork.FollowFollowingTrack
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -56,7 +57,9 @@ import java.util.ArrayList
     lateinit var userID : String
     lateinit var userimage : String
     var followStatus: Boolean = false
+    var position  = 0
 
+     lateinit var followFollowingTrackIntent : FollowFollowingTrack
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -157,13 +160,16 @@ import java.util.ArrayList
     override fun onStart() {
         userID = bundle!!.getString(ConstValFile.USER_IDFORIntent).toString()
         followStatus =  bundle!!.getBoolean(ConstValFile.UserFollowStatus,false)
-        getUserData(userID,followStatus)
 
         if (followStatus){
             viewBinding.followBtn.text = ConstValFile.Following
         }else{
             viewBinding.followBtn.text = ConstValFile.Follow
         }
+
+        getUserData(userID)
+
+
         getUserVideo(userID)
         super.onStart()
     }
@@ -200,9 +206,8 @@ import java.util.ArrayList
         })
     }
 
-    private fun getUserData(userID: String?, followStatus: Boolean) {
+    private fun getUserData(userID: String) {
         myApplication.printLogD(userID.toString(),"Other User ID")
-        myApplication.printLogD(followStatus.toString(),"Other Follow Status")
 
         val getUserReq = apiInterface.getOtherUser(sessionManager.getToken(),userID)
         getUserReq.enqueue(object : Callback<GetOtherUserResponse>{
@@ -236,6 +241,11 @@ import java.util.ArrayList
 
                     viewBinding.userID.text = userData.auditionId.toString()
 
+                    followStatus = userData.followStatus!!
+                    if (followStatus)
+                        viewBinding.followBtn.text = ConstValFile.Following
+                    else
+                        viewBinding.followBtn.text = ConstValFile.Follow
 
                 }else{
                     myApplication.printLogE("Get User Response Failed ${response.code()}",TAG)
@@ -274,7 +284,13 @@ import java.util.ArrayList
     }
 
     override fun onResume() {
-        super.onResume()
+        val adapter = (VideoFragment).videoAdapter
+        try {
+            position = bundle!!.getInt(ConstValFile.UserPositionInList,0)
+            followFollowingTrackIntent = adapter
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
         viewBinding.followBtn.setOnClickListener {
             viewBinding.followBtn.isSelected = false
             if (!(sessionManager.isUserLoggedIn())){
@@ -283,17 +299,18 @@ import java.util.ArrayList
             }else {
                 try {
                     val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
-                    val adapter = (VideoFragment).videoAdapter
-                    val position = bundle!!.getInt(ConstValFile.UserPositionInList)
+
+                    myApplication.printLogD("UserPro : $position","check 900")
                     if (!followStatus){
                         list[position].followStatus = true
-                        adapter.notifyItemChanged(position)
-                        Thread { followUserApi(userID, "followed") }
+                        adapter.notifyDataSetChanged()
+                        followUserApi(userID, "followed")
                         viewBinding.followBtn.text = ConstValFile.Following
                         viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
                     }else{
                         list[position].followStatus = false
-                        adapter.notifyItemChanged(position)
+                        followFollowingTrackIntent = adapter
+                        adapter.notifyDataSetChanged()
                         followUserApi(userID,"unfollowed")
                         viewBinding.followBtn.text = ConstValFile.Follow
                         viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.NORMAL)
@@ -303,5 +320,22 @@ import java.util.ArrayList
                 }
             }
         }
+        super.onResume()
     }
+
+
+     override fun onBackPressed() {
+         myApplication.printLogD("Intent onBackPressed : $followStatus","onIntentReceived")
+         myApplication.printLogD("Intent onBackPressed : $userID","onIntentReceived")
+         myApplication.printLogD("Intent onBackPressed : $position","onIntentReceived")
+         followFollowingTrackIntent.onIntentReceived(followStatus,userID,position)
+       /*
+         val backToIntent = Intent()
+         backToIntent.putExtra(ConstValFile.VideoPosition,position)
+         backToIntent.putExtra(ConstValFile.VideoPosition,userID)
+         backToIntent.putExtra(ConstValFile.VideoPosition,followStatus)
+         setResult(RESULT_OK,backToIntent)*/
+         super.onBackPressed()
+     }
+
 }

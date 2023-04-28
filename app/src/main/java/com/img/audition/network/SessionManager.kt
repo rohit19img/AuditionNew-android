@@ -12,7 +12,7 @@ class SessionManager(context: Context) {
     val prefEditorMain = sharedPrefMain.edit()
     val prefEditorLang = sharedPrefLang.edit()
     val prefEditorContest = sharedPrefContest.edit()
-    val prefEditorVideoSession = sharedPrefContest.edit()
+    val prefEditorVideoSession = sharedPrefAudioVideoSession.edit()
 
 
     fun createUserLoginSession(isLogin: Boolean, Token: String?, mNumber: String?) {
@@ -160,20 +160,33 @@ class SessionManager(context: Context) {
         return sharedPrefContest.getBoolean(ConstValFile.IsFromContest,false)
     }
 
+    fun setIsFromContest(isFromContest: Boolean){
+        prefEditorContest.putBoolean(ConstValFile.IsFromContest,isFromContest)
+        prefEditorContest.commit()
+
+    }
 
     fun setCreateVideoSession(videoTempUrl: String?, videoSpeedState: String, videoDuration: Long) {
         prefEditorVideoSession.putString(ConstValFile.VideoFilePath,videoTempUrl)
-        prefEditorVideoSession.putString(ConstValFile.VideoOriginalPath,videoSpeedState)
+        prefEditorVideoSession.putString(ConstValFile.VideoOriginalPath,videoTempUrl)
         prefEditorVideoSession.putString(ConstValFile.VideoSpeedState,videoSpeedState)
         prefEditorVideoSession.putLong(ConstValFile.VideoDuration,videoDuration)
         prefEditorVideoSession.commit()
     }
 
-    fun setCreateVideoSpeedState(videoSpeedState: String?) {
-        prefEditorVideoSession.putString(ConstValFile.VideoSpeedState,videoSpeedState)
+    fun setCreateVideoSpeedState(VideoFrom: String?) {
+        prefEditorVideoSession.putString(ConstValFile.isFromGallery,VideoFrom)
         prefEditorVideoSession.commit()
     }
 
+    fun setIsVideoFromGallery(VideoFrom: Boolean) {
+        prefEditorVideoSession.putBoolean(ConstValFile.isFromGallery,VideoFrom)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getIsVideoFromGallery(): Boolean {
+        return sharedPrefAudioVideoSession.getBoolean(ConstValFile.isFromGallery,false)
+    }
     fun setCreateAudioSession(trimAudioUrl: String?) {
         prefEditorVideoSession.putString(ConstValFile.TrimAudioUrl,trimAudioUrl)
         prefEditorVideoSession.commit()
@@ -217,8 +230,31 @@ class SessionManager(context: Context) {
         prefEditorVideoSession.commit()
     }
 
+    fun setVideoHashTag(hashTag: String?) {
+        prefEditorVideoSession.putString(ConstValFile.VideoHashTag,hashTag)
+        prefEditorVideoSession.commit()
+    }
 
+    fun getVideoHashTag(): String? {
+        return sharedPrefAudioVideoSession.getString(ConstValFile.VideoHashTag,"")
+    }
 
+    fun setVideoSongID(songID: String?) {
+        prefEditorVideoSession.putString(ConstValFile.SongID,songID)
+        prefEditorVideoSession.commit()
+    }
 
+    fun getVideoSongID(): String? {
+        return sharedPrefAudioVideoSession.getString(ConstValFile.SongID,"")
+    }
+
+    fun setVideoSongUrl(songUrl: String?) {
+        prefEditorVideoSession.putString(ConstValFile.SongUrl,songUrl)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getVideoSongUrl(): String? {
+        return sharedPrefAudioVideoSession.getString(ConstValFile.SongUrl,"")
+    }
 
 }

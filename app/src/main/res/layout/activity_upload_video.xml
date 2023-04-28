@@ -72,12 +72,13 @@
             <EditText
                 android:id="@+id/captionForVideoET"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="80dp"
                 android:layout_toStartOf="@id/videoThumbnail"
                 android:background="@drawable/white_border"
                 android:backgroundTint="@color/black"
                 android:layout_margin="15dp"
                 android:padding="10dp"
+                android:inputType="text"
                 android:minLines="3"
                 android:textColor="@color/textColorBlack"
                 android:textColorHint="@color/Gray"
@@ -93,7 +94,7 @@
                 style="@style/carViewStyle">
                 <TextView
                     style="@style/textViewStyle"
-                    android:textColor="@color/black"
+                    android:textColor="@color/textColorWhite"
                     android:textAlignment="center"
                     android:gravity="center"
                     android:textStyle="bold"
@@ -102,8 +103,6 @@
                     android:text="Upload Video"/>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
-
-
 
 
     </RelativeLayout>

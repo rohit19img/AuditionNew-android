@@ -46,7 +46,8 @@
             tools:listitem="@layout/comment_item_design"
             android:layout_marginTop="5dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:layout_height="match_parent"/>
+            android:minHeight="200dp"
+            android:layout_height="300dp"/>
 
     </LinearLayout>
 

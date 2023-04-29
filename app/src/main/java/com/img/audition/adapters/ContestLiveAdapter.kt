@@ -95,6 +95,11 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                     if (!(contest.isJoined!!)) {
                         myApplication.printLogD("User Not Joined", TAG)
                         sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                        myApplication.printLogD("contest.entryfee ${sessionManager.getContestEntryFee()}", "contestCheck")
+                        myApplication.printLogD("contest.Id ${sessionManager.getContestID()}", "contestCheck")
+                        myApplication.printLogD("contest.fileType ${contest.fileType}", "contestCheck")
+                        myApplication.printLogD("contest.file ${contest.file}", "contestCheck")
+
                         Thread.sleep(300)
                         sendForCreateVideo()
                     } else {

@@ -553,6 +553,10 @@ import java.util.regex.Pattern
                 if (isFromContest){
                     progressDialog.show()
                     val contestFees = sessionManager.getContestEntryFee()
+                    myApplication.printLogD("contest.entryfee ${sessionManager.getContestEntryFee()}", "contestCheck")
+                    myApplication.printLogD("contest.Id ${sessionManager.getContestID()}", "contestCheck")
+                    myApplication.printLogD("contest.fileType ${sessionManager.getContestFile()}", "contestCheck")
+                    myApplication.printLogD("contest.file ${sessionManager.getContestFile()}", "contestCheck")
                     myApplication.printLogD("Call getUserWalletBalance",TARCK)
                     myApplication.printLogD("$contestFees contestFees ",TARCK)
                     getUserWalletBalance(contestFees)

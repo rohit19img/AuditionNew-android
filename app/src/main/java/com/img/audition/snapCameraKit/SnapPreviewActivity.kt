@@ -106,7 +106,6 @@ class SnapPreviewActivity : AppCompatActivity() {
     private var exportedMediaUri: Uri? = null
 
     lateinit var videoPlayer : ExoPlayer
-    private var isFromContest = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -339,7 +338,7 @@ class SnapPreviewActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        sessionManager.setIsFromContest(isFromContest)
+
     }
 
 
@@ -351,8 +350,8 @@ class SnapPreviewActivity : AppCompatActivity() {
         val videoSpeedState = sessionManager.getCreateVideoSpeedState()
         val videoDuration = sessionManager.getCreateVideoDuration()
 //        myApplication.printLogD("videoUri : $videoUri videoState: $videoSpeedState videoDuration: $videoDuration",TAG)
-        isFromContest = sessionManager.getIsFromContest()
-        myApplication.printLogD("$isFromContest SnapPReview1", " isFromContest")
+        val isFromContest = sessionManager.getIsFromContest()
+        myApplication.printLogD("${sessionManager.getContestEntryFee()} SnapPReview1", "contestCheck")
         myApplication.printLogD("${sessionManager.getIsFromContest()} SnapPReview2", " isFromContest")
         val mediaItem = MediaItem.fromUri(videoUri!!)
         videoPlayer.setMediaItem(mediaItem)

@@ -8,7 +8,7 @@ class SessionManager(context: Context) {
     val sharedPrefMain = context.getSharedPreferences(ConstValFile.PREFER_MAIN, Context.MODE_PRIVATE)
     val sharedPrefLang = context.getSharedPreferences(ConstValFile.PREFER_LANG, Context.MODE_PRIVATE)
     val sharedPrefContest = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
-    val sharedPrefAudioVideoSession = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
+    val sharedPrefAudioVideoSession = context.getSharedPreferences(ConstValFile.PREFER_VIDEO, Context.MODE_PRIVATE)
     val prefEditorMain = sharedPrefMain.edit()
     val prefEditorLang = sharedPrefLang.edit()
     val prefEditorContest = sharedPrefContest.edit()

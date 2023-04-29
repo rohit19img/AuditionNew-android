@@ -399,9 +399,6 @@ private const val KEY_LENS_GROUPS = "lens_groups"
             lens.facingPreference
         }
 
-        cameraLayout.captureButton.setOnClickListener {
-            myApplication.printLogD("OnClick",TRACK)
-        }
 
         // Present basic app version information to make it easier for QA to report it.
         rootLayout.findViewById<TextView>(R.id.version_info).apply {
@@ -489,8 +486,12 @@ private const val KEY_LENS_GROUPS = "lens_groups"
         sessionManager.clearVideoSession()
         sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
         sessionManager.setVideoHashTag(hashTag)
-        sessionManager.setIsFromContest(isFromContest)
+//        sessionManager.setIsFromContest(isFromContest)
+        myApplication.printLogD(isFromContest.toString() + "sendToVideoPreview 1","isFromContest")
+        myApplication.printLogD(sessionManager.getIsFromContest().toString() + "sendToVideoPreview 2","isFromContest")
+        myApplication.printLogD(sessionManager.getContestEntryFee().toString() + "sendToVideoPreview 2","contestCheck")
         val intent = Intent(this@SnapCameraActivity,SnapPreviewActivity::class.java)
+
         startActivity(intent)
     }
 
@@ -539,7 +540,7 @@ private const val KEY_LENS_GROUPS = "lens_groups"
 
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
         hashTag = bundle!!.getString(ConstValFile.VideoHashTag, "")
-        sessionManager.setIsFromContest(isFromContest)
+//        sessionManager.setIsFromContest(isFromContest)
         if (!(isFromContest)) {
 //            sessionManager.clearContestSession()
             findViewById<ImageView>(R.id.selectFromGallery).visibility = View.GONE

@@ -67,6 +67,7 @@ class ConstValFile {
         const val PREFER_MAIN  = "AuditionMain"
         const val PREFER_LANG  = "AuditionLang"
         const val PREFER_CONTEST  = "AuditionContest"
+        const val PREFER_VIDEO  = "AuditionVideo"
         const val SELECTED_LANG  = "Selected_Lang"
         const val PRIVATE_MODE = 0
         const val IS_LOGIN = "IsLoggedIn"

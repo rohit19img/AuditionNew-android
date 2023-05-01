@@ -72,20 +72,15 @@ class BankVerificationFragment() : Fragment() {
         val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
         view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
+
         try {
             view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    adapterView: AdapterView<*>,
-                    view1: View,
-                    i: Int,
-                    l: Long
-                ) {
-                    myApplication!!.printLogD(stateAr[i], "stateAr")
-                    state = stateAr[i]
+                override fun onItemSelected(adapterView: AdapterView<*>, view2: View?, position: Int, id: Long) {
+                    myApplication!!.printLogD(stateAr[position], "stateAr")
+                    state = stateAr[position]
                     if (view.stateSpinner.selectedView != null)
                         (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
                 }
-
                 override fun onNothingSelected(adapterView: AdapterView<*>?) {}
             }
         } catch (e: java.lang.Exception) {

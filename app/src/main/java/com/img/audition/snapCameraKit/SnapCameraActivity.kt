@@ -400,6 +400,7 @@ private const val KEY_LENS_GROUPS = "lens_groups"
         }
 
 
+
         // Present basic app version information to make it easier for QA to report it.
         rootLayout.findViewById<TextView>(R.id.version_info).apply {
             val versionNameAndCode = getString(
@@ -486,7 +487,6 @@ private const val KEY_LENS_GROUPS = "lens_groups"
         sessionManager.clearVideoSession()
         sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
         sessionManager.setVideoHashTag(hashTag)
-//        sessionManager.setIsFromContest(isFromContest)
         myApplication.printLogD(isFromContest.toString() + "sendToVideoPreview 1","isFromContest")
         myApplication.printLogD(sessionManager.getIsFromContest().toString() + "sendToVideoPreview 2","isFromContest")
         myApplication.printLogD(sessionManager.getContestEntryFee().toString() + "sendToVideoPreview 2","contestCheck")
@@ -540,13 +540,11 @@ private const val KEY_LENS_GROUPS = "lens_groups"
 
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
         hashTag = bundle!!.getString(ConstValFile.VideoHashTag, "")
-//        sessionManager.setIsFromContest(isFromContest)
         if (!(isFromContest)) {
-//            sessionManager.clearContestSession()
+            sessionManager.clearContestSession()
             findViewById<ImageView>(R.id.selectFromGallery).visibility = View.GONE
             myApplication.printLogD("$isFromContest onStart1", " isFromContest + $TAG")
         } else {
-
             findViewById<ImageView>(R.id.selectFromGallery).visibility = View.VISIBLE
             myApplication.printLogD("$isFromContest onStart2", " isFromContest + $TAG")
         }

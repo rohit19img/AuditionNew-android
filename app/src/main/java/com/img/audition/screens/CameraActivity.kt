@@ -443,7 +443,7 @@ class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener {
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
         myApplication.printLogD("$isFromContest onStart", " isFromContest + $TAG")
         if (!(isFromContest)) {
-//            sessionManager.clearContestSession()
+            sessionManager.clearContestSession()
             viewBinding.selectFromGallery.visibility = View.GONE
         } else {
             viewBinding.selectFromGallery.visibility = View.VISIBLE

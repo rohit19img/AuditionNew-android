@@ -35,10 +35,61 @@ class MobileVerificationFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+    }
 
+
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _viewBinding = FragmentMobileVarificationBinding.inflate(inflater,container,false)
+
+        view.verifyMobile.setOnClickListener {
+            verifymobile(view.mobileNumber.text.toString())
+        }
+        return view.root
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         AllVerify()
+    }
 
+    private fun verifymobile(mobile: String) {
+        val verifyReq = apiInterface.verifyMobileNumber(sessionManager.getToken(), NumLoginRequest(mobile))
 
+        verifyReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(
+                call: Call<CommanResponse>,
+                response: Response<CommanResponse>
+            ) {
+                if (response.isSuccessful){
+                    if ( response.body()!!.success!!){
+                        myApplication.showToast(response.body()!!.message.toString())
+                    }else{
+                        myApplication.showToast(response.body()!!.message.toString())
+                    } 
+                }else{
+                    myApplication.printLogE(response.code().toString(),TAG)
+                }
+               
+            }
+
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (sessionManager.getMobileVerified()) {
+            view.mobileVerify.visibility = View.GONE
+            view.mobileVerified.visibility = View.VISIBLE
+        } else {
+            view.mobileVerify.visibility = View.VISIBLE
+            view.mobileVerified.visibility = View.GONE
+        }
     }
 
     private fun AllVerify() {
@@ -81,53 +132,6 @@ class MobileVerificationFragment : Fragment() {
             }
 
         })
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        _viewBinding = FragmentMobileVarificationBinding.inflate(inflater,container,false)
-
-        view.verifyMobile.setOnClickListener {
-            verifymobile(view.mobileNumber.text.toString())
-        }
-        return view.root
-    }
-
-    private fun verifymobile(mobile: String) {
-        val verifyReq = apiInterface.verifyMobileNumber(sessionManager.getToken(), NumLoginRequest(mobile))
-
-        verifyReq.enqueue(object : Callback<CommanResponse>{
-            override fun onResponse(
-                call: Call<CommanResponse>,
-                response: Response<CommanResponse>
-            ) {
-                if (response.isSuccessful){
-                    if ( response.body()!!.success!!){
-                        myApplication.showToast(response.body()!!.message.toString())
-                    }else{
-                        myApplication.showToast(response.body()!!.message.toString())
-                    } 
-                }else{
-                    myApplication.printLogE(response.code().toString(),TAG)
-                }
-               
-            }
-
-            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
-            }
-
-        })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (sessionManager.getMobileVerified()) {
-            view.mobileVerify.visibility = View.GONE
-            view.mobileVerified.visibility = View.VISIBLE
-        } else {
-            view.mobileVerify.visibility = View.VISIBLE
-            view.mobileVerified.visibility = View.GONE
-        }
     }
 
 }

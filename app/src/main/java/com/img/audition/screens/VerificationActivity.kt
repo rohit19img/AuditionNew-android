@@ -42,22 +42,20 @@ class VerificationActivity : AppCompatActivity() {
         override fun getItem(position: Int): Fragment {
             return when (position) {
                 0 -> MobileVerificationFragment()
-                else ->MobileVerificationFragment()
-               /* 1 -> PanValidationFragment()
-                else -> BankVerificationFragment()*/
+                1 -> PanValidationFragment()
+                else -> BankVerificationFragment()
             }
         }
 
         override fun getCount(): Int {
-            return 1
+            return 3
         }
 
         override fun getPageTitle(position: Int): CharSequence? {
             return when (position) {
                 0 -> "Mobile & Email"
-                else -> "Mobile & Email"
-               /* 1 -> "Pan Card"
-                else -> "Bank"*/
+                1 -> "Pan Card"
+                else -> "Bank"
             }
         }
     }

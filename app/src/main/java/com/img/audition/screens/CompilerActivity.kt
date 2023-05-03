@@ -156,6 +156,8 @@ class CompilerActivity : AppCompatActivity() {
         val outputPath = createFileAndFolder()
         val trimAudioPath = sessionManager.getTrimAudioPath()
         val originalVideoPath = sessionManager.getCreateVideoPath()
+        myApplication.printLogD("trimAudioPath $trimAudioPath","audioVideoMuxing")
+        myApplication.printLogD("originalVideoPath $originalVideoPath","audioVideoMuxing")
 
 
         val cmd1  =   "-y -i $originalVideoPath -i $trimAudioPath -c copy -map 0:v:0 -map 1:a:0 $outputPath"
@@ -227,7 +229,7 @@ class CompilerActivity : AppCompatActivity() {
             }
             override fun onFailure() {
                 myApplication.printLogD("Compile : onFailure",TAG)
-                myApplication.showToast("Failed, Try Again..")
+//                myApplication.showToast("Failed, Try Again..")
                 startActivity(Intent(this@CompilerActivity,SnapPreviewActivity::class.java))
                 finish()
             }
@@ -363,8 +365,7 @@ class CompilerActivity : AppCompatActivity() {
         val outputPath = createFileAndFolder()
         val inputPath = sessionManager.getCreateVideoPath().toString()
         myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 28 $outputPath"
-
+        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
 
         EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {

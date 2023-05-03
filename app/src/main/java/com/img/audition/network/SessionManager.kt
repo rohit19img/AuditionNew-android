@@ -248,9 +248,39 @@ class SessionManager(context: Context) {
         return sharedPrefAudioVideoSession.getString(ConstValFile.SongID,"")
     }
 
+
+    fun setAppSongID(appSongID: String?) {
+        prefEditorVideoSession.putString(ConstValFile.AppSongID,appSongID)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getAppSongID(): String? {
+        return sharedPrefAudioVideoSession.getString(ConstValFile.AppSongID,"")
+    }
+
+    fun setAudioDuration(audioDuration: Int) {
+        prefEditorVideoSession.putInt(ConstValFile.AudioDuration,audioDuration)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getAudioDuration(): Int {
+        return sharedPrefAudioVideoSession.getInt(ConstValFile.AudioDuration,0)
+    }
+
+
+
     fun setVideoSongUrl(songUrl: String?) {
         prefEditorVideoSession.putString(ConstValFile.SongUrl,songUrl)
         prefEditorVideoSession.commit()
+    }
+
+    fun setIsFromTryAudio(isFromTryAudio: Boolean) {
+        prefEditorVideoSession.putBoolean(ConstValFile.isFromTryAudio,isFromTryAudio)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getIsFromTryAudio(): Boolean {
+        return sharedPrefAudioVideoSession.getBoolean(ConstValFile.isFromTryAudio,false)
     }
 
     fun getVideoSongUrl(): String? {

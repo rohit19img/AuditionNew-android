@@ -224,7 +224,7 @@
                     android:singleLine="true"
                     android:layout_marginStart="5dp"
                     android:textStyle="italic"
-                    android:text="deepak Origanal-Audio"/>
+                    android:text="Origanal-Audio"/>
 
                 <ImageView
                     android:layout_alignParentEnd="true"

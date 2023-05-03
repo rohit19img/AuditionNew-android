@@ -138,7 +138,8 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 playBtn.visibility = View.VISIBLE
                 pauseBtn.visibility = View.GONE
                 myApplication.printLogD(ConstValFile.BASEURL+audioData.trackAacFormat.toString(),"Audio url")
-                showAudioTrimDialog(audioData.title.toString(),audioData.subtitle.toString(),ConstValFile.BASEURL+audioData.Image,ConstValFile.BASEURL+audioData.trackAacFormat.toString())
+                val songID = audioData.Id.toString()
+                showAudioTrimDialog(audioData.title.toString(),audioData.subtitle.toString(),ConstValFile.BASEURL+audioData.Image,ConstValFile.BASEURL+audioData.trackAacFormat.toString(),songID)
             }
 
         }
@@ -160,7 +161,13 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         }
     }
 
-    private fun showAudioTrimDialog(title: String, subTitle: String, image: String,audioFile:String) {
+    private fun showAudioTrimDialog(
+        title: String,
+        subTitle: String,
+        image: String,
+        audioFile: String,
+        songID: String
+    ) {
         val audioSheet = BottomSheetDialog(contextFromActivity,R.style.CustomBottomSheetDialogTheme)
         audioSheet.setContentView(R.layout.audio_trim_sheet_design)
 
@@ -239,7 +246,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 Toast.makeText(contextFromActivity,"Reselect Audio Trim Position",Toast.LENGTH_SHORT).show()
             }else{
                 progressTrimMusic!!.visibility = View.VISIBLE
-                TrimAudio(audioFile,fromTrimDuration ,sessionManager.getCreateVideoDuration())
+                TrimAudio(audioFile,fromTrimDuration ,sessionManager.getCreateVideoDuration(),songID)
                 audioPlayer.pause()
                 audioPlayer.stop()
                 audioPlayer.release()
@@ -265,9 +272,9 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     private fun TrimAudio(
         audioFile: String,
         audioTrimFromSec: Long,
-        createVideoDuration: Long
-    )
-    {
+        createVideoDuration: Long,
+        songID: String
+    ) {
         val trimFilePath = createFileAndFolder()
 
         val endPosition = audioTrimFromSec+createVideoDuration
@@ -277,7 +284,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         myApplication.printLogD("endPosition ${endPosition/1000}","TrimAudio")
         myApplication.printLogD("trimFilePath $trimFilePath","TrimAudio")
 
-
         val cmd =
             "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
 
@@ -285,6 +291,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             override fun onSuccess() {
                 myApplication.printLogD("TrimAudio Complete","TrimAudio")
                 sessionManager.setCreateAudioSession(trimFilePath)
+                sessionManager.setAppSongID(songID)
                 val bundle = Bundle()
                 bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
                 contextFromActivity.startActivity(Intent(contextFromActivity.applicationContext,CompilerActivity::class.java)

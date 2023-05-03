@@ -1,30 +1,50 @@
 package com.img.audition.snapCameraKit
 
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.*
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.media.MediaMetadataRetriever
+import android.media.MediaPlayer
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.material.SnackbarDuration
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.ui.PlayerView
 import com.img.audition.R
+import com.img.audition.customView.LineProgressView
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
-import com.snap.camerakit.LegalProcessor
-import com.snap.camerakit.Session
-import com.snap.camerakit.connectOutput
+import com.img.audition.screens.CompilerActivity
+import com.img.audition.videoWork.VideoCacheWork
+import com.masoudss.lib.utils.uriToFile
+import com.snap.camerakit.*
 import com.snap.camerakit.extension.auth.loginkit.LoginKitAuthTokenProvider
 import com.snap.camerakit.extension.lens.p2d.service.LensPushToDeviceService
 import com.snap.camerakit.extension.lens.p2d.service.configurePushToDevice
@@ -33,511 +53,125 @@ import com.snap.camerakit.support.widget.CameraLayout
 import com.snap.camerakit.support.widget.LensesCarouselView
 import com.snap.camerakit.support.widget.SnapButtonView
 import com.snap.camerakit.support.widget.arCoreSupportedAndInstalled
-import com.snap.camerakit.versionFrom
 import java.io.Closeable
+import java.io.File
+import java.io.IOException
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 private const val TAG = "SnapCameraActivity"
 private const val BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL = "use_custom_lenses_carousel"
 private const val BUNDLE_ARG_MUTE_AUDIO = "mute_audio"
 private const val BUNDLE_ARG_ENABLE_DIAGNOSTICS = "enable_diagnostics"
-private const val CONFIG_KEY_DIAGNOSTICS_ENABLE = "com.snap.camerakit.diagnostics.enable"
-private const val CONFIG_VALUE_DIAGNOSTICS_ENABLE =
-    "MEUCIQCzXSKUlMwq2l9+wS6L4cnbEXP11jQPlCyXuAFMNsr9SgIgFYO+C44ddwekBcsBY5Ti6C9ZV5OwFdaWDEQ5AlqQx5A="
-private const val ACTION_DIAGNOSTICS_DUMP = "com.snap.camerakit.diagnostics.DUMP"
 private const val REQUEST_TAKE_GALLERY_VIDEO = 200
 private val LENS_GROUPS = arrayOf(
     LENS_GROUP_ID_BUNDLED, // lens group for bundled lenses available in lenses-bundle artifact.
     LensPushToDeviceService.LENS_GROUP_ID, // lens group for lenses obtained using Push to Device functionality.
     *BuildConfig.LENS_GROUP_ID_TEST.split(',').toTypedArray() // temporary lens group for testing
 )
-private val LENS_GROUPS_ARCORE_AVAILABLE = arrayOf(
-    *LENS_GROUPS,
-//    BuildConfig.LENS_GROUP_ID_AR_CORE // lens group containing lenses using ARCore functionality.
-)
-private const val PREFS_CAMERA_KIT_SAMPLE = "camera_kit_sample"
-private const val KEY_LENS_GROUPS = "lens_groups"
+@UnstableApi
+class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener {
 
-@UnstableApi class SnapCameraActivity : AppCompatActivity() {
-
-    private val TRACK = "Capture Track"
-    private val sessionManager by lazy {
-        SessionManager(this@SnapCameraActivity)
-    }
-
-    private var isFromContest = false
-    private var hashTag = ""
     private val myApplication by lazy {
         MyApplication(this@SnapCameraActivity)
     }
-
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
+    private val sessionManager by lazy {
+        SessionManager(this@SnapCameraActivity)
+    }
+    private val playerExo by lazy {
+        ExoPlayer.Builder(this@SnapCameraActivity).build()
+    }
+
+    private val TRACK = "Capture Track"
+
+    private var timeRemainingInMillis: Long = 0
+    private var totalTime: Long = 0
+    private var isTimerRunning = false
+    private var isTimerPaused = false
+    private lateinit var countDownTimer: CountDownTimer
+    private var isStartTime = false
+    private var maxVideoDuration: Long = 15500
+    private var minVideoDuration: Long = 5 * 1000
+
+    private lateinit var mLineView: LineProgressView
 
 
+    private var recordingCloseable: Closeable? = null
+
+
+    private var videoFilePath = ""
+
+    private var isFromContest = false
+    private var hashTag = ""
+
+    private lateinit var cameraSession:Session
     private lateinit var cameraLayout: CameraLayout
-    private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var lensGroups: Array<String>
-
+    private lateinit var progressLayout: RelativeLayout
     private val closeOnDestroy = mutableListOf<Closeable>()
-    private var useCustomLensesCarouselView = false
+    private var useCustomLensesCarouselView = true
     private var muteAudio = false
     private var enableDiagnostics = false
+
+    lateinit var  audioSource:AudioProcessorSource
+    private val audioProcessorExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val mediaCaptureExecutor: ExecutorService = Executors.newFixedThreadPool(2)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_snap_camera)
-
         Log.d(TAG, "Using the CameraKit version: ${versionFrom(this)}")
 
-        val metadata = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).metaData
-        val lockPortraitOrientation = metadata?.getBoolean(getString(R.string.lock_portrait_orientation)) ?: false
+        mLineView = findViewById(R.id.line_view)
+        progressLayout = findViewById(R.id.progressLayout)
 
-        if (lockPortraitOrientation) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED) {
+            audioSource =  AudioProcessorSource(audioProcessorExecutor)
         }
 
-        sharedPreferences = getSharedPreferences(PREFS_CAMERA_KIT_SAMPLE, MODE_PRIVATE)
-
-        lensGroups = sharedPreferences.getStringSet(KEY_LENS_GROUPS, null)?.toTypedArray()
-            ?: if (arCoreSourceAvailable) {
-                LENS_GROUPS_ARCORE_AVAILABLE
-            } else {
-                LENS_GROUPS
-            }
-        useCustomLensesCarouselView = savedInstanceState?.getBoolean(BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL) ?: false
-        muteAudio = savedInstanceState?.getBoolean(BUNDLE_ARG_MUTE_AUDIO) ?: false
-        enableDiagnostics = savedInstanceState?.getBoolean(BUNDLE_ARG_ENABLE_DIAGNOSTICS) ?: false
-
-        // OPTIONAL: For front flash, we change status and navigation bar colors to add extra illumination on subject.
-        // In order for system bar colors to change, we need to change window flags to the following.
-        window.apply {
-            // To allow window to change color later (below).
-            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            // The following only need to be cleared if activity/theme sets these flags.
-            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-        }
-
-        setContentView(R.layout.activity_snap_camera)
-        val rootLayout = findViewById<DrawerLayout>(R.id.root_layout)
-
-        // Some content may request additional data such as user name to personalize lenses. Providing this data is
-        // optional, the MockUserProcessorSource class demonstrates a basic example to implement a source of the data.
-        val mockUserProcessorSource = MockUserProcessorSource(userDisplayName = "${sessionManager.getUserName()}")
-
-        // This sample uses the CameraLayout helper view that consolidates most common CameraKit use cases
-        // into a single class that takes care of runtime permissions and managing CameraKit Session built
-        // with default options that can be tweaked using the exposed configure* methods.
-        // NOTE: Use of the CameraLayout is encouraged but it is completely optional and depends on the app's
-        // requirements and architecture. However, consider working with the CameraKit Session directly to
-        // avoid locking your app's design into one that is driven by what's available in the CameraLayout.
         cameraLayout = findViewById<CameraLayout>(R.id.camera_layout).apply {
-            if (useCustomLensesCarouselView) {
-                // Inflate layout with LensesCarouseView and ViewStub for CameraKit widgets into CameraLayout to use it
-                // instead of internal carousel view implementation.
-                layoutInflater.inflate(R.layout.lenses_carousel_widget_layout, this, true)
-                // CaptureButton should be in front to overlap the lenses carousel.
-                captureButton.bringToFront()
-
-            }
-            // CameraLayout provides a way to register callbacks for configuring CameraKit Session that
-            // is created internally and made available via the onSessionAvailable callback below.
+            // Setting custom audio processor source
             configureSession {
-                userProcessorSource(mockUserProcessorSource)
-                // To provide Camera Kit developers with valuable diagnostics information, the Session can be configured
-                // with a special signature that can be obtained from the Camera Kit support:
-                if (enableDiagnostics) {
-                    configureWith(CONFIG_KEY_DIAGNOSTICS_ENABLE, CONFIG_VALUE_DIAGNOSTICS_ENABLE)
+                if (audioSource != null) {
+                    audioProcessorSource(audioSource)
                 }
-            }
-
-            configureLenses {
-                // If custom carousel view is inflated then CameraKit will attach lenses widgets to the
-                // lenses_widgets_stub ViewStub. Custom ViewStub for widgets is required when custom lenses carousel
-                // view is used.
-                if (useCustomLensesCarouselView) {
-                    attachWidgetsTo(findViewById(R.id.lenses_widgets_stub))
-                }
-                // Pass a factory which provides a demo service which handles remote API requests from lenses.
-                remoteApiServiceFactory(CatFactRemoteApiService.Factory)
-
-//                val loginKitAuthTokenProvider = LoginKitAuthTokenProvider(applicationContext)
-//                // Configure Push to Device extension providing Login Kit based authentication token provider.
-//                configurePushToDevice {
-//                    authTokenProvider(loginKitAuthTokenProvider)
-//                }
             }
 
             configureLensesCarousel {
-                observedGroupIds = linkedSetOf(*lensGroups)
-                // If custom carousel view is inflated then LensesCarouselView will be used otherwise CameraKit will
-                // use an internal implementation. LensesCarouseView can be configured to customize appearance of the
-                // lenses carousel.
-                if (useCustomLensesCarouselView) {
-                    view = findViewById<LensesCarouselView>(R.id.lenses_carousel)
-                }
-                // A lambda passed to configureEachItem can be used to customize position or appearance of each
-                // item in the lenses carousel.
-                configureEachItem {
-                    if (lens.groupId == LENS_GROUP_ID_BUNDLED || index == 1) {
-                        moveToLeft()
-                    } else {
-                        moveToRight()
-                    }
-                }
+                observedGroupIds = linkedSetOf(*LENS_GROUPS)
             }
 
-            // Attach listener for flash state changes. Returned is a closeable to detach the listener on close.
-            flashBehavior.attachOnFlashChangedListener(OnFlashChangedListener(window))
-                .addTo(closeOnDestroy)
+
         }
 
-//        cameraLayout.drawin gTime = 10000
-
-        cameraLayout.onSessionAvailable { session ->
-            // Adjust lenses volume considering current muteAudio value.
-            session.adjustLensesVolume(muteAudio)
-
-
-            // An example of how dynamic launch data can be used. Vendor specific metadata is added into
-            // LaunchData so it can be used by lens on launch.
-            val reApplyLensWithVendorData = { lens: LensesComponent.Lens ->
-                if (lens.vendorData.isNotEmpty()) {
-                    val launchData = LensesComponent.Lens.LaunchData {
-                        for ((key, value) in lens.vendorData) {
-                            putString(key, value)
-                        }
-                    }
-                    session.lenses.processor.apply(lens, launchData) { success ->
-                        Log.d(TAG, "Apply lens [$lens] with launch data [$launchData] success: $success")
-                    }
-                }
-            }
-
-            var appliedLens: LensesComponent.Lens? = null
-            val lensAttribution = findViewById<TextView>(R.id.lens_attribution)
-            // This block demonstrates how to receive and react to lens lifecycle events. When Applied event is received
-            // we keep the ID of applied lens to persist and restore it via savedInstanceState later on.
-            session.lenses.processor.observe { event ->
-                Log.d(TAG, "Observed lenses processor event: $event")
-                runOnUiThread {
-                    event.whenApplied { event ->
-                        reApplyLensWithVendorData(event.lens)
-                        lensAttribution.text = event.lens.name
-                        appliedLens = event.lens
-                    }
-                    event.whenIdle {
-                        lensAttribution.text = null
-                        appliedLens = null
-                    }
-                }
-            }.addTo(closeOnDestroy)
-
-            // By default, CameraKit does not reset lens state when app is backgrounded and resumed, however it is
-            // possible to do so by simply tracking the last applied lens and applying it with the "reset" flag set
-            // to true when app resumes to match the behavior of the Snapchat app.
-            val lifecycleObserver = object : DefaultLifecycleObserver {
-                override fun onResume(owner: LifecycleOwner) {
-                    appliedLens
-                        ?.let { lens ->
-                            session.lenses.processor.apply(lens, reset = true)
-                        }
-                }
-            }
-            lifecycle.addObserver(lifecycleObserver)
-            Closeable {
-                lifecycle.removeObserver(lifecycleObserver)
-            }.addTo(closeOnDestroy)
-
-            // When CameraKit presents a legal prompt dialog, application may want to know if user has dismissed it
-            // in order to de-activate lenses carousel for example.
-            // The following block demonstrates how to observe and optionally handle LegalProcessor results:
-            session.processor.observe { result ->
-                Log.d(TAG, "Observed legal processor result: $result")
-                if (result is LegalProcessor.Input.Result.Dismissed) {
-                    session.lenses.carousel.deactivate()
-                }
-            }.addTo(closeOnDestroy)
-
-            // Custom lenses carousel View could be provided only during Session setup process. That is why recreate()
-            // method is called to restart activity with updated BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL argument.
-            findViewById<ToggleButton>(R.id.custom_lenses_carousel_view_toggle).apply {
-                isChecked = useCustomLensesCarouselView
-                setOnCheckedChangeListener { _, isChecked ->
-                    useCustomLensesCarouselView = isChecked
-                    recreate()
-                }
-            }
-
-            // While CameraKit is capable (and does) render camera preview into an internal view, this demonstrates how
-            // to connect another TextureView as rendering output.
-            val miniPreview = cameraLayout.findViewById<TextureView>(R.id.mini_preview)
-            var miniPreviewOutput = Closeable {}
-            Closeable { miniPreviewOutput.close() }.addTo(closeOnDestroy)
-            val setupMiniPreview = { connectOutput: Boolean ->
-                miniPreviewOutput.close()
-                if (connectOutput) {
-                    miniPreview.visibility = View.VISIBLE
-                    miniPreviewOutput = session.processor.connectOutput(miniPreview)
-                } else {
-                    miniPreview.visibility = View.GONE
-                }
-            }
-            rootLayout.findViewById<ToggleButton>(R.id.mini_preview_toggle).apply {
-                setupMiniPreview(isChecked)
-                setOnCheckedChangeListener { _, isChecked ->
-                    setupMiniPreview(isChecked)
-                }
-            }
-
-            // Internally CameraLayout uses CameraXImageProcessorSource by default which allows to choose the method
-            // of image capture, photo or snapshot, which can be done via the exposed changeImageCaptureMethod.
-            rootLayout.findViewById<ToggleButton>(R.id.capture_photo_toggle).apply {
-                setOnCheckedChangeListener { _, isChecked ->
-                    cameraLayout.changeImageCaptureMethod(photo = isChecked)
-                }
-            }
-
-            findViewById<ToggleButton>(R.id.ring_flash_toggle).apply {
-                setOnCheckedChangeListener { _, isChecked ->
-                    cameraLayout.flashBehavior.shouldUseRingFlash = isChecked
-                }
-            }
-
-            // This block demonstrates how to switch between lenses audio mute and unmute states.
-            rootLayout.findViewById<ToggleButton>(R.id.mute_audio_toggle).apply {
-                isChecked = muteAudio
-                setOnCheckedChangeListener { _, isChecked ->
-                    muteAudio = isChecked
-                    session.adjustLensesVolume(muteAudio)
-                }
-            }
-
-            // This block demonstrates how the Prefetcher exposed from the LensesComponent can be used to prefetch
-            // content of select list of lenses on demand.
-            var lensesPrefetch = Closeable {}
-            Closeable { lensesPrefetch.close() }.addTo(closeOnDestroy)
-            rootLayout.findViewById<Button>(R.id.lenses_prefetch_button).setOnClickListener {
-                session.lenses.repository.observe(
-                    LensesComponent.Repository.QueryCriteria.Available(
-                        *lensGroups
-                    )
-                ) { available ->
-                    available.whenHasSome { lenses ->
-                        // Cancel any running prefetch operation before submitting new one
-                        lensesPrefetch.close()
-                        // Prefetch available lenses content async
-                        lensesPrefetch = session.lenses.prefetcher.run(lenses) { success ->
-                            Log.d(TAG, "Finished prefetch of [${lenses.size}] lenses with success: $success")
-                        }
-                    }
-                }.addTo(closeOnDestroy)
-            }
-
-            // CameraKit prompts user to agree to Snap's legal terms using a built-in dialog which is presented
-            // on-demand, when lens apply request is issued. It is possible to trigger the legal prompt dialog
-            // earlier if required, the following block demonstrates how to do so using the LegalProcessor#waitFor
-            // method in response to a button click.
-            rootLayout.findViewById<Button>(R.id.trigger_legal_prompt_button).setOnClickListener {
-                session.processor.waitFor(requestUpdate = LegalProcessor.Input.RequestUpdate.ALWAYS) { result ->
-                    Log.d(TAG, "Got legal processor result: $result")
-                }
-            }
-        }
-
-
-
-        cameraLayout.onVideoTaken { file ->
-            val retriever =  MediaMetadataRetriever()
-            retriever.setDataSource(this@SnapCameraActivity, Uri.fromFile(file));
-            val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            retriever.release()
-            myApplication.printLogD("selectVideoDuration : $time" ,TAG)
-            val selectVideoDuration = time!!.toLong()
-            sendToVideoPreview(file.absolutePath, selectVideoDuration)
-//            SnapPreviewActivity.startUsing(this@SnapCameraActivity, cameraLayout, file, MIME_TYPE_VIDEO_MP4)
-        }
-
-        cameraLayout.onImageTaken { bitmap ->
-//            sendToVideoPreview(file.absolutePath,0)
-           /* SnapPreviewActivity.startUsing(
-                this@SnapCameraActivity, cameraLayout, this@SnapCameraActivity.cacheJpegOf(bitmap), MIME_TYPE_IMAGE_JPEG
-            )*/
-        }
-
-        // Register a handler for the specific CameraLayout exceptions as well as all the other possible errors from
-        // the managed CameraKit Session.
         cameraLayout.onError { error ->
             val message = when (error) {
                 is CameraLayout.Failure.MissingPermissions -> getString(
                     R.string.required_permissions_not_granted, error.permissions.joinToString(", ")
                 )
                 is CameraLayout.Failure.DeviceNotSupported -> getString(R.string.camera_kit_unsupported)
-                else -> {
-                    if (!BuildConfig.DEBUG) {
-                        // This allows app to catch unrecoverable errors and not cause app to crash in production. It is
-                        // recommended to propagate this event to your crash reporter of choice for monitoring on the
-                        // backend.
-                        getString(R.string.camera_kit_error).also {
-                            Log.e(TAG, it, error)
-                        }
-                    } else {
-                        throw error
-                    }
-                }
+                else -> throw error
             }
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             finish()
         }
 
-        // Certain lenses specify a camera facing that they would like to be applied on. CameraLayout provides a way
-        // to use a lens specified preference to change the current camera facing by supplying a callback that is
-        // invoked whenever a lens is applied:
-        cameraLayout.onChooseFacingForLens { lens ->
-            lens.facingPreference
-        }
+        cameraLayout.onSessionAvailable {
+            cameraSession = it
+            cameraLayout.captureButton.onCaptureRequestListener = this@SnapCameraActivity
+            cameraLayout.captureButton.progressDuration = 15_000L
 
-
-
-        // Present basic app version information to make it easier for QA to report it.
-        rootLayout.findViewById<TextView>(R.id.version_info).apply {
-            val versionNameAndCode = getString(
-                R.string.version_info, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE
-            )
-            text = versionNameAndCode
-            setOnClickListener {
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip: ClipData = ClipData.newPlainText("version_info", versionNameAndCode)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(
-                    this@SnapCameraActivity,
-                    "Copied to clipboard: $versionNameAndCode",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-
-        // Setup a way to change lens groups for easier testing via debug side-menu.
-        findViewById<Button>(R.id.update_lens_groups_button).setOnClickListener {
-            var updatedLensGroups = lensGroups
-
-            fun updateLensGroupsIfNeeded(newLensGroups: Array<String>) {
-                if (newLensGroups.isNotEmpty() && !newLensGroups.contentEquals(lensGroups)) {
-                    lensGroups = newLensGroups
-                    sharedPreferences.edit().putStringSet(KEY_LENS_GROUPS, lensGroups.toSet()).apply()
-                    recreate()
-                }
-            }
-
-            val dialog = AlertDialog.Builder(this)
-                .setView(R.layout.dialog_groups_edit)
-                .setCancelable(true)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    updateLensGroupsIfNeeded(updatedLensGroups)
-                }
-                .setNegativeButton(android.R.string.cancel) { dialog, _ ->
-                    dialog.cancel()
-                }
-                .setNeutralButton(R.string.reset) { _, _ ->
-                    updateLensGroupsIfNeeded(LENS_GROUPS)
-                }
-                .create()
-                .apply {
-                    show()
-                }
-
-            dialog.findViewById<EditText>(R.id.lens_groups_field)!!.apply {
-                setText(updatedLensGroups.joinToString())
-                addTextChangedListener(object : TextWatcher {
-
-                    override fun afterTextChanged(s: Editable) {}
-
-                    override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-
-                    override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                        updatedLensGroups = s.toString().split(", ").filter { it.isNotBlank() }.toTypedArray()
-                    }
-                })
-            }
-        }
-
-        // If diagnostics information collection is enabled, the "dump" button triggers a broadcast which requests
-        // Camera Kit to dump all the collected information into an archive which is saved into a location that user
-        // specifies using the standard Android file chooser dialog.
-        val diagnosticsDump = rootLayout.findViewById<Button>(R.id.trigger_diagnostics_dump).apply {
-            isEnabled = enableDiagnostics
-            setOnClickListener {
-                sendBroadcast(Intent(ACTION_DIAGNOSTICS_DUMP))
-            }
-        }
-        rootLayout.findViewById<ToggleButton>(R.id.enable_diagnostics_toggle).apply {
-            isChecked = enableDiagnostics
-            setOnCheckedChangeListener { _, isChecked ->
-                enableDiagnostics = isChecked
-                diagnosticsDump.isEnabled = isChecked
-                recreate()
-            }
         }
 
         }
 
-    private fun sendToVideoPreview(videoUri: String, videoDuration: Long) {
-        sessionManager.clearVideoSession()
-        sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
-        sessionManager.setVideoHashTag(hashTag)
-        myApplication.printLogD(isFromContest.toString() + "sendToVideoPreview 1","isFromContest")
-        myApplication.printLogD(sessionManager.getIsFromContest().toString() + "sendToVideoPreview 2","isFromContest")
-        myApplication.printLogD(sessionManager.getContestEntryFee().toString() + "sendToVideoPreview 2","contestCheck")
-        val intent = Intent(this@SnapCameraActivity,SnapPreviewActivity::class.java)
-
-        startActivity(intent)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean(BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL, useCustomLensesCarouselView)
-        outState.putBoolean(BUNDLE_ARG_MUTE_AUDIO, muteAudio)
-        outState.putBoolean(BUNDLE_ARG_ENABLE_DIAGNOSTICS, enableDiagnostics)
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onDestroy() {
-        closeOnDestroy.forEach { it.close() }
-        super.onDestroy()
-    }
-
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        return if (cameraLayout.dispatchKeyEvent(event)) {
-            true
-        } else {
-            super.dispatchKeyEvent(event)
-        }
-    }
-
-
-    private val Activity.arCoreSourceAvailable: Boolean get() {
-        // Currently, ARCore is supported in portrait orientation only.
-        return windowManager.defaultDisplay.rotation == Surface.ROTATION_0 && arCoreSupportedAndInstalled
-    }
-
-    /**
-    * Mute lenses audio if [mute] is true. Unmute lenses audio otherwise.
-    */
-    private fun Session.adjustLensesVolume(mute: Boolean) {
-        val adjustVolume = if (mute) {
-            LensesComponent.Audio.Adjustment.Volume.Mute
-        } else {
-            LensesComponent.Audio.Adjustment.Volume.UnMute
-        }
-        lenses.audio.adjust(adjustVolume) { success ->
-            Log.d(TAG, "Adjust volume to $adjustVolume success: $success")
-        }
-    }
 
     override fun onStart() {
         super.onStart()
-
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
         hashTag = bundle!!.getString(ConstValFile.VideoHashTag, "")
         if (!(isFromContest)) {
@@ -592,4 +226,338 @@ private const val KEY_LENS_GROUPS = "lens_groups"
             }
         }
     }
+
+
+    private fun stopTimer() {
+        if (isTimerRunning) {
+            countDownTimer.cancel()
+            timeRemainingInMillis = 0
+            isTimerRunning = false
+            isTimerPaused = false
+            isStartTime = false
+            totalTime = 0
+//            updateCountdownTextView()
+        }
+    }
+
+    private fun startTimer(remainingTime: Long) {
+        isStartTime = true
+        countDownTimer = object : CountDownTimer(remainingTime, 100) {
+            override fun onTick(millisUntilFinished: Long) {
+                timeRemainingInMillis = millisUntilFinished
+                updateCountdownTextView()
+
+                if (totalTime>=maxVideoDuration){
+                    isTimerRunning = false
+                    myApplication.printLogD("Countdown finished","check time")
+                    this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
+                }
+            }
+
+            override fun onFinish() {
+                isTimerRunning = false
+                myApplication.printLogD("Countdown finished","check time")
+                this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
+            }
+        }.start()
+
+        isTimerRunning = true
+    }
+
+    private fun pauseTimer() {
+        countDownTimer.cancel()
+        isTimerPaused = true
+
+    }
+
+    private fun resumeTimer() {
+        startTimer(timeRemainingInMillis)
+        isTimerPaused = false
+    }
+
+    private fun updateCountdownTextView() {
+        val minutes = (maxVideoDuration / 1000) / 60
+        val seconds = (maxVideoDuration / 1000) % 60
+        totalTime = maxVideoDuration - timeRemainingInMillis
+        val elapsedMinutes = (totalTime / 1000) / 60
+        val elapsedSeconds = (totalTime / 1000) % 60
+        val timeElapsedFormatted = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds)
+        val timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        myApplication.printLogD("$timeElapsedFormatted / $timeLeftFormatted","check time")
+        myApplication.printLogD("Time remaining: ${minutes}:${seconds}","check time")
+        myApplication.printLogD("Time mills: $timeRemainingInMillis","check time")
+        myApplication.printLogD("Time mills: $totalTime","check time")
+
+        findViewById<TextView>(R.id.videoDuration).text = timeElapsedFormatted
+
+        mLineView.setLoadingProgress(totalTime * 1.0f / maxVideoDuration)
+
+    }
+
+    override fun onSaved(file: File) {
+        Thread.sleep(100)
+        if (totalTime <= minVideoDuration-1000){
+            recordingCloseable?.close()
+
+            if (file.exists())
+                    file.delete()
+            runOnUiThread {
+                myApplication.showToast("Video must be ${minVideoDuration/1000} second and more..")
+                stopTimer()
+            }
+        }else{
+            var selectVideoDuration = 0L
+            try {
+                val retriever =  MediaMetadataRetriever()
+                retriever.setDataSource(this@SnapCameraActivity, Uri.fromFile(file))
+                val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                retriever.release()
+                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                selectVideoDuration = time!!.toLong()
+            }catch (e:java.lang.Exception){
+                myApplication.printLogE(e.toString(),TRACK)
+            }
+            sendToVideoPreview(file.absolutePath,selectVideoDuration)
+        }
+    }
+
+    override fun onError(e: Exception) {
+        myApplication.printLogE(e.toString(),TRACK)
+    }
+
+    private fun createFileAndFolder(): String {
+        val timestamp = System.currentTimeMillis()
+        val filename = "$timestamp.mp4"
+        val appData = getExternalFilesDir(null)
+        myApplication.printLogD(appData!!.absolutePath, TAG)
+
+        val createFile = File(appData, filename)
+        if (!(createFile.exists())) {
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath, TAG)
+            } catch (i: IOException) {
+                myApplication.printLogE(i.toString(), TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
+    }
+
+    private fun createAudioFile(): String {
+        val timestamp = System.currentTimeMillis()
+        val filename = "$timestamp.aac"
+        val appData = getExternalFilesDir(null)
+        myApplication.printLogD(appData!!.absolutePath,TAG)
+
+        val createFile = File(appData,filename)
+        if (!(createFile.exists())){
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath,TAG)
+            }catch (i: IOException){
+                myApplication.printLogE(i.toString(),TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL, useCustomLensesCarouselView)
+        outState.putBoolean(BUNDLE_ARG_MUTE_AUDIO, muteAudio)
+        outState.putBoolean(BUNDLE_ARG_ENABLE_DIAGNOSTICS, enableDiagnostics)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        closeOnDestroy.forEach { it.close() }
+        super.onDestroy()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        return if (cameraLayout.dispatchKeyEvent(event)) {
+            true
+        } else {
+            super.dispatchKeyEvent(event)
+        }
+    }
+
+    override fun onResume() {
+        progressLayout.visibility = View.GONE
+        val audioExoPlayer = findViewById<PlayerView>(R.id.audioPlayerView)
+        val durationHint = findViewById<TextView>(R.id.durationHint)
+        if (sessionManager.getIsFromTryAudio()){
+            durationHint.visibility = View.VISIBLE
+        }else{
+            durationHint.visibility = View.GONE
+        }
+        if (sessionManager.getIsFromTryAudio()){
+            val songUrl = sessionManager.getVideoSongUrl()
+            durationHint.text = "Record up to ${sessionManager.getAudioDuration()/1000} seconds"
+            maxVideoDuration = sessionManager.getAudioDuration().toLong()
+            minVideoDuration = sessionManager.getAudioDuration().toLong()
+            myApplication.printLogD("songUrl :$songUrl","songUrl")
+             val mediaSource by lazy {
+                ProgressiveMediaSource.Factory(
+                    CacheDataSource.Factory()
+                        .setCache(VideoCacheWork.simpleCache)
+                        .setUpstreamDataSourceFactory(
+                            DefaultHttpDataSource.Factory()
+                                .setUserAgent("ExoPlayer"))
+                        .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
+            }
+
+            val mediaItem = MediaItem.fromUri(songUrl!!)
+            val audioMediaSource = mediaSource.createMediaSource(mediaItem)
+            audioExoPlayer.player = playerExo
+            playerExo.setMediaSource(audioMediaSource)
+            playerExo.prepare()
+
+            val duration = playerExo.duration
+            myApplication.printLogD("audioDuration $duration","audioDuration")
+        }
+
+        super.onResume()
+    }
+
+    private fun sendToVideoPreview(videoUri: String,videoDuration: Long) {
+        myApplication.printLogD("sendToVideoPreview Call","TrimAudio")
+
+        if (sessionManager.getIsFromTryAudio()){
+            sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
+            myApplication.printLogD("sendToVideoPreview audioURl ${sessionManager.getVideoSongUrl()}","audioUrl")
+            runOnUiThread{
+                progressLayout.visibility = View.VISIBLE
+            }
+            TrimAudio(ConstValFile.BASEURL+sessionManager.getVideoSongUrl().toString(),0,videoDuration)
+
+        }else{
+            progressLayout.visibility = View.GONE
+            myApplication.printLogD("selectVideoDuration : $videoUri" ,TAG)
+            sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
+            sessionManager.setVideoHashTag(hashTag)
+            myApplication.printLogD(isFromContest.toString() + "sendToVideoPreview 1","isFromContest")
+            myApplication.printLogD(sessionManager.getIsFromContest().toString() + "sendToVideoPreview 2","isFromContest")
+            myApplication.printLogD(sessionManager.getContestEntryFee().toString() + "sendToVideoPreview 2","contestCheck")
+            val intent = Intent(this@SnapCameraActivity,SnapPreviewActivity::class.java)
+            startActivity(intent)
+        }
+
+    }
+
+    private fun TrimAudio(audioFile: String, audioTrimFromSec: Long, createVideoDuration: Long) {
+        val trimFilePath = createAudioFile()
+
+        val endPosition = audioTrimFromSec+createVideoDuration
+        val firstPosition = audioTrimFromSec/1000
+        myApplication.printLogD("VideoLength ${createVideoDuration/1000}","TrimAudio")
+        myApplication.printLogD("firstPosition $firstPosition","TrimAudio")
+        myApplication.printLogD("endPosition ${endPosition/1000}","TrimAudio")
+        myApplication.printLogD("trimFilePath $trimFilePath","TrimAudio")
+
+
+        val cmd =
+            "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
+
+        EpEditor.execCmd(cmd,0,object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("TrimAudio Complete","TrimAudio")
+                sessionManager.setCreateAudioSession(trimFilePath)
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
+                startActivity(Intent(this@SnapCameraActivity,CompilerActivity::class.java)
+                    .putExtra(ConstValFile.Bundle,bundle))
+
+            }
+            override fun onFailure() {
+                myApplication.printLogD("TrimAudio : onFailure","TrimAudio")
+            }
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("TrimAudio onProgress : $progress","TrimAudio")
+            }
+        })
+
+        /* FFmpegKit.executeAsync(cmd,
+             { session ->
+                 val state = session.state
+                 val returnCode = session.returnCode
+                 if (ReturnCode.isSuccess(returnCode)){
+                     myApplication.printLogD("TrimAudio Complete","TrimAudio")
+                     sessionManager.setCreateAudioSession(trimFilePath)
+                     val bundle = Bundle()
+                     bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
+                     contextFromActivity.startActivity(Intent(contextFromActivity.applicationContext,CompilerActivity::class.java)
+                         .putExtra(ConstValFile.Bundle,bundle))
+                 }
+                 // CALLED WHEN SESSION IS EXECUTED
+                 Log.i("TrimAudio", String.format("FFmpeg process exited with state %s and rc %s.%s",
+                     state, returnCode,  session.failStackTrace))
+             },
+             {
+                 myApplication.printLogD("log : $it","TrimAudio")
+             })
+         {
+             myApplication.printLogD("statistics : $it","TrimAudio")
+         }*/
+    }
+
+    override fun onStart(captureType: SnapButtonView.CaptureType) {
+        if (sessionManager.getIsFromTryAudio()){
+            playerExo.seekTo(0)
+            playerExo.prepare()
+            playerExo.play()
+        }
+        if (videoFilePath.isEmpty()){
+            videoFilePath = ""
+            videoFilePath = createFileAndFolder()
+            myApplication.printLogD(videoFilePath,"videoFileCreate")
+        }
+
+        if (captureType == SnapButtonView.CaptureType.CONTINUOUS) {
+            if (recordingCloseable == null) {
+                // Create capture class that starts encoding upon initialization
+                val outputCloseable: Closeable
+                val captureCloseable =
+                    MediaCapture(this@SnapCameraActivity, File(videoFilePath), audioSource, mediaCaptureExecutor).also {
+                        // Get encoding surface and connect it as image processor output
+                        // Retain closeable for disconnecting output when done
+                        outputCloseable = cameraSession.processor.connectOutput(
+                            outputFrom(it.surface, ImageProcessor.Output.Purpose.RECORDING)
+                        )
+                    }
+                recordingCloseable = Closeable {
+                    outputCloseable.close()
+                    captureCloseable.close()
+                }
+            }else{
+                recordingCloseable?.close()
+            }
+        }
+        myApplication.printLogI("onStart Camera",TRACK)
+        if (isStartTime){
+            resumeTimer()
+        }else{
+            startTimer(maxVideoDuration)
+        }
+    }
+
+    override fun onEnd(captureType: SnapButtonView.CaptureType) {
+        if (sessionManager.getIsFromTryAudio()){
+            playerExo.seekTo(0)
+            playerExo.pause()
+        }
+        when (captureType) {
+            // Only showing support for video recording in this sample
+            SnapButtonView.CaptureType.CONTINUOUS -> {
+                // Closing stops recording and disconnects surface output
+                recordingCloseable?.close()
+                recordingCloseable = null
+            }
+            else -> {}
+        }
+    }
+
 }

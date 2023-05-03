@@ -85,6 +85,8 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         super.onCreate(savedInstanceState)
 
 
+
+
         Log.d(TRACK, "onCreate: ")
         appPermission =  AppPermission(requireActivity(),ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -253,6 +255,9 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
     }
 
     override fun onResume() {
+
+        sessionManager.clearVideoSession()
+        sessionManager.clearContestSession()
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {

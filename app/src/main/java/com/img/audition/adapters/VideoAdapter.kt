@@ -341,12 +341,13 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                    shareCount.text = list.shares.toString()
                    Glide.with(contextFromActivity).load(list.image).placeholder(R.drawable.person_ic).into(userProfile)
                    userName.text = list.auditionId
-                   audioName.text = list.auditionId +" - Original Audio"
+                   audioName.text = list.song?.title +"  by ${list.song?.userDetails?.auditionId}  "+list.song?.subtitle
 
                    audioName.setOnClickListener {
-                       if (list.songId!=null && list.songId!!.isNotEmpty()){
-                           myApplication.printLogD(list.songId!!,"songID")
-                           sendSongVideoActivity(list.songId!!)
+                       if (list.songLink!=null && list.songLink!!.isNotEmpty()){
+                           myApplication.printLogD(list.song!!.Id!! +": id","audioUrl")
+                           myApplication.printLogD(list.songLink.toString(),"audioUrl")
+                           sendSongVideoActivity(list.song!!.Id!!,list.songLink.toString())
                        }else{
                            showToast("This Audio Not Available")
                        }
@@ -438,6 +439,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                         }
                     }
                     exoPlayer.addListener( object : Player.Listener{
+                        @Deprecated("Deprecated in Java")
                         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                             when (playbackState) {
                                 ExoPlayer.STATE_ENDED -> {
@@ -450,6 +452,9 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                                 }
                                 ExoPlayer.STATE_READY ->{
                                     myApplication.printLogD("STATE_READY",TAG)
+                                }
+                                ExoPlayer.STATE_IDLE ->{
+                                    myApplication.printLogD("STATE_IDLE",TAG)
                                 }
                                 else -> {
                                     myApplication.printLogD(playbackState.toString(),"currentState")
@@ -1042,11 +1047,12 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
         voteDialog.show()
     }
 
-    private fun sendSongVideoActivity(songId:String){
+    private fun sendSongVideoActivity(songId:String,songUrl:String){
         val bundle = Bundle()
         bundle.putString(ConstValFile.SongID,songId)
-        sessionManager.setVideoSongID(songId)
-        val intent = Intent(contextFromActivity, SongsVideoActivity::class.java)
+        bundle.putString(ConstValFile.SongUrl,songUrl)
+        myApplication.printLogD("sendSong ID $songId","songID")
+        val intent = Intent(contextFromActivity, TryAudioActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         contextFromActivity.startActivity(intent)
     }

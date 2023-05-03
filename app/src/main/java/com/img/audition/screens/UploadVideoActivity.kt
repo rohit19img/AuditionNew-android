@@ -68,7 +68,6 @@ import java.util.regex.Pattern
     private var videoSongName = ""
     private var videoSongID = ""
 
-
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
     }
@@ -118,12 +117,9 @@ import java.util.regex.Pattern
         progressDialog.setTitle("Uploading.")
         progressDialog.setMessage("please wait...")
 
-
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
-
-
     }
 
     private fun uploadVideoMainFun() {
@@ -143,11 +139,22 @@ import java.util.regex.Pattern
             }
         }
 
+
+        if (sessionManager.getVideoSongID()!!.trim().isNotEmpty()){
+            videoSongID = sessionManager.getVideoSongID().toString()
+            uploadVideoToS3()
+        }else{
+            extractAudioFromVideo(videoOriginalPath)
+        }
+
+
+
+
        /* val outputPath = createFileAndFolder()
         myApplication.printLogD("Call Compress Video Fun",TARCK)
         compressVideo(videoOriginalPath,outputPath)*/
 
-        extractAudioFromVideo(videoOriginalPath)
+
 
         }
 
@@ -445,9 +452,10 @@ import java.util.regex.Pattern
         obj.addProperty("hashtag",videoHashTag)
         obj.addProperty("typename", "")
         obj.addProperty("filename", finalVideoUrl)
+        obj.addProperty("songLink", sessionManager.getVideoSongUrl())
         obj.addProperty("postId", postID)
         obj.addProperty("songid", videoSongID)
-        myApplication.printLogD(videoSongID,"videoSongID")
+        myApplication.printLogD("uploadTime = $videoSongID","SongID")
         obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("lat",userLatLang.lat.toString())
@@ -494,6 +502,7 @@ import java.util.regex.Pattern
         obj.addProperty("contestId", sessionManager.getContestID())
         obj.addProperty("status", "contest")
         obj.addProperty("songid", videoSongID)
+        obj.addProperty("songLink", sessionManager.getVideoSongUrl())
         obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("video_or_image",sessionManager.getContestFile())
@@ -632,6 +641,27 @@ import java.util.regex.Pattern
         })
     }
 
+    private fun createAudioFilePath():String{
+        val timestamp = System.currentTimeMillis()
+        videoSongName = "Original-Sound-by-${sessionManager.getUserName()}-$timestamp.aac"
+        val appData = filesDir
+        myApplication.printLogD(appData.absolutePath,TAG)
+
+        val createFile = File(appData,videoSongName)
+        if (!(createFile.exists())){
+            try {
+                createFile.createNewFile()
+                myApplication.printLogD(createFile.absolutePath,TAG)
+            }catch (i: IOException){
+                myApplication.printLogE(i.toString(),TAG)
+            }
+        }
+
+        return createFile.absolutePath
+
+    }
+
+    override fun onDestroy() { super.onDestroy() }
 
     fun extractAudioFromVideo(inputPath:String){
 
@@ -680,31 +710,6 @@ import java.util.regex.Pattern
         }*/
     }
 
-    private fun createAudioFilePath():String{
-        val timestamp = System.currentTimeMillis()
-        videoSongName = "Original-Sound-by-${sessionManager.getUserName()}-$timestamp.aac"
-        val appData = filesDir
-        myApplication.printLogD(appData.absolutePath,TAG)
-
-        val createFile = File(appData,videoSongName)
-        if (!(createFile.exists())){
-            try {
-                createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath,TAG)
-            }catch (i: IOException){
-                myApplication.printLogE(i.toString(),TAG)
-            }
-        }
-
-        return createFile.absolutePath
-
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-
     fun uploadAudioToServer(audiFile:String){
         val fileSong = File(audiFile)
 
@@ -714,23 +719,23 @@ import java.util.regex.Pattern
         val audioReq = apiInterface.uploadVideoMusic(sessionManager.getToken(),reqData,reqFile)
         audioReq.enqueue(object : Callback<UploadMusicResponse>{
             override fun onResponse(call: Call<UploadMusicResponse>, response: Response<UploadMusicResponse>) {
-               myApplication.printLogD(response.toString(),"uploadAudioToServer")
+               myApplication.printLogD("uploadAudioToServer $response",TRACK)
                 if (response.isSuccessful && response.body()!!.success!!){
-                    val data = response.body()!!.data!!
-                    val songID = data.Id.toString()
-                    if (songID==sessionManager.getVideoSongID()){
-                        videoSongID = sessionManager.getVideoSongID()!!
+                    val songLink = response.body()!!.data?.trackAacFormat.toString()
+                    if (sessionManager.getAppSongID()!!.trim().isNotEmpty()){
+                        videoSongID = sessionManager.getAppSongID().toString()
+                        sessionManager.setVideoSongUrl(songLink)
                         uploadVideoToS3()
                     }else{
-                        videoSongID = songID
+                       videoSongID = response.body()!!.data?.Id.toString()
+                        sessionManager.setVideoSongUrl(songLink)
                         uploadVideoToS3()
                     }
-
                 }
             }
 
             override fun onFailure(call: Call<UploadMusicResponse>, t: Throwable) {
-                myApplication.printLogD(t.toString(),"uploadAudioToServer")
+                myApplication.printLogD(t.toString(),TRACK)
             }
         })
 

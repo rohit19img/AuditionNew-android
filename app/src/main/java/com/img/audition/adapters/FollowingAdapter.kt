@@ -65,7 +65,7 @@ class FollowingAdapter(val context: Context,val followingList : ArrayList<Follow
             }
             auditionId.text = data.auditionId.toString()
            followBtnText.text = ConstValFile.Unfollow
-           followerCount.text = data.followingCount.toString()
+           followerCount.text = data.followingCount.toString() + " Following"
 
            followBtnText.setOnClickListener {
                 followUserApi(data.Id,"unfollowed")

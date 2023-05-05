@@ -62,7 +62,7 @@ class FollowerAdapter(val context: Context, val followerList : ArrayList<Followe
             }
             auditionId.text = data.auditionId.toString()
 
-            followerCount.text = data.followersCount.toString() + "Followers"
+            followerCount.text = data.followersCount.toString() + " Followers"
 
             followBtnText.setOnClickListener {
                 followBtnText.isSelected = false

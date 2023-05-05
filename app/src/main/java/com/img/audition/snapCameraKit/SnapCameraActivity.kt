@@ -248,14 +248,15 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
                 if (totalTime>=maxVideoDuration){
                     isTimerRunning = false
-                    myApplication.printLogD("Countdown finished","check time")
+                    myApplication.printLogD("Countdown finished 1","check time")
                     this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
+                    onFinish()
                 }
             }
 
             override fun onFinish() {
                 isTimerRunning = false
-                myApplication.printLogD("Countdown finished","check time")
+                myApplication.printLogD("Countdown finished 2","check time")
                 this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
             }
         }.start()
@@ -508,18 +509,27 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     }
 
     override fun onStart(captureType: SnapButtonView.CaptureType) {
-        if (sessionManager.getIsFromTryAudio()){
-            playerExo.seekTo(0)
-            playerExo.prepare()
-            playerExo.play()
-        }
-        if (videoFilePath.isEmpty()){
-            videoFilePath = ""
-            videoFilePath = createFileAndFolder()
-            myApplication.printLogD(videoFilePath,"videoFileCreate")
-        }
+
+
+        myApplication.printLogD(captureType.toString(),"CaptureType")
 
         if (captureType == SnapButtonView.CaptureType.CONTINUOUS) {
+            myApplication.printLogI("onStart Camera",TRACK)
+            if (isStartTime){
+                resumeTimer()
+            }else{
+                startTimer(maxVideoDuration)
+            }
+            if (sessionManager.getIsFromTryAudio()){
+                playerExo.seekTo(0)
+                playerExo.prepare()
+                playerExo.play()
+            }
+            if (videoFilePath.isEmpty()){
+                videoFilePath = ""
+                videoFilePath = createFileAndFolder()
+                myApplication.printLogD(videoFilePath,"videoFileCreate")
+            }
             if (recordingCloseable == null) {
                 // Create capture class that starts encoding upon initialization
                 val outputCloseable: Closeable
@@ -539,12 +549,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 recordingCloseable?.close()
             }
         }
-        myApplication.printLogI("onStart Camera",TRACK)
-        if (isStartTime){
-            resumeTimer()
-        }else{
-            startTimer(maxVideoDuration)
-        }
+
     }
 
     override fun onEnd(captureType: SnapButtonView.CaptureType) {
@@ -555,14 +560,12 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
         when (captureType) {
             // Only showing support for video recording in this sample
             SnapButtonView.CaptureType.CONTINUOUS -> {
-                // Closing stops recording and disconnects surface output
                 recordingCloseable?.close()
                 recordingCloseable = null
             }
             else -> {}
         }
     }
-
 
 
 }

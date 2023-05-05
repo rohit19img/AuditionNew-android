@@ -486,11 +486,9 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                                     exoPlayer.play()
                                 }
                                 else->{
-                                   /* videoLayout.visibility = View.GONE
-                                    shimmerLayout.visibility = View.VISIBLE*/
-                                    myApplication.printLogE(error.message.toString(),"videoState onPlayerError")
-                                    exoPlayer.prepare()
-                                    exoPlayer.play()
+                                    myApplication.printLogE(error.message.toString(),"onPlayerError")
+                                    myApplication.printLogE(list.file.toString(),"onPlayerError")
+
 
                                 }
 

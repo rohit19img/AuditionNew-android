@@ -152,6 +152,7 @@ dependencies {
     implementation "com.snap.camerakit:support-lenses-carousel:1.21.1"
     implementation "com.snap.camerakit:camerakit-extension-auth-token-provider-loginkit:1.21.1"
 
-
+    //facebook Login
+    implementation 'com.facebook.android:facebook-android-sdk:13.0.0'
 
 }

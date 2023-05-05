@@ -15,10 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.google.gson.JsonObject
 import com.img.audition.R
 import com.img.audition.adapters.*
-import com.img.audition.dataModel.Searchgetset
-import com.img.audition.dataModel.TrendingVideoData
-import com.img.audition.dataModel.TrendingVideoResponse
-import com.img.audition.dataModel.VideoData
+import com.img.audition.dataModel.*
 import com.img.audition.databinding.FragmentTrendingSearchBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
@@ -52,8 +49,8 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
-    var userlist: ArrayList<Searchgetset.User>? = null
-    var hashtaglist: ArrayList<Searchgetset.Hashtag>? = null
+    var userlist: ArrayList<SearchUserData>? = null
+    var hashtaglist: ArrayList<SearchHashtagsData>? = null
     var videolist: ArrayList<VideoData>? = null
 
     private lateinit var _viewBinding : FragmentTrendingSearchBinding
@@ -126,10 +123,9 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
         obj.addProperty("search", searchData)
         Log.i("request",obj.toString())
 
-        val responseCall: Call<Searchgetset> =
-            apiInterface.search(sessionManager.getToken(), obj)
-        responseCall.enqueue( object : Callback<Searchgetset> {
-            override fun onResponse(call: Call<Searchgetset>, response: Response<Searchgetset>) {
+        val responseCall: Call<SearchResponse> = apiInterface.search(sessionManager.getToken(), obj)
+        responseCall.enqueue( object : Callback<SearchResponse> {
+            override fun onResponse(call: Call<SearchResponse>, response: Response<SearchResponse>) {
                 if (response.isSuccessful) {
                     response.body()!!.message
 
@@ -137,7 +133,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
                     hashtaglist = ArrayList()
                     videolist = ArrayList()
 
-                    if(response.body()!!.success){
+                    if(response.body()!!.success!!){
                         userlist = response.body()!!.data!!.users
                         hashtaglist = response.body()!!.data!!.hashtags
                         videolist = response.body()!!.data!!.data
@@ -157,8 +153,8 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
             }
 
-            override fun onFailure(call: Call<Searchgetset>, t: Throwable) {
-                myApplication.printLogD("text", t.message!!)
+            override fun onFailure(call: Call<SearchResponse>, t: Throwable) {
+                myApplication.printLogE(t.message!!, TAG)
             }
         })
 

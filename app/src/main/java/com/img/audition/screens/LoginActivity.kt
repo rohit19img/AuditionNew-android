@@ -1,10 +1,15 @@
 package com.img.audition.screens
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.facebook.*
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -21,6 +26,7 @@ import com.img.audition.R
 import com.img.audition.adapters.ImageSlider
 import com.img.audition.dataModel.LoginResponse
 import com.img.audition.databinding.ActivityLoginBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
@@ -28,6 +34,8 @@ import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.util.*
 
 class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
@@ -48,6 +56,7 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
         ActivityLoginBinding.inflate(layoutInflater)
     }
 
+    private lateinit var callbackManager: CallbackManager
     private val sessionManager by lazy {
         SessionManager(this@LoginActivity)
     }
@@ -65,6 +74,7 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
             .requestScopes(Scope(Scopes.PLUS_LOGIN))
             .build()
 
+        callbackManager = CallbackManager.Factory.create()
 
          mGoogleApiClient = GoogleApiClient.Builder(this)
             .enableAutoManage(this@LoginActivity, this /* OnConnectionFailedListener */)
@@ -86,6 +96,49 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
                 e.printStackTrace()
             }
         }
+
+
+        viewBinding.facebookLogin.setOnClickListener {
+                LoginFacebook()
+        }
+
+        PrintHashKey()
+
+        LoginManager.getInstance().registerCallback(callbackManager, object :
+            FacebookCallback<LoginResult> {
+            override fun onSuccess(loginResult: LoginResult) {
+                val profile = Profile.getCurrentProfile()
+
+                val request : GraphRequest = GraphRequest.newMeRequest(
+                    loginResult.accessToken
+                ) { obj, response ->
+                    var name = ""
+                    var email = ""
+                    val jsonObject = response!!.getJSONObject()
+                    try{
+                        email = jsonObject!!.getString("email")
+                        name = jsonObject!!.getString("name")
+                    } catch (e : Exception){
+                            myApplication.printLogE(e.toString(),TAG)
+                    }
+
+                    socialLoginApi(email,name)
+                }
+
+                val parameters = Bundle()
+                parameters.putString("fields", "id,name,email")
+                request.parameters = parameters
+                request.executeAsync()
+            }
+
+            override fun onCancel() {
+               myApplication.showToast("Login Canceled.")
+            }
+
+            override fun onError(error: FacebookException) {
+                myApplication.showToast("Cannot connect facebook error.")
+            }
+        })
     }
 
     private fun sendToPhoneLoginActivity() {
@@ -94,9 +147,13 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
     }
 
     private fun signIn() {
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient)
-        val signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient)
-        startActivityForResult(signInIntent, 1)
+        if (myApplication.isNetworkConnected()){
+            Auth.GoogleSignInApi.signOut(mGoogleApiClient)
+            val signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient)
+            startActivityForResult(signInIntent, 1)
+        }else{
+            myApplication.showToast(ConstValFile.Check_Connection)
+        }
     }
 
     inner class SlideTimer : TimerTask(){
@@ -201,5 +258,31 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
             }
         })
         FirebaseMessaging.getInstance().subscribeToTopic("All-user")
+    }
+
+    fun LoginFacebook() {
+        if (myApplication.isNetworkConnected())
+            LoginManager.getInstance().logInWithReadPermissions(this@LoginActivity,
+                listOf("public_profile","email")
+            )
+        else
+           myApplication.showToast(ConstValFile.Check_Connection)
+    }
+
+    private fun PrintHashKey() {
+        try {
+            val info = packageManager.getPackageInfo("com.img.audition", PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures) {
+                val md = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT))
+                System.out.print("Key hash is" + Base64.encodeToString(md.digest(), Base64.DEFAULT))
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        } catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
+        }
+
     }
 }

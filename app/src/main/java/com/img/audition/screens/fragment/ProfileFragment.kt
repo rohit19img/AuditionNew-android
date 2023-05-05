@@ -1,5 +1,6 @@
 package com.img.audition.screens.fragment
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.*
 import android.net.Uri
@@ -37,7 +38,7 @@ import retrofit2.Response
 class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     val TAG = "ProfileFragment"
 
-    private lateinit var _viewBinding : FragmentProfileBinding
+    private lateinit var _viewBinding: FragmentProfileBinding
     private val view get() = _viewBinding!!
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
@@ -45,23 +46,27 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     private val myApplication by lazy {
         MyApplication(contextFromActivity)
     }
-    private val apiInterface by lazy{
+    private val apiInterface by lazy {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
-    lateinit var userName:TextView
-    lateinit var auditionID:TextView
-    lateinit var followCount:TextView
-    lateinit var likeCount:TextView
-    lateinit var followingCount:TextView
-    lateinit var userBio:TextView
-    lateinit var userVideoRecycle:RecyclerView
+    lateinit var userName: TextView
+    lateinit var auditionID: TextView
+    lateinit var followCount: TextView
+    lateinit var likeCount: TextView
+    lateinit var followingCount: TextView
+    lateinit var userBio: TextView
+    lateinit var userVideoRecycle: RecyclerView
     lateinit var userImageView: ImageView
     lateinit var noVideoImage: ImageView
     lateinit var menuButton: ImageView
-    lateinit var drawerLayout:DrawerLayout
+    lateinit var drawerLayout: DrawerLayout
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        _viewBinding = FragmentProfileBinding.inflate(inflater,container,false)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _viewBinding = FragmentProfileBinding.inflate(inflater, container, false)
 
 
         userName = view.userName
@@ -122,13 +127,13 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         view.followListBtn.setOnClickListener {
             val userName = view.userName.text.toString()
             view.followListBtn.isSelected = false
-            sendToFollowFollowingListActivity(0,userName)
+            sendToFollowFollowingListActivity(0, userName)
         }
 
         view.followingListBtn.setOnClickListener {
             val userName = view.userName.text.toString()
             view.followingListBtn.isSelected = false
-            sendToFollowFollowingListActivity(1,userName)
+            sendToFollowFollowingListActivity(1, userName)
         }
 
         view.wallet.setOnClickListener {
@@ -141,8 +146,9 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.copy.setOnClickListener {
-            val clipboard = activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("label",view.auditionID.text.toString())
+            val clipboard =
+                activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("label", view.auditionID.text.toString())
             clipboard.setPrimaryClip(clip)
             myApplication.showToast("Id Copied..")
         }
@@ -152,11 +158,11 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
             dialogBuilder.setTitle("Logout.")
             dialogBuilder.setMessage("Are you sure you want to Logout?")
                 .setCancelable(false)
-                .setPositiveButton("Yes", DialogInterface.OnClickListener {
-                        dialog, id -> logoutUser()
+                .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, id ->
+                    logoutUser()
                 })
-                .setNegativeButton("NO", DialogInterface.OnClickListener {
-                        dialog, id -> dialog.cancel()
+                .setNegativeButton("NO", DialogInterface.OnClickListener { dialog, id ->
+                    dialog.cancel()
                 })
             val alert = dialogBuilder.create()
             alert.show()
@@ -166,55 +172,58 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     }
 
     private fun sendToBlockedUserActivity() {
-        val intent = Intent(contextFromActivity,BlockedUsersActivity::class.java)
+        val intent = Intent(contextFromActivity, BlockedUsersActivity::class.java)
         startActivity(intent)
     }
 
     private fun sendToVerificationActivity() {
-        val intent = Intent(contextFromActivity,VerificationActivity::class.java)
+        val intent = Intent(contextFromActivity, VerificationActivity::class.java)
         startActivity(intent)
     }
 
     private fun senToEditProfile() {
-        val intent = Intent(contextFromActivity,EditProfileActivity::class.java)
+        val intent = Intent(contextFromActivity, EditProfileActivity::class.java)
         startActivity(intent)
     }
 
-    private fun sendToFollowFollowingListActivity(pagePos:Int,userName:String) {
+    private fun sendToFollowFollowingListActivity(pagePos: Int, userName: String) {
         val bundle = Bundle()
-        bundle.putInt(ConstValFile.PagePosition,pagePos)
-        bundle.putString(ConstValFile.UserName,userName)
-        val intent = Intent(contextFromActivity,FollowFollowingListActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
+        bundle.putInt(ConstValFile.PagePosition, pagePos)
+        bundle.putString(ConstValFile.UserName, userName)
+        val intent = Intent(contextFromActivity, FollowFollowingListActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle, bundle)
         startActivity(intent)
     }
 
     private fun sendToWalletActivity() {
-        val intent = Intent(contextFromActivity,WalletActivity::class.java)
+        val intent = Intent(contextFromActivity, WalletActivity::class.java)
+        startActivity(intent)
+    }
+
+
+    private fun sendToSplashActivity() {
+        val intent = Intent(contextFromActivity, SplashActivity::class.java)
         startActivity(intent)
     }
 
     private fun sendToCollectionActivity() {
-        val intent = Intent(contextFromActivity.applicationContext,CollectionActivity::class.java)
+        val intent = Intent(contextFromActivity.applicationContext, CollectionActivity::class.java)
         startActivity(intent)
     }
 
     private fun logoutUser() {
         val logoutReq = apiInterface.logoutUser(sessionManager.getToken())
 
-        logoutReq.enqueue(object : Callback<CommanResponse>{
+        logoutReq.enqueue(object : Callback<CommanResponse> {
             override fun onResponse(
                 call: Call<CommanResponse>,
                 response: Response<CommanResponse>
             ) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                        sessionManager.clearLogoutSession()
-                        startActivity(Intent(contextFromActivity, SplashActivity::class.java))
-                        requireActivity().finishAffinity()
-
-
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
+                    sessionManager.clearLogoutSession()
+                    sendToSplashActivity()
+                } else {
+                    myApplication.printLogE(response.toString(), TAG)
                     myApplication.showToast("Something went wrong...")
 
                 }
@@ -222,7 +231,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.showToast("Something went wrong...")
-                myApplication.printLogE(t.toString(),TAG)
+                myApplication.printLogE(t.toString(), TAG)
             }
 
         })
@@ -237,30 +246,33 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
     private fun getUserSelfVideo() {
         val userVideoReq = apiInterface.getUserSelfVideo(sessionManager.getToken())
-        userVideoReq.enqueue( object : Callback<VideoResponse>{
+        userVideoReq.enqueue(object : Callback<VideoResponse> {
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
                     val videoData = response.body()!!.data
-                    if (videoData.size>0) {
+                    if (videoData.size > 0) {
                         val videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
                         userVideoRecycle.adapter = videoItemAdapter
                         view.shimmerVideoView.stopShimmer()
                         view.shimmerVideoView.hideShimmer()
                         view.shimmerVideoView.visibility = View.GONE
                         userVideoRecycle.visibility = View.VISIBLE
-                    }else{
-                        myApplication.printLogD("No Video Data",TAG)
+                    } else {
+                        myApplication.printLogD("No Video Data", TAG)
                         view.shimmerVideoView.stopShimmer()
                         view.shimmerVideoView.hideShimmer()
                         noVideoImage.visibility = View.VISIBLE
                     }
-                }else{
-                    myApplication.printLogE("Get Other User Self Video Response Failed ${response.code()}",TAG)
+                } else {
+                    myApplication.printLogE(
+                        "Get Other User Self Video Response Failed ${response.code()}",
+                        TAG
+                    )
                 }
             }
 
             override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Video onFailure ${t.toString()}",TAG)
+                myApplication.printLogE("Get Other User Self Video onFailure ${t.toString()}", TAG)
             }
         })
     }
@@ -269,45 +281,51 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     private fun getUserSelfDetails() {
         val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
 
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse>{
-            override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    myApplication.printLogD(response.toString(),TAG)
+        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
+            override fun onResponse(
+                call: Call<UserSelfProfileResponse>,
+                response: Response<UserSelfProfileResponse>
+            ) {
+                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
+                    myApplication.printLogD(response.toString(), TAG)
                     val userData = response.body()!!.data
-                    if(userData!=null){
+                    if (userData != null) {
                         likeCount.text = userData!!.totalLike.toString()
                         followCount.text = userData!!.followersCount.toString()
                         followingCount.text = userData!!.followingCount.toString()
-                        if (userData.image.toString().isNotEmpty()){
+                        if (userData.image.toString().isNotEmpty()) {
                             Glide.with(contextFromActivity).load(userData.image.toString())
                                 .placeholder(R.drawable.person_ic).into(userImageView)
                             sessionManager.setUserProfileImage(userData.image.toString())
-                        }else{
+                        } else {
                             userImageView.setImageResource(R.drawable.person_ic)
                         }
-                        if (userData.bio.toString().isNotEmpty()){
+                        if (userData.bio.toString().isNotEmpty()) {
                             userBio.text = userData.bio.toString()
-                        }else{
+                        } else {
                             userBio.visibility = View.GONE
                         }
-                        if (userData.name.toString().isNotEmpty()){
+                        if (userData.name.toString().isNotEmpty()) {
                             userName.text = userData.name.toString()
                             sessionManager.setUserName(userData.name.toString())
-                        }else{
+                        } else {
                             userName.text = userData.auditionId.toString()
                             sessionManager.setUserName(userData.auditionId.toString())
                         }
                         auditionID.text = userData.auditionId.toString()
-                    }else{
-                        myApplication.printLogE("User Data Null",TAG)
+                    } else {
+                        myApplication.printLogE("User Data Null", TAG)
                     }
-                }else{
-                    myApplication.printLogE("Get Other User Self Data Response Failed ${response.code()}",TAG)
+                } else {
+                    myApplication.printLogE(
+                        "Get Other User Self Data Response Failed ${response.code()}",
+                        TAG
+                    )
                 }
             }
 
             override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Data onFailure ${t.toString()}",TAG)
+                myApplication.printLogE("Get Other User Self Data onFailure ${t.toString()}", TAG)
             }
 
         })
@@ -315,6 +333,6 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
     private fun showLanguageDialog() {
         val showLangDialog = LanguageSelecteDialog()
-        showLangDialog.show(parentFragmentManager,showLangDialog.tag)
+        showLangDialog.show(parentFragmentManager, showLangDialog.tag)
     }
 }

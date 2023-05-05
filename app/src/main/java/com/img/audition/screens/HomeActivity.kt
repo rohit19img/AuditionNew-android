@@ -26,6 +26,7 @@ import com.img.audition.network.NetworkStateService
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
 import com.img.audition.snapCameraKit.SnapCameraActivity
+import com.img.audition.videoWork.VideoCacheWork
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileNotFoundException
@@ -70,7 +71,6 @@ import java.io.IOException
             stopService(intent)
             Log.d("internet", "HomeActivity: // App is running in the foreground")
         }
-
 
         appPermission =  AppPermission(this@HomeActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@HomeActivity)
@@ -224,4 +224,8 @@ import java.io.IOException
     }
 
 
+    override fun onDestroy() {
+        VideoCacheWork.simpleCache.release()
+        super.onDestroy()
+    }
 }

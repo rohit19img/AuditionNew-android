@@ -96,6 +96,7 @@ import retrofit2.Response
                     sessionManager.setToken(userToken)
                     Thread.sleep(500)
                     myApplication.showToast("Login Successfully..")
+
                     sendToHomeActivity()
                 }else{
                     myApplication.showToast("Wrong OTP")
@@ -136,8 +137,7 @@ import retrofit2.Response
     }
 
     fun sendToHomeActivity(){
-        val homeIntent = Intent(this@PhoneLoginActivity,HomeActivity::class.java)
-        homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val homeIntent = Intent(this@PhoneLoginActivity,SplashActivity::class.java)
         startActivity(homeIntent)
         finish()
     }

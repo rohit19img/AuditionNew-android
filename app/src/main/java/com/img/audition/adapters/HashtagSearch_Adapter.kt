@@ -2,15 +2,18 @@ package com.img.audition.adapters
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.img.audition.R
-import com.img.audition.dataModel.Searchgetset
+import com.img.audition.dataModel.SearchHashtagsData
+import com.img.audition.globalAccess.ConstValFile
+import com.img.audition.screens.HashtagVideoActivity
 
-class HashtagSearch_Adapter(val context: Context, val list: ArrayList<Searchgetset.Hashtag>) :
+class HashtagSearch_Adapter(val context: Context, val list: ArrayList<SearchHashtagsData>) :
     RecyclerView.Adapter<HashtagSearch_Adapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,20 +33,23 @@ class HashtagSearch_Adapter(val context: Context, val list: ArrayList<Searchgets
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.hashtagname.text = "#" + list[position].Name
+        holder.hashtagname.text =  list[position].Name
         holder.hashtagplays.text = "${list[position].Videos} Videos"
         holder.itemView.setOnClickListener(View.OnClickListener {
-//            context.startActivity(
-//                Intent(context, Hashtag_Activity::class.java)
-//                    .putExtra("hashtag", list[position].name)
-//                    .putExtra("id", list[position].get_id())
-//                    .putExtra("plays", "2.5M Plays")
-//            )
+            sendHashTagVideo(list[position].Name.toString())
         })
     }
 
     override fun getItemCount(): Int {
         return list.size
+    }
+
+    private fun sendHashTagVideo(hashTag:String){
+        val bundle = Bundle()
+        bundle.putString(ConstValFile.VideoHashTag,hashTag)
+        val intent = Intent(context, HashtagVideoActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        context.startActivity(intent)
     }
 
 }

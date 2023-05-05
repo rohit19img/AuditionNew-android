@@ -99,9 +99,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
     private lateinit var mLineView: LineProgressView
 
-
     private var recordingCloseable: Closeable? = null
-
 
     private var videoFilePath = ""
 
@@ -127,6 +125,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
         mLineView = findViewById(R.id.line_view)
         progressLayout = findViewById(R.id.progressLayout)
+
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             == PackageManager.PERMISSION_GRANTED) {
@@ -163,7 +162,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
         cameraLayout.onSessionAvailable {
             cameraSession = it
             cameraLayout.captureButton.onCaptureRequestListener = this@SnapCameraActivity
-            cameraLayout.captureButton.progressDuration = 15_000L
+
 
         }
 
@@ -373,6 +372,9 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     }
 
     override fun onDestroy() {
+        if(videoFilePath.isNotEmpty() && File(videoFilePath).exists()){
+            File(videoFilePath).delete()
+        }
         closeOnDestroy.forEach { it.close() }
         super.onDestroy()
     }
@@ -399,6 +401,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             durationHint.text = "Record up to ${sessionManager.getAudioDuration()/1000} seconds"
             maxVideoDuration = sessionManager.getAudioDuration().toLong()
             minVideoDuration = sessionManager.getAudioDuration().toLong()
+            cameraLayout.captureButton.progressDuration = maxVideoDuration
             myApplication.printLogD("songUrl :$songUrl","songUrl")
              val mediaSource by lazy {
                 ProgressiveMediaSource.Factory(
@@ -559,5 +562,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             else -> {}
         }
     }
+
+
 
 }

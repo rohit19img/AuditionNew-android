@@ -23,10 +23,8 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
         lateinit var standaloneDatabaseProvider: StandaloneDatabaseProvider
         private const val exoCacheSize: Long = 20 * 1024 * 1024 // Setting cache size to be ~ 20 MB
-        public var mSocket: Socket? = null
-
+        var mSocket: Socket? = null
     }
-
 
 
     override fun onCreate() {
@@ -42,7 +40,8 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
 
         leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoCacheSize)
         standaloneDatabaseProvider = StandaloneDatabaseProvider(this)
-        simpleCache = SimpleCache(File(this.cacheDir, "videoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
+        simpleCache = SimpleCache(File(this.cacheDir, "exoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
+
     }
 
     override fun getCameraXConfig(): CameraXConfig {

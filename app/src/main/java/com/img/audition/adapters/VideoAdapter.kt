@@ -37,6 +37,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
@@ -73,6 +74,7 @@ import java.util.regex.Pattern
 class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<VideoData>) : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), FollowFollowingTrack {
     val TAG = "VideoAdapter"
 
+
     var Ar = arrayOf(-1,0)
     val  sessionManager = SessionManager(contextFromActivity.applicationContext)
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
@@ -81,6 +83,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
 
     private val myApplication by lazy {
         MyApplication(contextFromActivity.applicationContext)
+
     }
     var cPos = 0
 
@@ -120,16 +123,20 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
         val playPauseIc = itemView.videoPlayPause
         val volumeOnOffIc = itemView.volumeOnOff
 
+        val videoLayout = itemView.videoLayout
+        val shimmerLayout = itemView.shimmerLayout
+
 
         //Video Cache
+
         val mediaSource = ProgressiveMediaSource.Factory(
-        CacheDataSource.Factory()
-        .setCache(VideoCacheWork.simpleCache)
-        .setUpstreamDataSourceFactory(
-        DefaultHttpDataSource.Factory()
-        .setUserAgent("ExoPlayer"))
-        .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
-        var exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext).build()
+        CacheDataSource.Factory().setCache(VideoCacheWork.simpleCache)
+            .setUpstreamDataSourceFactory(DefaultHttpDataSource.Factory().setUserAgent("ExoPlayer"))
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
+
+        private val renderersFactory = DefaultRenderersFactory(contextFromActivity.applicationContext)
+        var exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext,renderersFactory)
+            .setHandleAudioBecomingNoisy(true).build()
         //
     }
 
@@ -143,7 +150,9 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
 
     override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
 
-       try {
+
+        try {
+
            if (videoList!=null && videoList[position]!=null){
                val list = videoList[position]
                holder.apply {
@@ -383,8 +392,6 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
     }
 
     override fun onViewAttachedToWindow(holder: VideoViewHolder) {
-
-
         try {
             if (videoList!=null && videoList[holder.position]!=null){
                 val list = videoList[holder.position]
@@ -446,20 +453,24 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                                     exoPlayer.seekTo(0)
                                     exoPlayer.prepare()
                                     exoPlayer.play()
+                                    myApplication.printLogD("STATE_READY","videoState")
                                 }
                                 ExoPlayer.STATE_BUFFERING ->{
-                                    myApplication.printLogD("STATE_BUFFERING",TAG)
+                                    myApplication.printLogD("STATE_BUFFERING","videoState")
+
                                 }
                                 ExoPlayer.STATE_READY ->{
-                                    myApplication.printLogD("STATE_READY",TAG)
+                                    myApplication.printLogD("STATE_READY","videoState")
                                 }
                                 ExoPlayer.STATE_IDLE ->{
-                                    myApplication.printLogD("STATE_IDLE",TAG)
+                                    myApplication.printLogD("STATE_IDLE","videoState")
                                 }
                                 else -> {
-                                    myApplication.printLogD(playbackState.toString(),"currentState")
+                                    myApplication.printLogD(playbackState.toString(),"videoState check")
                                 }
                             }
+
+
                         }
 
                         override fun onPlayerError(error: PlaybackException) {
@@ -473,6 +484,14 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                                     exoPlayer.setMediaSource(videoMediaSource)
                                     exoPlayer.prepare()
                                     exoPlayer.play()
+                                }
+                                else->{
+                                   /* videoLayout.visibility = View.GONE
+                                    shimmerLayout.visibility = View.VISIBLE*/
+                                    myApplication.printLogE(error.message.toString(),"videoState onPlayerError")
+                                    exoPlayer.prepare()
+                                    exoPlayer.play()
+
                                 }
 
                             }
@@ -616,6 +635,7 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                             myApplication.printLogD(jsonObject.toString(),"socket data")
 
                             myApplication.printLogD("video Url ${ videoList[visiblePosition].file}","currentVideo Url")
+                            holder_current.exoPlayer.prepare()
                             holder_current.exoPlayer.play()
                             myApplication.printLogD("video play","isPlaying")
                         }
@@ -674,11 +694,11 @@ class VideoAdapter(val contextFromActivity:Context, val videoList: ArrayList<Vid
                 .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
         }else{
             val activity = contextFromActivity as HomeActivity
+
             val myFragment: Fragment = ProfileFragment(contextFromActivity)
             activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
         }
-
     }
 
     private fun moredialog(i: Int) {

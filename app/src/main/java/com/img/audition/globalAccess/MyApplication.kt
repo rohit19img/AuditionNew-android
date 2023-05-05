@@ -63,6 +63,7 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
              sweetAlertDialog.dismiss()
              try {
                  context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                 sweetAlertDialog.dismiss()
              }catch (e:java.lang.Exception){
                  Log.e("myApplication", "onGPS: ${e.message}", )
              }

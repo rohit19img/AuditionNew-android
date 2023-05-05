@@ -170,10 +170,7 @@ interface ApiInterface {
     ): Call<CommanResponse>
 
     @POST("search")
-    fun search(
-        @Header("Authorization") Auth: String?,
-        @Body searchObj: JsonObject?
-    ): Call<Searchgetset>
+    fun search(@Header("Authorization") Auth: String?, @Body searchObj: JsonObject?): Call<SearchResponse>
 
     @GET("leagueDetails")
     fun getSingleContestDetails(

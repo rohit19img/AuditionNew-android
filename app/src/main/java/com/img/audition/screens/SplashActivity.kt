@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.datasource.cache.SimpleCache
 
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
@@ -16,6 +17,7 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.videoWork.VideoCacheWork
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,12 +35,12 @@ class SplashActivity : AppCompatActivity() {
         myApplication  = MyApplication(this@SplashActivity)
 
         if (myApplication.isNetworkConnected()){
+
             FirebaseMessaging.getInstance().subscribeToTopic("All")
             if (!(sessionManager.isUserLoggedIn())){
                 myApplication.printLogD("Not Login in",TAG)
                 if (!(sessionManager.isGuestLoggedIn())){
                     onTokenRefresh()
-
                 }else{
                     sendToHomeActivity()
                 }
@@ -111,7 +113,6 @@ class SplashActivity : AppCompatActivity() {
 
     fun sendToHomeActivity(){
         val homeIntent = Intent(this@SplashActivity,HomeActivity::class.java)
-        homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(homeIntent)
         finish()
     }

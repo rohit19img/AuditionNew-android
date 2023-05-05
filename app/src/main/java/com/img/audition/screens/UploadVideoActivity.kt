@@ -67,6 +67,7 @@ import java.util.regex.Pattern
     val TARCK = "check 100"
     private var videoSongName = ""
     private var videoSongID = ""
+    private var audiFilePath = ""
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
@@ -207,8 +208,21 @@ import java.util.regex.Pattern
     }
 
     private fun sendToHomeActivity() {
+        try {
+            if(File(sessionManager.getCreateVideoPath()!!).exists()){
+                File(sessionManager.getCreateVideoPath()!!).delete()
+            }
+            if (File(sessionManager.getTrimAudioPath()!!).exists()){
+                File(sessionManager.getTrimAudioPath()!!).delete()
+            }
+            if(audiFilePath.isNotEmpty() && File(audiFilePath).exists()){
+                File(audiFilePath).delete()
+            }
+        }catch (e:Exception){
+            myApplication.printLogE(e.toString(),TAG)
+        }
         val intent = Intent(this@UploadVideoActivity, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
         finish()
     }
@@ -661,7 +675,22 @@ import java.util.regex.Pattern
 
     }
 
-    override fun onDestroy() { super.onDestroy() }
+    override fun onDestroy() {
+        try {
+            if(File(sessionManager.getCreateVideoPath()!!).exists()){
+                File(sessionManager.getCreateVideoPath()!!).delete()
+            }
+            if (File(sessionManager.getTrimAudioPath()!!).exists()){
+                File(sessionManager.getTrimAudioPath()!!).delete()
+            }
+            if(audiFilePath.isNotEmpty() && File(audiFilePath).exists()){
+                File(audiFilePath).delete()
+            }
+        }catch (e:Exception){
+            myApplication.printLogE(e.toString(),TAG)
+        }
+        super.onDestroy()
+    }
 
     fun extractAudioFromVideo(inputPath:String){
 
@@ -711,10 +740,12 @@ import java.util.regex.Pattern
     }
 
     fun uploadAudioToServer(audiFile:String){
-        val fileSong = File(audiFile)
+         audiFilePath = File(audiFile).absolutePath
+        val file = File(audiFile)
+
 
         val reqData = MultipartBody.Part.createFormData("typename","musicUpload/mp3")
-        val reqFile = MultipartBody.Part.createFormData("audio",videoSongName,fileSong.asRequestBody())
+        val reqFile = MultipartBody.Part.createFormData("audio",videoSongName,file.asRequestBody())
 
         val audioReq = apiInterface.uploadVideoMusic(sessionManager.getToken(),reqData,reqFile)
         audioReq.enqueue(object : Callback<UploadMusicResponse>{
@@ -740,5 +771,6 @@ import java.util.regex.Pattern
         })
 
     }
+
 
 }

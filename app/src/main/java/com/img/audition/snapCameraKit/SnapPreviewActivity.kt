@@ -346,6 +346,13 @@ class SnapPreviewActivity : AppCompatActivity() {
 
         viewBinding.videoPreview.player = videoPlayer
         val videoUri = sessionManager.getCreateVideoPath()
+
+        if (sessionManager.getIsFromTryAudio()){
+            viewBinding.music.visibility = View.GONE
+        }else{
+            viewBinding.music.visibility = View.VISIBLE
+        }
+
         Log.d("video url", "onResume: $videoUri")
         val videoSpeedState = sessionManager.getCreateVideoSpeedState()
         val videoDuration = sessionManager.getCreateVideoDuration()
@@ -474,8 +481,21 @@ class SnapPreviewActivity : AppCompatActivity() {
     private fun sendToMain() {
         val intent = Intent(this@SnapPreviewActivity, HomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    override fun onDestroy() {
+        try {
+            if(File(sessionManager.getCreateVideoPath()!!).exists()){
+                File(sessionManager.getCreateVideoPath()!!).delete()
+            }
+            if (File(sessionManager.getTrimAudioPath()!!).exists()){
+                File(sessionManager.getTrimAudioPath()!!).delete()
+            }
+        }catch (e:Exception){
+            myApplication.printLogE(e.toString(),TAG)
+        }
+        super.onDestroy()
     }
 }

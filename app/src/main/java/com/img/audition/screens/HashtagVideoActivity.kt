@@ -54,6 +54,34 @@ class HashtagVideoActivity : AppCompatActivity() {
 
 
 
+
+    override fun onStart() {
+        super.onStart()
+        viewBinding.shimmerVideoView.startShimmer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val hashTag = bundle!!.getString(ConstValFile.VideoHashTag)
+        myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} HaAc","videoHashTag")
+        viewBinding.hashtagname.text = hashTag.toString()
+        getHashTagVideo(hashTag!!)
+
+        viewBinding.createVideo.setOnClickListener {
+            sendForCreateVideo(hashTag!!)
+        }
+    }
+
+    private fun sendForCreateVideo(hashTag: String) {
+        val bundle = Bundle()
+        bundle.putBoolean(ConstValFile.IsFromContest,false)
+        bundle.putString(ConstValFile.VideoHashTag,hashTag)
+        sessionManager.setVideoHashTag(hashTag)
+        val intent = Intent(this@HashtagVideoActivity, SnapCameraActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        startActivity(intent)
+    }
+
     private fun getHashTagVideo(hashTag:String) {
         val userVideoReq = apiInterface.getHashTagVideo(sessionManager.getToken(),hashTag)
         userVideoReq.enqueue( object : Callback<VideoResponse> {
@@ -82,33 +110,5 @@ class HashtagVideoActivity : AppCompatActivity() {
                 myApplication.printLogE("Get Other User Self Video onFailure ${t.toString()}",TAG)
             }
         })
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewBinding.shimmerVideoView.startShimmer()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val hashTag = bundle!!.getString(ConstValFile.VideoHashTag)
-        sessionManager.setVideoHashTag(hashTag)
-        myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} HaAc","videoHashTag")
-        viewBinding.hashtagname.text = hashTag.toString()
-        sessionManager.setVideoHashTag(hashTag)
-        getHashTagVideo(hashTag!!)
-
-        viewBinding.createVideo.setOnClickListener {
-            sendForCreateVideo(hashTag!!)
-        }
-    }
-
-    private fun sendForCreateVideo(hashTag: String) {
-        val bundle = Bundle()
-        bundle.putBoolean(ConstValFile.IsFromContest,false)
-        bundle.putString(ConstValFile.VideoHashTag,hashTag)
-        val intent = Intent(this@HashtagVideoActivity, SnapCameraActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
-        startActivity(intent)
     }
 }

@@ -13,6 +13,8 @@
     <string name="edit_profile">Edit Profile</string>
     <string name="challenges">Challenges</string>
 
+    <string name="facebook_app_id">247591977818821</string>
+
     <string name="rate_very_slow">very slow</string>
     <string name="rate_slow">Slow</string>
     <string name="rate_standard">Standard</string>

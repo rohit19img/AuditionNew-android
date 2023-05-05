@@ -169,7 +169,10 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         songID: String
     ) {
         val audioSheet = BottomSheetDialog(contextFromActivity,R.style.CustomBottomSheetDialogTheme)
+        audioSheet.setCanceledOnTouchOutside(false)
         audioSheet.setContentView(R.layout.audio_trim_sheet_design)
+
+
 
         val audioPlayer = MediaPlayer()
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
@@ -206,6 +209,11 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             audioWaveSeekbar!!.maxProgress = audioPlayer.duration.toFloat()
         }
 
+        audioSheet.setOnDismissListener {
+            if (audioPlayer!=null && audioPlayer.isPlaying){
+                audioPlayer.stop()
+            }
+        }
         audioWaveSeekbar!!.progress = audioPlayer.currentPosition.toFloat()
 
 

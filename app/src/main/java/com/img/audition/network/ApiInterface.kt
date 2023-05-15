@@ -45,6 +45,12 @@ interface ApiInterface {
         @Query("userId") userID: String?
     ): Call<GetOtherUserResponse>
 
+    @GET(APITags.GetUserByAuditionId)
+    fun getUserByAuditionId(
+        @Header(APITags.AUTHORIZATION) Auth: String?,
+        @Query("audition_id") auditionID: String?
+    ): Call<GetOtherUserResponse>
+
     @GET(APITags.GetUserVideo)
     fun getOtherUserVideo(
         @Header(APITags.AUTHORIZATION) Auth: String?,
@@ -95,6 +101,9 @@ interface ApiInterface {
 
     @GET(APITags.GetMusicList)
     fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
+
+    @GET(APITags.GetFavMusicList)
+    fun getFavMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
 
     @GET(APITags.GetReportCategory)
     fun getReportCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
@@ -220,5 +229,23 @@ interface ApiInterface {
     fun withdrawRequest(@Header("Authorization") Auth: String?,@Body jsonObject: JsonObject): Call<CommanResponse>
     @GET("getBlockedUser")
     fun getBlockedUser(@Header("Authorization") Auth: String?): Call<BlockedUserResponse>
+
+    @POST("addFavMusic")
+    fun addFavMusic(@Header("Authorization") Auth: String?, @Body favMusicObj: JsonObject?): Call<CommanResponse>
+
+    @GET("terms-and-conditions")
+    fun getTermsAndConditions(@Header("Authorization") Auth: String?): Call<TermAboutPrivacyResponse>
+
+    @GET("privacy-policy")
+    fun getPrivacyPolicy(@Header("Authorization") Auth: String?): Call<TermAboutPrivacyResponse>
+
+    @GET("about-us")
+    fun getAboutUs(@Header("Authorization") Auth: String?): Call<TermAboutPrivacyResponse>
+
+    @GET("get_location_video")
+    fun getPostLocationVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("location") hashTag :String): Call<VideoResponse>
+
+    @GET("get-web-slider")
+    fun getWebSliderBanner(@Header(APITags.AUTHORIZATION) Auth: String?): Call<WebSliderResponse>
 
 }

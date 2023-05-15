@@ -36,3 +36,19 @@ data class SearchResponseData (
     @SerializedName("data"     ) var data     : ArrayList<VideoData>     = arrayListOf()
 
 )
+
+
+data class TermAboutPrivacyResponse (
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : TermAboutPrivacyData?    = TermAboutPrivacyData()
+)
+
+data class TermAboutPrivacyData(
+    @SerializedName("_id"         ) var Id          : String?  = null,
+    @SerializedName("title"       ) var title       : String?  = null,
+    @SerializedName("description" ) var description : String?  = null,
+    @SerializedName("is_deleted"  ) var isDeleted   : Boolean? = null,
+    @SerializedName("createdAt"   ) var createdAt   : String?  = null,
+    @SerializedName("updatedAt"   ) var updatedAt   : String?  = null
+)

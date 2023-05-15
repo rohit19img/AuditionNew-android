@@ -1,5 +1,6 @@
 package com.img.audition.Firebase;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -23,13 +24,14 @@ import java.util.Random;
 
 import androidx.core.app.NotificationCompat;
 
+@SuppressLint("MissingFirebaseInstanceTokenRefresh")
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private static final String TAG = "FCM Service";
 
     Bitmap bitmap;
     String id;
     String prod_id="";
-    String title="Champions";
+    String title="Audition";
     String message;
     String type="";
     int x = 0;

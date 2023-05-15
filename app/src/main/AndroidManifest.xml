@@ -15,15 +15,65 @@
         android:theme="@style/Theme.Audition"
         tools:node="merge"
         tools:targetApi="31">
+        <activity
+            android:name=".screens.DuetCameraActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".screens.SharedVideoPlayActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden">
+            <intent-filter
+                android:autoVerify="true"
+                android:label="@string/app_name">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="139.59.30.125:6060"
+                    android:pathPattern="/video/.*"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter
+                android:autoVerify="true"
+                android:label="@string/app_name">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="139.59.30.125:6060"
+                    android:pathPattern="/video/.*"
+                    android:scheme="http" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".screens.PostLocationVideoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.AboutUsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.PrivacyPolicyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.TermsAndConditionActivity"
+            android:exported="false" />
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name" />
-
-        <meta-data
-            android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
         <activity
             android:name=".screens.TryAudioActivity"
             android:exported="false" />
@@ -140,15 +190,11 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.SplashActivity"
-            android:exported="true"
+            android:exported="false"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Splash">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".screens.HomeActivity"
@@ -156,19 +202,25 @@
             android:screenOrientation="portrait" />
 
         <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
             android:name="com.snap.camerakit.app.id"
             android:value="b6045b5c-05c8-4ffa-a767-fed3047652d1" />
-        <!--
-     <meta-data
-            android:name="com.snap.camerakit.api.token"
-            android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-UFJPRFVDVElPTn4zYjM4NDljOS1lMWE3LTQyYjUtOWFiOC01ZmVkZGM1MTg3MjIifQ.GR9osml4jEpZi_jRp1ID0NrYk1Tlgex8lXZxJadVYVo" />
-        -->
         <meta-data
             android:name="com.snap.camerakit.api.token"
             android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-U1RBR0lOR341YWI3ZTJjZS02NTg0LTRjZWItOWE4NS05NWQ2NjViYzJjNzcifQ.60yX_HWLomYzhWEU46ujw9rPfzSItsDpwmBiby-g4JU" />
         <meta-data
             android:name="com.snap.kit.scopes"
             android:resource="@array/snap_kit_scopes" />
+        <!--
+     <meta-data
+            android:name="com.snap.camerakit.api.token"
+            android:value="eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNjgyNDAzNzQ1LCJzdWIiOiJiNjA0NWI1Yy0wNWM4LTRmZmEtYTc2Ny1mZWQzMDQ3NjUyZDF-UFJPRFVDVElPTn4zYjM4NDljOS1lMWE3LTQyYjUtOWFiOC01ZmVkZGM1MTg3MjIifQ.GR9osml4jEpZi_jRp1ID0NrYk1Tlgex8lXZxJadVYVo" />
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/logo" />

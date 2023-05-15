@@ -22,6 +22,7 @@ import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.ContestDetailsActivity
 import com.img.audition.screens.LoginActivity
 import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.PlayPauseContestVideo
@@ -109,6 +110,15 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                     }
                 }
             }
+
+            itemView.setOnClickListener {
+                sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.ContestID,contest.Id)
+                bundle.putBoolean(ConstValFile.IsContestJoin,contest.isJoined!!)
+                myApplication.printLogD(contest.isJoined!!.toString(), "IsContestJoin")
+                sendToContestDetailsActivity(bundle)
+            }
         }
     }
 
@@ -135,9 +145,9 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
                 exoPlayer.prepare()
-                exoPlayer.playWhenReady = false
+                exoPlayer.playWhenReady = true
 
-                /* if (cPos>=0){
+                 if (cPos>=0){
                      myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}",TAG)
                      if (cPos == position){
                          exoPlayer.seekTo(0)
@@ -146,7 +156,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                          exoPlayer.seekTo(0)
                          exoPlayer.playWhenReady = false
                      }
-                 }*/
+                 }
 
                 exoPlayer.addListener(object : Player.Listener {
                     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
@@ -229,4 +239,9 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
         context.startActivity(intent)
     }
 
+    private fun sendToContestDetailsActivity(bundle: Bundle) {
+        val intent = Intent(context, ContestDetailsActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        context.startActivity(intent)
+    }
 }

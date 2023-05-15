@@ -163,4 +163,15 @@
         <item name="android:drawablePadding">10dp</item>
     </style>
 
+
+    <style name="switchBtn" parent="Theme.AppCompat.Light">
+        <!-- active thumb & track color (30% transparency) -->
+        <item name="colorControlActivated">@color/bgColorYellow</item>
+
+        <!-- inactive thumb color -->
+        <item name="colorSwitchThumbNormal">@color/bgColorWhite</item>
+
+        <!-- inactive track color (30% transparency) -->
+        <item name="android:colorForeground">#42221f1f</item>
+    </style>
 </resources>

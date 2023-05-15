@@ -87,7 +87,7 @@ import com.img.audition.videoWork.VideoItemPlayPause
         super.onPause()
     }
 
-  /*  override fun onResume() {
+    override fun onResume() {
         try {
             val cPos =  viewBinding.videoViewpager2.currentItem
             val holder: VideoAdapter.VideoViewHolder = ( viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
@@ -97,5 +97,18 @@ import com.img.audition.videoWork.VideoItemPlayPause
         }
         Log.d(TRACK, "onResume: ")
         super.onResume()
-    }*/
+    }
+
+
+     override fun onStop() {
+         Log.d(TRACK, "onStop: ")
+         try {
+             val cPos = viewBinding.videoViewpager2.currentItem
+             val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
+             videoItemPlayPause.onStop(holder,cPos)
+         }catch (e:Exception){
+             myApplication.printLogE(e.message.toString(),TAG)
+         }
+         super.onStop()
+     }
 }

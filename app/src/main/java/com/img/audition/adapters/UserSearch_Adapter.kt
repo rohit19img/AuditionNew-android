@@ -9,16 +9,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.dataModel.SearchUserData
 import com.img.audition.globalAccess.ConstValFile
+import com.img.audition.screens.CommanVideoPlayActivity
+import com.img.audition.screens.HomeActivity
 import com.img.audition.screens.OtherUserProfileActivity
+import com.img.audition.screens.UploadVideoActivity
+import com.img.audition.screens.fragment.ProfileFragment
 import java.lang.String
 import kotlin.Int
 
-class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Context) : RecyclerView.Adapter<UserSearch_Adapter.ViewHolder>(){
+class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Context, val replacedText : kotlin.String) : RecyclerView.Adapter<UserSearch_Adapter.ViewHolder>(){
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var username: TextView
@@ -52,21 +57,54 @@ class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Conte
             audiid.setText(list[position].auditionId)
             follcount.setText(String.valueOf(list[position].followersCount) + " Followers")
 
-            itemView.setOnClickListener {
-                if (!(list[position].isSelf!!)) {
-                    val bundle = Bundle()
-                    bundle.putString(ConstValFile.USER_IDFORIntent, list[position].Id)
-                    bundle.putBoolean(ConstValFile.UserFollowStatus, list[position].followStatus!!)
-                    context.startActivity(
-                        Intent(context, OtherUserProfileActivity::class.java)
-                            .putExtra(ConstValFile.Bundle,bundle)
-                    )
-                } else {
 
+                itemView.setOnClickListener {
+                    if (context is UploadVideoActivity) {
+
+                        context.searchUserName = ""
+                        var userNameID = ""
+                        val userId = list[position].auditionId.toString()
+                        if (userId.contains("@")){
+                            userNameID = userId.replace("@","")
+                        }else{
+                            userNameID = userId
+                        }
+                        context.check=true;
+                        context.videoCapEt.setText(context.videoCapEt.text.toString().replace("$replacedText","@"+userNameID).toString()!!)
+                        val fullCap = context.videoCapEt.text.toString()
+                        context.videoCapEt.setSelection(fullCap.length)
+
+                        list.clear()
+                        notifyDataSetChanged()
+                        context.cycleViewlayout.visibility = View.GONE
+
+                    //context.videoCapEt.append(list[position].auditionId.toString())
+                    } else {
+                        if (!(list[position].isSelf!!)) {
+                            val bundle = Bundle()
+                            bundle.putString(ConstValFile.USER_IDFORIntent, list[position].Id)
+                            bundle.putBoolean(
+                                ConstValFile.UserFollowStatus,
+                                list[position].followStatus!!
+                            )
+                            context.startActivity(
+                                Intent(context, OtherUserProfileActivity::class.java)
+                                    .putExtra(ConstValFile.Bundle, bundle)
+                            )
+                        } else {
+                            sendToUserSelfProfile()
+                        }
+                    }
                 }
             }
 
         }
-    }
 
+    private fun sendToUserSelfProfile() {
+        val activity = context as HomeActivity
+        val myFragment: Fragment = ProfileFragment(context)
+            activity.supportFragmentManager.beginTransaction()
+                .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
+    }
 }
+

@@ -15,7 +15,6 @@ import com.android.volley.toolbox.Volley
 import com.img.audition.adapters.AddCashOfferAdapter
 import com.img.audition.cashfree.PaymentActivity
 import com.img.audition.dataModel.OfferDataResponse
-import com.img.audition.databinding.ActivityAddAmountBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.APITags
 import com.img.audition.network.ApiInterface
@@ -24,6 +23,7 @@ import com.img.audition.network.SessionManager
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
+import com.img.audition.databinding.ActivityAddAmountBinding
 import retrofit2.Callback
 import retrofit2.Response
 
@@ -92,13 +92,15 @@ class AddAmountActivity : AppCompatActivity() {
             if (amount != "") {
                 if (ifOfferApplied) {
                     val amt: Int = amount.toInt()
-                    if (amt <= offerMinAmt) {
+                    myApplication.printLogD("amt : $amt" ,"AddCash")
+                    myApplication.printLogD("offerMinAmt : $offerMinAmt" ,"AddCash")
+                    if (amt < offerMinAmt) {
                         Toast.makeText(
                             this@AddAmountActivity,
                             "Add Cash More Then : $offerMinAmt",
                             Toast.LENGTH_SHORT
                         ).show()
-                    } else if (amt >= offerMaxAmt) {
+                    } else if (amt > offerMaxAmt) {
                         Toast.makeText(
                             this@AddAmountActivity,
                             "Add Cash Less Then : $offerMaxAmt",

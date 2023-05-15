@@ -3,32 +3,17 @@ package com.img.audition.snapCameraKit
 import VideoHandle.EpEditor
 import VideoHandle.OnEditorListener
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.*
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
-import androidx.compose.material.SnackbarDuration
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -43,16 +28,11 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.CompilerActivity
 import com.img.audition.videoWork.VideoCacheWork
-import com.masoudss.lib.utils.uriToFile
 import com.snap.camerakit.*
-import com.snap.camerakit.extension.auth.loginkit.LoginKitAuthTokenProvider
 import com.snap.camerakit.extension.lens.p2d.service.LensPushToDeviceService
-import com.snap.camerakit.extension.lens.p2d.service.configurePushToDevice
 import com.snap.camerakit.lenses.*
 import com.snap.camerakit.support.widget.CameraLayout
-import com.snap.camerakit.support.widget.LensesCarouselView
 import com.snap.camerakit.support.widget.SnapButtonView
-import com.snap.camerakit.support.widget.arCoreSupportedAndInstalled
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
@@ -429,7 +409,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
     private fun sendToVideoPreview(videoUri: String,videoDuration: Long) {
         myApplication.printLogD("sendToVideoPreview Call","TrimAudio")
-
+        recordingCloseable?.close()
         if (sessionManager.getIsFromTryAudio()){
             sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
             myApplication.printLogD("sendToVideoPreview audioURl ${sessionManager.getVideoSongUrl()}","audioUrl")
@@ -484,7 +464,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             }
         })
 
-        /* FFmpegKit.executeAsync(cmd,
+      /*   FFmpegKit.executeAsync(cmd,
              { session ->
                  val state = session.state
                  val returnCode = session.returnCode
@@ -493,7 +473,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                      sessionManager.setCreateAudioSession(trimFilePath)
                      val bundle = Bundle()
                      bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
-                     contextFromActivity.startActivity(Intent(contextFromActivity.applicationContext,CompilerActivity::class.java)
+                     startActivity(Intent(this@SnapCameraActivity,CompilerActivity::class.java)
                          .putExtra(ConstValFile.Bundle,bundle))
                  }
                  // CALLED WHEN SESSION IS EXECUTED
@@ -510,8 +490,13 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
     override fun onStart(captureType: SnapButtonView.CaptureType) {
 
-
         myApplication.printLogD(captureType.toString(),"CaptureType")
+
+        if (videoFilePath.isNotEmpty()){
+            if (File(videoFilePath).exists()){
+                File(videoFilePath).delete()
+            }
+        }
 
         if (captureType == SnapButtonView.CaptureType.CONTINUOUS) {
             myApplication.printLogI("onStart Camera",TRACK)

@@ -1,27 +1,21 @@
 package com.img.audition.screens
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.util.Log
-import android.widget.Toast
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import com.img.audition.adapters.MusicAdapter
-import com.img.audition.dataModel.MusicData
-import com.img.audition.dataModel.MusicDataResponse
+import androidx.fragment.app.Fragment
+import androidx.media3.common.util.UnstableApi
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import com.img.audition.databinding.ActivityMusicBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
-import com.img.audition.videoWork.PlayPauseAudio
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.util.*
-import kotlin.collections.ArrayList
+import com.img.audition.screens.fragment.AllMusicFragment
+import com.img.audition.screens.fragment.FavMusicFragment
 
-class MusicActivity : AppCompatActivity() {
+@UnstableApi class MusicActivity : AppCompatActivity() {
 
     val TAG = "MusicActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -38,9 +32,9 @@ class MusicActivity : AppCompatActivity() {
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
-    var musicList = ArrayList<MusicData>()
-    lateinit var musicAdapter: MusicAdapter
-    lateinit var playPauseAudio: PlayPauseAudio
+
+    lateinit var searchMusicET:EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -49,68 +43,35 @@ class MusicActivity : AppCompatActivity() {
             onBackPressed()
         }
 
-        showMusicList()
+        searchMusicET =  viewBinding.searchET
 
-        viewBinding.searchET.addTextChangedListener(object :TextWatcher{
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                searchMusic(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
-
-        })
-    }
+       loadFragment(AllMusicFragment(this@MusicActivity))
 
 
-    fun showMusicList(){
-        val musicListReq = apiInterface.getMusicList(sessionManager.getToken()!!)
-        musicListReq.enqueue(object : Callback<MusicDataResponse> {
-            override fun onResponse(call: Call<MusicDataResponse>, response: Response<MusicDataResponse>) {
-                if (response.isSuccessful && response.body()!!.success!!){
-                    myApplication.printLogD(response.toString(),TAG)
-                     musicList = response.body()!!.data
-                     musicAdapter = MusicAdapter(this@MusicActivity,musicList)
-                    playPauseAudio = musicAdapter.onActivityStateChanged()
-                    viewBinding.musicCycle.adapter = musicAdapter
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
+        viewBinding.tabLayout.addOnTabSelectedListener(object : OnTabSelectedListener{
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when(tab!!.position){
+                     0 ->{
+                         loadFragment(AllMusicFragment(this@MusicActivity))
+                     }else ->{
+                         loadFragment(FavMusicFragment(this@MusicActivity))
+                     }
                 }
             }
 
-            override fun onFailure(call: Call<MusicDataResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
-            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
 
         })
+
     }
 
-    override fun onPause() {
-        Log.d(TAG, "onPause: ")
-        try {
-            playPauseAudio.stop()
-        }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG+"2")
-        }
-        super.onPause()
-    }
 
-    private fun searchMusic(toString: String) {
-        val searchList: ArrayList<MusicData> = ArrayList()
-        for (ds in musicList) {
-            if (ds.title!!.toLowerCase().contains(toString.lowercase(Locale.getDefault()))) {
-                searchList.add(ds)
-            }
-        }
-        if (searchList.isEmpty()) {
-            Toast.makeText(this, "No Data Found..", Toast.LENGTH_SHORT).show()
-        } else {
-            musicAdapter.filterList(searchList)
-        }
+
+    private fun loadFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(viewBinding.viewContainer.id,fragment)
+        transaction.commit()
     }
 }

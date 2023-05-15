@@ -23,6 +23,7 @@ class APITags {
         const val likeUnlike = "likeUnlike"
         const val FollowUnfollow = "followUnfollow"
         const val GetUserList = "getUserList"
+        const val GetUserByAuditionId = "getUserByAuditionId"
         const val GetUserVideo = "get_user_video"
         const val GetHashTagVideo = "get_hashtag_video"
         const val GetMusicVideo = "get_music_videos"
@@ -38,6 +39,7 @@ class APITags {
         const val RemoveWatchLater = "remove-watch-later/{id}"
         const val FollowFollowingList = "getFollowerList"
         const val GetMusicList = "get_music_Uploaded"
+        const val GetFavMusicList = "favMusicList"
         const val GetReportCategory = "getReportCategory"
         const val GetNotInterestedCategory = "interest-categories"
         const val ReportVideo = "report_video"
@@ -49,7 +51,7 @@ class APITags {
         const val GetUserTransactions = "getTransactions"
         const val UploadNormalVideoToServer = "upload_video"
         const val UploadContestVideoToServer = "join_contest"
-
+        const val MAPS_API_KEY = "AIzaSyBmniloMXEznkrAL6k0VfoFsJJFAfcRBgg"
 
     }
 }

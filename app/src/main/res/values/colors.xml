@@ -99,5 +99,8 @@
         <item>#FF230051</item>
     </array>
 
+    <color name="bottom_sheet_color">#1E1E1E</color>
+    <color name="lens_card_background_color">#343434</color>
+    <color name="selected_lens_container_background">#4D16191C</color>
 
 </resources>

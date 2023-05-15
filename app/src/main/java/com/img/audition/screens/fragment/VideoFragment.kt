@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
+import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -75,16 +76,12 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
     val videoList2 = ArrayList<VideoData>()
 
 
-
-
     lateinit var viewPager : ViewPager2
 
     lateinit var videoItemPlayPause:VideoItemPlayPause
     lateinit var videoShimmerEffect:ShimmerFrameLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
 
 
         Log.d(TRACK, "onCreate: ")
@@ -119,8 +116,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
 
         Log.d(TRACK, "onCreateView: ")
-
-
 
         return _viewBinding.root
     }
@@ -162,7 +157,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         }
 
 
-        apiVideoRequest.enqueue( object : Callback<VideoResponse> {
+        apiVideoRequest.enqueue( @UnstableApi object : Callback<VideoResponse> {
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.code()==401){
                     sessionManager.clearLogoutSession()
@@ -279,14 +274,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
                     }
 
                 }
-
-                try {
-                    val cPos = position
-                    val holder: VideoAdapter.VideoViewHolder = (viewPager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
-
-                }catch (e:Exception){
-                    myApplication.printLogE(e.message.toString(),TAG+"4")
-                }
             }
         })
 
@@ -299,7 +286,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         }
         Log.d(TRACK, "onResume: ")
         super.onResume()
-
 
     }
 
@@ -330,7 +316,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
             }
         }
     }
-
 
 
     override fun onStart() {

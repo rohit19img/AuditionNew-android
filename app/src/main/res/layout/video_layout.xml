@@ -183,7 +183,6 @@
            app:resize_mode="fill"
            android:orientation="vertical"
            app:surface_type="texture_view"
-           app:keep_content_on_player_reset="true"
            app:use_controller="false"
            app:show_buffering="never" />
 
@@ -219,6 +218,12 @@
            android:orientation="vertical"
            android:layout_alignParentEnd="true"
            android:layout_height="wrap_content">
+
+           <ImageView
+               android:visibility="gone"
+               android:id="@+id/duetVideo"
+               style="@style/imageButtonStyle"
+               android:src="@drawable/ic_duet"/>
 
            <ImageView
                android:visibility="gone"
@@ -285,15 +290,22 @@
                android:id="@+id/likeCount"
                style="@style/textViewStyle"/>
 
-           <ImageButton
-               android:id="@+id/commentButton"
-               style="@style/imageButtonStyle"
-               android:src="@drawable/comment_ic"
-               android:contentDescription="Comment Button" />
+          <LinearLayout
+              android:id="@+id/showComment"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              >
+              <ImageButton
+                  android:id="@+id/commentButton"
+                  style="@style/imageButtonStyle"
+                  android:src="@drawable/comment_ic"
+                  android:contentDescription="Comment Button" />
 
-           <TextView
-               android:id="@+id/commentCount"
-               style="@style/textViewStyle"/>
+              <TextView
+                  android:id="@+id/commentCount"
+                  style="@style/textViewStyle"/>
+          </LinearLayout>
 
            <ImageButton
                android:id="@+id/shareButton"
@@ -353,6 +365,18 @@
                >
 
                <TextView
+                   style="@style/textViewStyle"
+                   android:layout_gravity="start"
+                   android:maxLines="1"
+                   android:textSize="12sp"
+                   android:layout_width="match_parent"
+                   android:layout_marginEnd="100dp"
+                   android:id="@+id/postLocation"
+                   android:text="post location"
+                   />
+
+               <TextView
+                   android:layout_below="@id/postLocation"
                    style="@style/textViewStyle"
                    android:layout_gravity="start"
                    android:maxLines="3"

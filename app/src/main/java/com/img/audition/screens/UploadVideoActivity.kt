@@ -1,9 +1,10 @@
 package com.img.audition.screens
 
-
 import VideoHandle.EpEditor
 import VideoHandle.OnEditorListener
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ProgressDialog
 import android.content.ContentResolver
 import android.content.Context
@@ -14,12 +15,18 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.View
+import android.widget.EditText
+import android.widget.RelativeLayout
+import android.widget.Switch
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.media3.common.util.UnstableApi
-
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
@@ -28,20 +35,23 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.CannedAccessControlList
-
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.AutocompleteActivity
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.JsonObject
-import com.img.audition.dataModel.CommanResponse
-import com.img.audition.dataModel.UploadMusicResponse
-import com.img.audition.dataModel.UserLatLang
-import com.img.audition.dataModel.UserSelfProfileResponse
+import com.img.audition.R
+import com.img.audition.adapters.UserSearch_Adapter
+import com.img.audition.dataModel.*
 import com.img.audition.databinding.ActivityUploadVideoBinding
-
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -49,7 +59,6 @@ import com.img.audition.network.APITags
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
@@ -61,14 +70,19 @@ import java.sql.Timestamp
 import java.util.*
 import java.util.regex.Pattern
 
-@UnstableApi class UploadVideoActivity : AppCompatActivity() {
+@UnstableApi
+class UploadVideoActivity : AppCompatActivity() {
 
     val TAG = "UploadVideoActivity"
     val TARCK = "check 100"
     private var videoSongName = ""
     private var videoSongID = ""
     private var audiFilePath = ""
+    var check:Boolean=false
 
+    val PLACE_PICKER_REQUEST = 200
+
+    var postLocation = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
     }
@@ -90,6 +104,10 @@ import java.util.regex.Pattern
     }
 
     private var isFromContest = false
+    private var isAllowComment = true
+    private var isAllowSharing = true
+    private var isAllowDuet = true
+    var userlist: ArrayList<SearchUserData>? = null
     private var walletBalance = 0
 
     lateinit var fusedLocation : FusedLocationProviderClient
@@ -104,6 +122,10 @@ import java.util.regex.Pattern
     private var videoTimeStamp: String = ""
     lateinit var progressDialog: ProgressDialog
 
+    lateinit var videoCapEt : EditText
+    lateinit var cycleViewlayout : RelativeLayout
+
+    var searchUserName = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -113,15 +135,79 @@ import java.util.regex.Pattern
         userLatLang = UserLatLang()
         askForLocation()
 
+        if (!Places.isInitialized()) {
+            Places.initialize(this@UploadVideoActivity, "AIzaSyBmniloMXEznkrAL6k0VfoFsJJFAfcRBgg", Locale.ENGLISH);
+        }
+
+
+        videoCapEt = viewBinding.captionForVideoET
+        cycleViewlayout = viewBinding.cycleView
         progressDialog = ProgressDialog(this@UploadVideoActivity)
         progressDialog.setCancelable(false)
         progressDialog.setTitle("Uploading.")
         progressDialog.setMessage("please wait...")
 
+
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
-    }
+
+        viewBinding.tagFriendBtn.setOnClickListener {
+            viewBinding.captionForVideoET.append(" @")
+        }
+
+        viewBinding.addHashtagBtn.setOnClickListener {
+            viewBinding.captionForVideoET.append(" #")
+        }
+
+        viewBinding.captionForVideoET.addTextChangedListener(object : TextWatcher{
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                Log.d(TAG, "onTextChanged: "+check)
+
+                val str =viewBinding.captionForVideoET.text.toString().trim()
+                val substrings = str.substring(str.lastIndexOf(" ")+1)
+
+                Log.d(TAG, "onTextChanged: "+substrings)
+
+                if (substrings.contains("@") && substrings.length>2){
+                    if(!check)
+                    {
+                        val caption = substrings.toString().trim()
+//                val caption = viewBinding.captionForVideoET.text.toString().trim()
+                        if (caption.contains("@")){
+                            val atIndex =  caption.indexOf("@")
+                            if (atIndex!=-1){
+                                searchUserName = caption
+                                searchUser(searchUserName)
+                            }
+                        }
+                    }
+                    else{
+                        check=false
+                    }
+                }
+
+
+
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+
+        })
+
+        viewBinding.postSettingBtn.setOnClickListener {
+            showPostSettingDialog()
+        }
+
+        viewBinding.addLocation.setOnClickListener {
+            val fields=Arrays.asList(Place.Field.ADDRESS,Place.Field.ID,Place.Field.NAME,Place.Field.LAT_LNG)
+            val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields).build(this)
+            startActivityForResult(intent, PLACE_PICKER_REQUEST)
+        }
+        }
+
 
     private fun uploadVideoMainFun() {
         val cap = viewBinding.captionForVideoET.text.toString().trim()
@@ -149,13 +235,9 @@ import java.util.regex.Pattern
         }
 
 
-
-
        /* val outputPath = createFileAndFolder()
         myApplication.printLogD("Call Compress Video Fun",TARCK)
         compressVideo(videoOriginalPath,outputPath)*/
-
-
 
         }
 
@@ -194,9 +276,8 @@ import java.util.regex.Pattern
                 .addOnSuccessListener(this
                 ) { location ->
                     if (location != null) {
-                        userLatLang = UserLatLang(location.latitude,location.longitude)
-                        myApplication.printLogI(userLatLang.lat.toString(),TAG + " latitude :")
-                        myApplication.printLogI(userLatLang.long.toString(),TAG + " longitude :")
+                        myApplication.printLogI(location.latitude.toString(),TAG + " latitude :")
+                        myApplication.printLogI(location.longitude.toString(),TAG + " longitude :")
                     }
                 }
         }
@@ -222,7 +303,7 @@ import java.util.regex.Pattern
             myApplication.printLogE(e.toString(),TAG)
         }
         val intent = Intent(this@UploadVideoActivity, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
         finish()
     }
@@ -462,8 +543,12 @@ import java.util.regex.Pattern
         obj.addProperty("likeCount", 0)
         obj.addProperty("comment", "")
         obj.addProperty("shares", 0)
+        obj.addProperty("isAllowSharing", isAllowSharing)
+        obj.addProperty("isAllowDuet", isAllowDuet)
+        obj.addProperty("isAllowComment", isAllowComment)
+        myApplication.printLogD("isAllowComment = $isAllowComment","isAllow")
         obj.addProperty("caption", videoCaption)
-        obj.addProperty("hashtag",videoHashTag)
+            obj.addProperty("hashtag",videoHashTag)
         obj.addProperty("typename", "")
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("songLink", sessionManager.getVideoSongUrl())
@@ -474,10 +559,12 @@ import java.util.regex.Pattern
         obj.addProperty("language", sessionManager.getSelectedLanguage())
         obj.addProperty("lat",userLatLang.lat.toString())
         obj.addProperty("long",userLatLang.long.toString())
+        obj.addProperty("location", postLocation)
 
         myApplication.printLogD(obj.toString(),"videoObj")
         val uploadVideoReq = apiInterface.uploadNormalVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadNormalVideoDataToServer Fun API",TARCK)
+        myApplication.printLogD(obj.toString(),TARCK)
         uploadVideoReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 progressDialog.dismiss()
@@ -523,11 +610,13 @@ import java.util.regex.Pattern
         obj.addProperty("video_or_image_type",sessionManager.getContestType())
         obj.addProperty("lat",userLatLang.lat.toString())
         obj.addProperty("long",userLatLang.long.toString())
+        obj.addProperty("location", postLocation)
 
 
 
         val uploadVideoReq = apiInterface.uploadContestVideoToServer(sessionManager.getToken(),obj)
         myApplication.printLogD("Call uploadContestVideoDataToServer Fun API",TARCK)
+        myApplication.printLogD(obj.toString(),TARCK)
         uploadVideoReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 progressDialog.dismiss()
@@ -594,8 +683,8 @@ import java.util.regex.Pattern
     }
 
     private fun getUserWalletBalance(contestFees: Int) {
-        val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
+        val userDetailsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
+        userDetailsReq.enqueue(object : Callback<UserSelfProfileResponse> {
             override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     myApplication.printLogD(response.toString(),TAG)
@@ -604,9 +693,7 @@ import java.util.regex.Pattern
                         walletBalance =  userData.walletamaount!!
                         myApplication.printLogD("walletBalance $walletBalance",TARCK)
                         myApplication.printLogD("contestFees $contestFees",TARCK)
-
                         val isValid  =  contestFees <=  walletBalance
-
                         Log.i(TRACK,"contestFees : $contestFees")
                         Log.i(TRACK,"walletBalance : $walletBalance")
 
@@ -675,7 +762,7 @@ import java.util.regex.Pattern
 
     }
 
-    override fun onDestroy() {
+   /* override fun onDestroy() {
         try {
             if(File(sessionManager.getCreateVideoPath()!!).exists()){
                 File(sessionManager.getCreateVideoPath()!!).delete()
@@ -690,7 +777,7 @@ import java.util.regex.Pattern
             myApplication.printLogE(e.toString(),TAG)
         }
         super.onDestroy()
-    }
+    }*/
 
     fun extractAudioFromVideo(inputPath:String){
 
@@ -724,8 +811,12 @@ import java.util.regex.Pattern
                 val state = session.state
                 val returnCode = session.returnCode
                 if (ReturnCode.isSuccess(returnCode)){
-                    myApplication.printLogD("audio extract Complete",TARCK)
-
+                    myApplication.printLogD("log : onSuccess","ffmpeg")
+                    myApplication.printLogD("Audio extract Complete",TARCK)
+                    audioOriginalPath = outputPath
+                    myApplication.printLogD("extractAudioFromVideo Path  : $audioOriginalPath",TARCK)
+                    myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
+                    uploadAudioToServer(outputPath)
                 }
                 // CALLED WHEN SESSION IS EXECUTED
                 Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
@@ -773,4 +864,83 @@ import java.util.regex.Pattern
     }
 
 
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    private fun showPostSettingDialog() {
+        val dialog = BottomSheetDialog(this@UploadVideoActivity, R.style.CustomBottomSheetDialogTheme)
+        dialog.setContentView(R.layout.post_setting_layout)
+
+        val allowComment = dialog.findViewById<Switch>(R.id.allowComment)
+        val allowSharing = dialog.findViewById<Switch>(R.id.allowSharing)
+        val allowDuet = dialog.findViewById<Switch>(R.id.allowDuet)
+        val applyBtn = dialog.findViewById<TextView>(R.id.applyBtn)
+
+        allowComment!!.isChecked = isAllowComment
+        allowSharing!!.isChecked = isAllowSharing
+        allowDuet!!.isChecked = isAllowDuet
+
+        applyBtn!!.setOnClickListener {
+            isAllowComment = allowComment.isChecked
+            isAllowSharing = allowSharing.isChecked
+            isAllowDuet = allowDuet.isChecked
+            myApplication.printLogD("$isAllowComment isAllowComment","check 300")
+            myApplication.printLogD("$isAllowSharing isAllowSharing","check 300")
+            myApplication.printLogD("$isAllowDuet isAllowDuet","check 300")
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+    }
+
+    fun searchUser(userName : String){
+        val obj = JsonObject()
+        obj.addProperty("search", userName)
+        Log.i("request",obj.toString())
+
+        val responseCall: Call<SearchResponse> = apiInterface.search(sessionManager.getToken(), obj)
+        responseCall.enqueue( object : Callback<SearchResponse> {
+            override fun onResponse(call: Call<SearchResponse>, response: Response<SearchResponse>) {
+                if (response.isSuccessful) {
+                    response.body()!!.message
+
+                    userlist = ArrayList()
+
+                    if(response.body()!!.success!!){
+                        userlist = response.body()!!.data!!.users
+                        Log.i("list_size", "Users : " + userlist!!.size)
+
+                    }
+                } else {
+                    myApplication.showToast("Something went wrong!!")
+                }
+                cycleViewlayout.visibility = View.VISIBLE
+                viewBinding.userCycle.adapter = UserSearch_Adapter(userlist!!,this@UploadVideoActivity,userName)
+            }
+
+            override fun onFailure(call: Call<SearchResponse>, t: Throwable) {
+                myApplication.printLogE(t.message!!, TAG)
+            }
+        })
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                val place =Autocomplete.getPlaceFromIntent(data)
+                val lat = place.latLng?.latitude
+                val lng = place.latLng?.longitude
+                userLatLang = UserLatLang(lat,lng)
+                myApplication.printLogD(place.toString(),"address")
+                myApplication.printLogD(place.address!!,"address loc")
+                postLocation = place.address!!.toString()
+                viewBinding.addLocation.text = postLocation
+            }
+            else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                val status = Autocomplete.getStatusFromIntent(data!!)
+                Log.i("address 3", status.statusMessage!!)
+            }
+        }
+    }
 }

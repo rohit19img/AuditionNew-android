@@ -40,8 +40,7 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
 
         leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoCacheSize)
         standaloneDatabaseProvider = StandaloneDatabaseProvider(this)
-        simpleCache = SimpleCache(File(this.cacheDir, "exoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
-
+        simpleCache = SimpleCache(File(this.cacheDir, "videoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
     }
 
     override fun getCameraXConfig(): CameraXConfig {

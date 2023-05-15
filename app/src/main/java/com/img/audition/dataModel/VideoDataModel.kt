@@ -22,9 +22,12 @@ data class VideoData(
     @SerializedName("songLink"       ) var songLink      : String?           = null,
     @SerializedName("enabled"        ) var enabled       : Boolean?          = null,
     @SerializedName("contest_status" ) var contestStatus : String?           = null,
+    @SerializedName("isAllowComment" ) var allowComment  : Boolean?           = null,
+    @SerializedName("isAllowSharing" ) var allowSharing  : Boolean?           = null,
+    @SerializedName("isAllowDuet"    ) var allowDuet     : Boolean?           = null,
     @SerializedName("checked"        ) var checked       : Boolean?          = null,
     @SerializedName("wrongContent"   ) var wrongContent  : Boolean?          = null,
-    @SerializedName("comment"        ) var comment       : ArrayList<String> = arrayListOf(),
+    @SerializedName("comment"        ) var comment       : ArrayList<Comment> = arrayListOf(),
     @SerializedName("private"        ) var private       : Boolean?          = null,
     @SerializedName("shares"         ) var shares        : Int?              = null,
     @SerializedName("postId"         ) var postId        : String?           = null,
@@ -156,4 +159,12 @@ data class userDetails(
     @SerializedName("_id"         ) var Id         : String? = null,
     @SerializedName("image"       ) var image      : String? = "",
     @SerializedName("audition_id" ) var auditionId : String? = ""
+): java.io.Serializable
+
+data class Comment (
+    @SerializedName("user_id"   ) var userId    : String? = null,
+    @SerializedName("comment"   ) var comment   : String? = null,
+    @SerializedName("_id"       ) var Id        : String? = null,
+    @SerializedName("createdAt" ) var createdAt : String? = null,
+    @SerializedName("updatedAt" ) var updatedAt : String? = null
 ): java.io.Serializable

@@ -3,6 +3,7 @@ package com.img.audition.screens.fragment
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,29 +18,40 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.JoinedContestData
+import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.JoinedContestCycleDesignBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.ContestDetailsActivity
+import com.img.audition.videoWork.PlayPauseContestVideo
 import com.img.audition.videoWork.VideoCacheWork
 import java.text.SimpleDateFormat
 
 @UnstableApi
-class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<JoinedContestData>) :
+class ContestJoinedAdapter() :
     RecyclerView.Adapter<ContestJoinedAdapter.MyViewHolder>()
 {
-
-
+    lateinit var context: Context
+    lateinit var contestList: ArrayList<JoinedContestData>
     val TAG = "ContestJoinedAdapter"
     private var cPos = 0
-    private val myApplication by lazy {
-        MyApplication(context.applicationContext)
+    private lateinit var myApplication: MyApplication
+    private lateinit var sessionManager: SessionManager
+    lateinit var exoPlayer: ExoPlayer
+    constructor(context: Context, contestList: ArrayList<JoinedContestData>) : this() {
+        this.context = context
+        this.contestList = contestList
+
+        myApplication = MyApplication(context.applicationContext)
+        sessionManager = SessionManager(context.applicationContext)
+        exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
     }
-    private val sessionManager by lazy {
-        SessionManager(context.applicationContext)
-    }
+
+
+
     inner class MyViewHolder(itemView: JoinedContestCycleDesignBinding) : RecyclerView.ViewHolder(itemView.root) {
 
        val priceText = itemView.prizetxt
@@ -64,7 +76,6 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
                     DefaultHttpDataSource.Factory()
                         .setUserAgent("ExoPlayer"))
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
-        var exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
         //
     }
 
@@ -103,7 +114,7 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
             itemView.setOnClickListener {
                 val bundle = Bundle()
                 bundle.putString(ConstValFile.ContestID,data.challengeid)
-                bundle.putString("contest","join")
+                bundle.putBoolean(ConstValFile.IsContestJoin,true)
                 sendToContestDetailsActivity(bundle)
             }
         }
@@ -133,9 +144,9 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
                 exoPlayer.prepare()
-                exoPlayer.playWhenReady = false
+                exoPlayer.playWhenReady = true
 
-                /* if (cPos>=0){
+                 if (cPos>=0){
                      myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}",TAG)
                      if (cPos == position){
                          exoPlayer.seekTo(0)
@@ -144,7 +155,7 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
                          exoPlayer.seekTo(0)
                          exoPlayer.playWhenReady = false
                      }
-                 }*/
+                 }
 
                 exoPlayer.addListener(object : Player.Listener{
                     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
@@ -181,6 +192,30 @@ class ContestJoinedAdapter(val context: Context,val contestList:ArrayList<Joined
             }
         }
         super.onViewDetachedFromWindow(holder)
+    }
+
+    fun onActivityStateChanged(): PlayPauseContestVideo {
+        return object : PlayPauseContestVideo {
+            override fun onPause(holder: ContestJoinedAdapter.MyViewHolder, cPos: Int) {
+                holder.apply {
+                    Log.d("check 400", "onPause: Inside Adapter")
+                    if (cPos == position){
+                        if (exoPlayer.isPlaying){
+                            exoPlayer.pause()
+                            exoPlayer.stop()
+                        }
+                    }
+
+                }
+            }
+
+            override fun onResume(holder: ContestJoinedAdapter.MyViewHolder, cPos: Int) {
+                Log.d("check 400", "onResume: Inside Adapter")
+            }
+
+        }
+
+
     }
 
 }

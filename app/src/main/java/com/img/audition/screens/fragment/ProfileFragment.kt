@@ -118,11 +118,26 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.privacysaftey.setOnClickListener {
-            val url = "http://143.110.184.198/privacy-policy.html"
+            val intent = Intent(contextFromActivity,PrivacyPolicyActivity::class.java)
+            startActivity(intent)
+
+           /* val url = "http://143.110.184.198/privacy-policy.html"
             val i = Intent(Intent.ACTION_VIEW)
             i.data = Uri.parse(url)
-            startActivity(i)
+            startActivity(i)*/
         }
+
+        view.aboutUs.setOnClickListener {
+            val intent = Intent(contextFromActivity,AboutUsActivity::class.java)
+            startActivity(intent)
+        }
+
+        view.termCondition.setOnClickListener {
+            val intent = Intent(contextFromActivity,TermsAndConditionActivity::class.java)
+            startActivity(intent)
+        }
+
+
 
         view.followListBtn.setOnClickListener {
             val userName = view.userName.text.toString()
@@ -214,16 +229,19 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     private fun logoutUser() {
         val logoutReq = apiInterface.logoutUser(sessionManager.getToken())
 
-        logoutReq.enqueue(object : Callback<CommanResponse> {
+        logoutReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(
                 call: Call<CommanResponse>,
                 response: Response<CommanResponse>
             ) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     sessionManager.clearLogoutSession()
-                    sendToSplashActivity()
-                } else {
-                    myApplication.printLogE(response.toString(), TAG)
+                    startActivity(Intent(contextFromActivity, SplashActivity::class.java))
+                    requireActivity().finishAffinity()
+
+
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
                     myApplication.showToast("Something went wrong...")
 
                 }
@@ -231,7 +249,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.showToast("Something went wrong...")
-                myApplication.printLogE(t.toString(), TAG)
+                myApplication.printLogE(t.toString(),TAG)
             }
 
         })

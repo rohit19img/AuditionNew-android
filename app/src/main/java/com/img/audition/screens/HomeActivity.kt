@@ -1,7 +1,9 @@
 package com.img.audition.screens
 
 import android.Manifest
+import com.img.audition.R
 import android.app.ActivityManager
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,25 +11,34 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.Window
+import android.widget.Button
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.img.audition.R
 import com.img.audition.dataModel.UserLatLang
+import com.img.audition.dataModel.WebSliderResponse
 import com.img.audition.databinding.ActivityHomeBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.ApiInterface
 import com.img.audition.network.NetworkStateService
+import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
 import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.VideoCacheWork
 import org.apache.commons.io.IOUtils
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -53,6 +64,9 @@ import java.io.IOException
     private val myApplication by lazy {
         MyApplication(this@HomeActivity)
     }
+
+    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -61,6 +75,11 @@ import java.io.IOException
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         val runningTasks = activityManager.getRunningTasks(1)
         val currentActivity = runningTasks[0].topActivity!!.className
+
+        if (!(SplashActivity.isPopupBannerShow)){
+            SplashActivity.isPopupBannerShow = true
+            showPopupDialog()
+        }
 
         if (currentActivity != HomeActivity::class.java.name) {
             val intent = Intent(applicationContext, NetworkStateService::class.java)
@@ -122,6 +141,36 @@ import java.io.IOException
         }
     }
 
+    private fun showPopupDialog() {
+        val popupDialog = Dialog(this)
+        popupDialog.window!!.requestFeature(Window.FEATURE_NO_TITLE)
+        popupDialog.setContentView(layoutInflater.inflate(R.layout.popup_dialog_layout, null))
+        popupDialog.show()
+
+        val popupImage = popupDialog.findViewById<ImageView>(R.id.popupImage)
+        val popupButton = popupDialog.findViewById<Button>(R.id.popupButton)
+
+
+        val popupImageReq = apiInterface.getWebSliderBanner(sessionManager.getToken())
+
+        popupImageReq.enqueue(object : Callback<WebSliderResponse>{
+            override fun onResponse(call: Call<WebSliderResponse>, response: Response<WebSliderResponse>) {
+                if (response.isSuccessful && response.body()!!.success!!){
+                    val banner = response.body()!!.data?.image.toString()
+                    Glide.with(this@HomeActivity).load(banner).into(popupImage)
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
+                }
+            }
+            override fun onFailure(call: Call<WebSliderResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
+
+
+
+    }
 
 
     private fun loadFragment(fragment: Fragment) {
@@ -225,7 +274,7 @@ import java.io.IOException
 
 
     override fun onDestroy() {
-        VideoCacheWork.simpleCache.release()
         super.onDestroy()
     }
+
 }

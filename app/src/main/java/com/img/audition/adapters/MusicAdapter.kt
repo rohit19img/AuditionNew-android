@@ -2,6 +2,7 @@ package com.img.audition.adapters
 
 
 
+
 import VideoHandle.EpEditor
 import VideoHandle.OnEditorListener
 import android.annotation.SuppressLint
@@ -20,6 +21,7 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -30,17 +32,24 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.gson.JsonObject
 import com.img.audition.R
+import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.MusicData
 import com.img.audition.databinding.MusiclistrecycledesignBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.ApiInterface
+import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.CompilerActivity
 import com.img.audition.videoWork.PlayPauseAudio
 import com.img.audition.videoWork.VideoCacheWork
 import com.masoudss.lib.SeekBarOnProgressChanged
 import com.masoudss.lib.WaveformSeekBar
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -56,6 +65,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
     }
+    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     private val mediaSource by lazy {
         ProgressiveMediaSource.Factory(
             CacheDataSource.Factory()
@@ -73,7 +83,8 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         val sName = itemView.singername
         val playBtn = itemView.playMusic
         val pauseBtn = itemView.pauseMusic
-         val audioExoPlayer = itemView.audioPlayerView
+        val addFavMusic = itemView.addFavMusic
+        val audioExoPlayer = itemView.audioPlayerView
 
     }
 
@@ -118,6 +129,33 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             }else{
                 playBtn.visibility = View.VISIBLE
                 pauseBtn.visibility = View.GONE
+            }
+
+            if (audioData.isFav){
+                addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic_music))
+                addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
+            }else{
+                addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic_music))
+                addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
+            }
+
+            addFavMusic.setOnClickListener {
+                val songID = audioData.Id.toString()
+                myApplication.printLogD(songID,"songID")
+                if (audioData.isFav){
+                    addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic_music))
+                    addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
+                    audioData.isFav = false
+                    addFavMusic(songID)
+                }else{
+                    audioData.isFav = true
+                    addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic_music))
+                    addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
+                    addFavMusic(songID)
+                }
+
+
+
             }
 
             pauseBtn.setOnClickListener {
@@ -210,8 +248,12 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         }
 
         audioSheet.setOnDismissListener {
-            if (audioPlayer!=null && audioPlayer.isPlaying){
-                audioPlayer.stop()
+            try {
+                if (audioPlayer!=null && audioPlayer.isPlaying){
+                    audioPlayer.stop()
+                }
+            }catch (e:Exception){
+                myApplication.printLogE(e.toString(),TAG)
             }
         }
         audioWaveSeekbar!!.progress = audioPlayer.currentPosition.toFloat()
@@ -314,13 +356,14 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             }
         })
 
-       /* FFmpegKit.executeAsync(cmd,
+        /*FFmpegKit.executeAsync(cmd,
             { session ->
                 val state = session.state
                 val returnCode = session.returnCode
                 if (ReturnCode.isSuccess(returnCode)){
                     myApplication.printLogD("TrimAudio Complete","TrimAudio")
                     sessionManager.setCreateAudioSession(trimFilePath)
+                    sessionManager.setAppSongID(songID)
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
                     contextFromActivity.startActivity(Intent(contextFromActivity.applicationContext,CompilerActivity::class.java)
@@ -397,6 +440,23 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
         audioWaveSeekbar?.setSampleFrom(waveArray)
         return waveArray
+    }
+
+    fun addFavMusic(songID:String){
+        val favMusicobj = JsonObject()
+        favMusicobj.addProperty("favMusic",songID)
+        val favMusicReq = apiInterface.addFavMusic(sessionManager.getToken(),favMusicobj)
+
+        favMusicReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
+
+            }
+
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
     }
 }
 

@@ -9,10 +9,12 @@ class SessionManager(context: Context) {
     val sharedPrefLang = context.getSharedPreferences(ConstValFile.PREFER_LANG, Context.MODE_PRIVATE)
     val sharedPrefContest = context.getSharedPreferences(ConstValFile.PREFER_CONTEST, Context.MODE_PRIVATE)
     val sharedPrefAudioVideoSession = context.getSharedPreferences(ConstValFile.PREFER_VIDEO, Context.MODE_PRIVATE)
+    val sharedPrefDuetVideoSession = context.getSharedPreferences(ConstValFile.DUET_VIDEO, Context.MODE_PRIVATE)
     val prefEditorMain = sharedPrefMain.edit()
     val prefEditorLang = sharedPrefLang.edit()
     val prefEditorContest = sharedPrefContest.edit()
     val prefEditorVideoSession = sharedPrefAudioVideoSession.edit()
+    val prefEditorDuetVideoSession = sharedPrefDuetVideoSession.edit()
 
 
     fun createUserLoginSession(isLogin: Boolean, Token: String?, mNumber: String?) {
@@ -175,7 +177,7 @@ class SessionManager(context: Context) {
     }
 
     fun setCreateVideoSpeedState(VideoFrom: String?) {
-        prefEditorVideoSession.putString(ConstValFile.isFromGallery,VideoFrom)
+        prefEditorVideoSession.putString(ConstValFile.VideoSpeedState,VideoFrom)
         prefEditorVideoSession.commit()
     }
 
@@ -287,4 +289,21 @@ class SessionManager(context: Context) {
         return sharedPrefAudioVideoSession.getString(ConstValFile.SongUrl,"")
     }
 
+    fun setDuetVideoUrl(duetVideoUrl: String) {
+        prefEditorDuetVideoSession.putString(ConstValFile.DuetVideoUrl,duetVideoUrl)
+        prefEditorDuetVideoSession.commit()
+    }
+
+    fun setCreateDuetVideoUrl(createVideoUrl: String) {
+        prefEditorDuetVideoSession.putString(ConstValFile.VideoFilePath,createVideoUrl)
+        prefEditorDuetVideoSession.commit()
+    }
+
+    fun getDuetVideoUrl():String?{
+        return sharedPrefDuetVideoSession.getString(ConstValFile.DuetVideoUrl,"")
+    }
+
+    fun getCreateDuetVideoUrl():String?{
+        return sharedPrefDuetVideoSession.getString(ConstValFile.VideoFilePath,"")
+    }
 }

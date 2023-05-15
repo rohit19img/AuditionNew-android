@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.PostLocationVideoActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:background="@color/bgColorDarkRed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+            <ImageView
+                android:id="@+id/backPressIC"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="0dp"
+                android:padding="5dp"
+                android:paddingStart="0dp"
+                android:src="@drawable/back_arrow_ic" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <LinearLayout
+        android:id="@+id/hashView"
+        android:layout_below="@id/toolbar"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:background="@color/white"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        >
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/location_city_ic"
+            android:padding="10dp"
+            android:background="@drawable/round_shape"
+            android:backgroundTint="@color/Gray"
+            app:tint="@color/commanBackground"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/postLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="post location"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:textColor="@color/textColorDarkRed"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:id="@+id/playstext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="2.9M Plays"
+                android:visibility="gone"
+                android:textColor="@color/textColorYellow"
+                android:fontFamily="@font/notosans_regular"
+                android:layout_marginTop="2dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <ImageView
+        android:id="@+id/noVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/hashView"
+        android:background="@color/bgColorWhite"
+        android:src="@drawable/no_video"
+        android:visibility="gone"
+        android:layout_marginTop="10dp"
+        app:tint="@color/bgColorDarkRed" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_below="@+id/hashView"
+        android:layout_marginTop="10dp"
+        android:visibility="gone"
+        android:background="@color/bgColorWhite"
+        tools:listitem="@layout/video_item_view"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        android:id="@+id/userVideoRecycle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/hashView">
+
+        <include layout="@layout/user_videoitem_view_shimer" />
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+
+    <androidx.cardview.widget.CardView
+        android:visibility="gone"
+        android:id="@+id/createVideo"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_height="50dp"
+        app:cardElevation="10dp"
+        android:layout_marginBottom="60dp"
+        app:cardCornerRadius="40dp"
+        style="@style/carViewStyle">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <ImageView
+                android:id="@+id/camIc"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/white"
+                android:src="@drawable/ic_videocam"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                app:tint="@color/black" />
+
+            <TextView
+                style="@style/textViewStyle"
+                android:layout_centerInParent="true"
+                android:layout_marginStart="0dp"
+                android:layout_toEndOf="@id/camIc"
+                android:text="Create Post"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

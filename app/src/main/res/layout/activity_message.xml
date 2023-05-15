@@ -112,7 +112,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/chatsRV"
-            tools:itemCount="5"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="vertical"
             tools:listitem="@layout/chat_me_user"
             app:reverseLayout="true"/>
 

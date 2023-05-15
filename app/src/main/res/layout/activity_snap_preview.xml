@@ -102,6 +102,13 @@
             app:tint="@color/bgColorWhite"
             android:contentDescription="Add Text" />
 
+        <ImageButton
+            android:id="@+id/videoSpeed"
+            style="@style/imageButtonStyle"
+            android:src="@drawable/video_speed_ic"
+            app:tint="@color/bgColorWhite"
+            android:contentDescription="Video Speed" />
+
         <TextView
             android:visibility="gone"
             android:id="@+id/slowVideo"
@@ -142,6 +149,64 @@
             android:src="@drawable/ic_flash_on"
             app:tint="@color/bgColorWhite"
             android:contentDescription="Add Text" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/videoSpeedState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:animateLayoutChanges="true"
+        app:layout_constraintBottom_toBottomOf="@+id/sideLayout"
+        app:layout_constraintEnd_toStartOf="@+id/sideLayout">
+
+        <TextView
+            android:id="@+id/x.5Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text=".5x"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            app:tint="@color/bgColorWhite" />
+
+        <TextView
+            android:id="@+id/x1Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text="1x"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginEnd="3dp"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:tint="@color/bgColorWhite" />
+
+        <TextView
+            android:id="@+id/x2Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text="2x"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginEnd="3dp"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:tint="@color/bgColorWhite" />
+
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

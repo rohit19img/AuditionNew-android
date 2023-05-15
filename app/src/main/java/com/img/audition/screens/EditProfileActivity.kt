@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -44,6 +45,7 @@ import java.util.*
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityEditProfileBinding.inflate(layoutInflater)
     }
+
     private val sessionManager by lazy {
         SessionManager(this@EditProfileActivity)
     }
@@ -111,14 +113,18 @@ import java.util.*
 
         viewBinding.changePhoto.setOnClickListener {
 
-            if (ContextCompat.checkSelfPermission(
-                        this@EditProfileActivity,
-                        Manifest.permission.READ_MEDIA_IMAGES
-                    ) != PackageManager.PERMISSION_GRANTED
-                ){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                if (ContextCompat.checkSelfPermission(this@EditProfileActivity, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                        ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                    )
+                }
+            } else if (ContextCompat.checkSelfPermission(this@EditProfileActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
                 ActivityCompat.requestPermissions(
                     this,
-                    arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                    arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE),
                     ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
                 )
             }else{
@@ -127,14 +133,19 @@ import java.util.*
         }
 
         viewBinding.userImage.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(
-                        this@EditProfileActivity,
-                        Manifest.permission.READ_MEDIA_IMAGES
-                    ) != PackageManager.PERMISSION_GRANTED
-                ){
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                if (ContextCompat.checkSelfPermission(this@EditProfileActivity, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                        ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                    )
+                }
+            } else if (ContextCompat.checkSelfPermission(this@EditProfileActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
                 ActivityCompat.requestPermissions(
                     this,
-                    arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                    arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE),
                     ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
                 )
             }else{
@@ -312,7 +323,6 @@ import java.util.*
                     Log.i("Header", params.toString())
                     return params
                 }
-
 
             }
             strRequest.setShouldCache(false)

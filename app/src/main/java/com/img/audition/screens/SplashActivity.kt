@@ -29,14 +29,18 @@ class SplashActivity : AppCompatActivity() {
     lateinit var myApplication : MyApplication
     val TAG = "SplashActivity"
     var deviceID = ""
+
+     companion object{
+         var isPopupBannerShow = false
+     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sessionManager = SessionManager(this@SplashActivity)
         myApplication  = MyApplication(this@SplashActivity)
 
         if (myApplication.isNetworkConnected()){
-
-            FirebaseMessaging.getInstance().subscribeToTopic("All")
+            FirebaseMessaging.getInstance().subscribeToTopic("Audition-All")
             if (!(sessionManager.isUserLoggedIn())){
                 myApplication.printLogD("Not Login in",TAG)
                 if (!(sessionManager.isGuestLoggedIn())){

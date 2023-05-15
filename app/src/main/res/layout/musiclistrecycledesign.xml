@@ -7,9 +7,6 @@
     android:background="@color/white"
     android:orientation="vertical">
 
-
-
-
     <androidx.media3.ui.PlayerView
         android:id="@+id/audioPlayerView"
         android:layout_width="match_parent"
@@ -78,6 +75,7 @@
             android:layout_gravity="center_vertical"
             app:tint="@color/white"/>
 
+
         <ImageView
             android:visibility="gone"
             android:id="@+id/pauseMusic"
@@ -87,6 +85,14 @@
             android:layout_gravity="center_vertical"
             app:tint="@color/white"/>
 
+        <ImageButton
+            android:id="@+id/addFavMusic"
+            style="@style/imageButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/like_ic_music"
+            android:layout_gravity="center_vertical"
+            />
 
 
     </LinearLayout>

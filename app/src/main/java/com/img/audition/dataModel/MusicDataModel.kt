@@ -21,7 +21,8 @@ data class MusicData(
     @SerializedName("userid"           ) var userid         : String?     = null,
     @SerializedName("createdAt"        ) var createdAt      : String?     = null,
     @SerializedName("updatedAt"        ) var updatedAt      : String?     = null,
-                                         var isPlay      : Boolean      = false
+    @SerializedName("isFav"            ) var isFav          : Boolean     = false,
+                                         var isPlay         : Boolean     = false
 )
 
 data class CategoryId(

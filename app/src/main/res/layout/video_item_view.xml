@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="185dp"
         >
+
         <ImageView
             android:id="@+id/videoThumbnail"
             android:layout_width="match_parent"

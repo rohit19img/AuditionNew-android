@@ -1,10 +1,13 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
+import androidx.media3.common.util.UnstableApi
 import com.img.audition.dataModel.SingleContestDetailsResponse
 import com.img.audition.dataModel.SingleContestPriceCard
 import com.img.audition.databinding.ActivityContestDetailsBinding
@@ -15,11 +18,13 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.DetailsPrizecardFragment
 import com.img.audition.screens.fragment.LeaderboardFragment
+import com.img.audition.snapCameraKit.SnapCameraActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.Exception
 
-class ContestDetailsActivity : AppCompatActivity() {
+@UnstableApi class ContestDetailsActivity : AppCompatActivity() {
 
     val TAG = "ContestDetailsActivity"
     var ifOfferApplied = false
@@ -41,6 +46,7 @@ class ContestDetailsActivity : AppCompatActivity() {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
     var contestID = ""
+    var isContestJoin = false
     var prizecard: ArrayList<SingleContestPriceCard>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,12 +55,6 @@ class ContestDetailsActivity : AppCompatActivity() {
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
-        if (bundle!=null){
-            contestID = bundle!!.getString(ConstValFile.ContestID).toString()
-            myApplication.printLogD(contestID!!,"contestID")
-            contestDetails(contestID)
-        }
-
         viewBinding.tabLayout.setupWithViewPager(viewBinding.viewpager)
         viewBinding.viewpager.adapter = SectionPagerAdapter(supportFragmentManager)
     }
@@ -79,7 +79,7 @@ class ContestDetailsActivity : AppCompatActivity() {
 
                        prizecard = data.priceCard
 
-                   }catch (e:java.lang.Exception){
+                   }catch (e: Exception){
                        myApplication.printLogE(e.toString(),TAG)
                    }
 
@@ -121,5 +121,47 @@ class ContestDetailsActivity : AppCompatActivity() {
                 else -> "Leaderboard"
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        contestID = bundle!!.getString(ConstValFile.ContestID).toString()
+        isContestJoin = bundle!!.getBoolean(ConstValFile.IsContestJoin,false)
+        myApplication.printLogD(contestID,"contestID")
+        myApplication.printLogD(isContestJoin.toString(), "IsContestJoin")
+        contestDetails(contestID)
+
+        if (!isContestJoin){
+            viewBinding.btnJoin.visibility = View.VISIBLE
+        }else{
+            viewBinding.btnJoin.visibility = View.GONE
+        }
+
+
+
+        viewBinding.btnJoin.setOnClickListener {
+            if (!(sessionManager.isUserLoggedIn())) {
+                sendToLoginScreen()
+            } else {
+                sendForCreateVideo()
+            }
+        }
+
+    }
+
+    fun sendToLoginScreen() {
+        val intent = Intent(this@ContestDetailsActivity, LoginActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+    }
+
+    private fun sendForCreateVideo() {
+        val bundle = Bundle()
+        bundle.putBoolean(ConstValFile.IsFromContest, true)
+        sessionManager.setIsFromContest(true)
+        val intent = Intent(this@ContestDetailsActivity, SnapCameraActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle, bundle)
+        startActivity(intent)
     }
 }

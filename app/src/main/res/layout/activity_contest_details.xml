@@ -177,7 +177,7 @@
                                         android:textColorHint="@color/textColorWhite"
                                         android:textColor="@color/textColorWhite"
                                         android:textSize="16sp"
-                                        android:visibility="gone" />
+                                        />
 
                                 </LinearLayout>
 

@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.media3.common.util.UnstableApi
 
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
@@ -22,7 +23,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
- class PhoneLoginActivity : AppCompatActivity() {
+ @UnstableApi class PhoneLoginActivity : AppCompatActivity() {
 
     val TAG = "PhoneLoginActivity"
     var number = ""
@@ -137,7 +138,8 @@ import retrofit2.Response
     }
 
     fun sendToHomeActivity(){
-        val homeIntent = Intent(this@PhoneLoginActivity,SplashActivity::class.java)
+        val homeIntent = Intent(this@PhoneLoginActivity,HomeActivity::class.java)
+        homeIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(homeIntent)
         finish()
     }

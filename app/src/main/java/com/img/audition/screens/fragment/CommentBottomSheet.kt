@@ -24,6 +24,7 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.LoginActivity
 import com.img.audition.videoWork.VideoCacheWork
+import io.socket.client.Socket
 import org.json.JSONObject
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -54,6 +55,8 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         FirebaseFirestore.getInstance()
     }
 
+
+
     val commentDataList = ArrayList<CommentData>()
     lateinit var adapter: CommentAdapter
 
@@ -80,7 +83,10 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         commentCycle.layoutManager = commentLayoutManager
         val auditionID = bundle!!.getString(ConstValFile.AuditionID)
         val userID = bundle!!.getString(ConstValFile.AllUserID)
+        myApplication.printLogD("$userID userID","check 300")
         val videoID = bundle!!.getString(ConstValFile.VideoID)
+        myApplication.printLogD("$videoID videoID","check 300")
+
         val uIm = bundle!!.getString(ConstValFile.UserImage).toString()
         var userImage = ""
         if (uIm.isNotEmpty()){
@@ -100,7 +106,7 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
                 if (commentText.isNotEmpty()){
                     view.commentET.text.clear()
                     list[position].commentCount =+1
-                    adapter.notifyItemChanged(position)
+//                    adapter.notifyItemChanged(position)
                     writeNewComment(auditionID, userID,postID,videoID,userImage,commentText)
                 }else{
                     myApplication.showToast("Please write something..")
@@ -117,7 +123,7 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
 
         view.noCommentView.visibility = View.GONE
         commentCycle.visibility = View.VISIBLE
-       val commentData =  JSONObject()
+        val commentData =  JSONObject()
         commentData.put("video_id",videoID)
         commentData.put("user_id",userID)
         commentData.put("comment",commentText)

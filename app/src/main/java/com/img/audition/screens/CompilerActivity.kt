@@ -2,15 +2,21 @@ package com.img.audition.screens
 
 
 
+
 import VideoHandle.EpEditor
 import VideoHandle.OnEditorListener
+import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
 import android.media.*
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.text.TextPaint
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +36,7 @@ import java.nio.ByteBuffer
 class CompilerActivity : AppCompatActivity() {
     val TAG = "CompilerActivity"
     val TARCK = "check 100"
+    var downloadFilePath = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCompilerBinding.inflate(layoutInflater)
     }
@@ -73,8 +80,99 @@ class CompilerActivity : AppCompatActivity() {
             ConstValFile.CompressVideo->{
                 compressVideo()
             }
+            ConstValFile.MergeVideo->{
+                mergeVideo()
+            }
         }
         super.onResume()
+    }
+
+    private fun mergeVideo() {
+
+        DownloadDuetVideo().execute(sessionManager.getDuetVideoUrl()!!)
+
+
+    }
+
+    fun prepareFirstVideo(cmd: String, outputPath1: String){
+        EpEditor.execCmd(cmd,0, object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("prepareFirstVideo onSuccess ",TAG)
+                val inputPath = sessionManager.getDuetVideoUrl()
+                val outputPath2 = createFileAndFolder()
+                val prepareSecondVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath2"
+                prepareSecondVideo(prepareSecondVideoCmd,outputPath1,outputPath2)
+            }
+            override fun onFailure() {
+                myApplication.printLogD("prepareFirstVideo onFailure ",TAG)
+            }
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("prepareFirstVideo onProgress : $progress",TAG)
+            }
+        })
+
+
+       /* FFmpegKit.executeAsync(cmd,
+          { session ->
+              val state = session.state
+              val returnCode = session.returnCode
+              if (ReturnCode.isSuccess(returnCode)){
+                  myApplication.printLogD("prepareFirstVideo onSuccess ",TAG)
+                  val inputPath = sessionManager.getDuetVideoUrl()
+                  val outputPath2 = createFileAndFolder()
+                  val prepareSecondVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath2"
+                  prepareSecondVideo(prepareSecondVideoCmd,outputPath1,outputPath2)
+              }
+              // CALLED WHEN SESSION IS EXECUTED
+              Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
+                  state, returnCode,  session.failStackTrace))
+          },
+          {
+              myApplication.printLogD("log : $it","ffmpeg")
+          })
+      {
+          myApplication.printLogD("statistics : $it","ffmpeg")
+      }*/
+
+    }
+
+    fun prepareSecondVideo(cmd: String, outputPath1: String,outputPath2: String){
+        EpEditor.execCmd(cmd,0, object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("prepareSecondVideo onSuccess ",TAG)
+                val finalPath =  createFileAndFolder()
+                val finalCmd = "-y -i $outputPath1 -i $outputPath2 -preset ultrafast -filter_complex hstack $finalPath"
+                funComipler(finalCmd,finalPath)
+            }
+            override fun onFailure() {
+                myApplication.printLogD("prepareSecondVideo onFailure ",TAG)
+            }
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("prepareSecondVideo onProgress : $progress",TAG)
+            }
+        })
+
+       /* FFmpegKit.executeAsync(cmd,
+          { session ->
+              val state = session.state
+              val returnCode = session.returnCode
+              if (ReturnCode.isSuccess(returnCode)){
+                  myApplication.printLogD("prepareSecondVideo onSuccess ",TAG)
+                  val finalPath =  createFileAndFolder()
+                  val finalCmd = "-y -i $outputPath1 -i $outputPath2 -preset ultrafast -filter_complex hstack $finalPath"
+                  funComipler(finalCmd,finalPath)
+              }
+              // CALLED WHEN SESSION IS EXECUTED
+              Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
+                  state, returnCode,  session.failStackTrace))
+          },
+          {
+              myApplication.printLogD("log : $it","ffmpeg")
+          })
+      {
+          myApplication.printLogD("statistics : $it","ffmpeg")
+      }*/
+
     }
 
     private fun normalVideo() {
@@ -169,7 +267,7 @@ class CompilerActivity : AppCompatActivity() {
 
 
     fun addTextCompiler(cmd: String, overTextPath: String){
-       /* EpEditor.execCmd(cmd,0, object : OnEditorListener {
+        EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("Add Text Compile Complete",TAG)
                 val outputPath = createFileAndFolder()
@@ -187,7 +285,7 @@ class CompilerActivity : AppCompatActivity() {
             override fun onProgress(progress: Float) {
                 myApplication.printLogD(" Add Text Compile onProgress : $progress",TAG)
             }
-        })*/
+        })
 
          /*FFmpegKit.executeAsync(cmd,
            { session ->
@@ -215,7 +313,6 @@ class CompilerActivity : AppCompatActivity() {
         EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("Compile Complete",TAG)
-
                 val retriever =  MediaMetadataRetriever()
                 retriever.setDataSource(this@CompilerActivity, Uri.parse(outputPath));
                 val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
@@ -238,14 +335,20 @@ class CompilerActivity : AppCompatActivity() {
             }
         })
 
-        /*FFmpegKit.executeAsync(cmd,
+      /*  FFmpegKit.executeAsync(cmd,
           { session ->
               val state = session.state
               val returnCode = session.returnCode
               if (ReturnCode.isSuccess(returnCode)){
-                  myApplication.printLogD("Compile Complete",TAG)
+                  val retriever =  MediaMetadataRetriever()
+                  retriever.setDataSource(this@CompilerActivity, Uri.parse(outputPath));
+                  val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                  retriever.release()
+                  myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                  val selectVideoDuration = time!!.toLong()
                   sessionManager.setCreateVideoPath(outputPath)
-                  startActivity(Intent(this@CompilerActivity,PreviewActivity::class.java))
+                  sessionManager.setCreateVideoDuration(selectVideoDuration)
+                  startActivity(Intent(this@CompilerActivity, SnapPreviewActivity::class.java))
                   finish()
               }
               // CALLED WHEN SESSION IS EXECUTED
@@ -365,7 +468,22 @@ class CompilerActivity : AppCompatActivity() {
         val outputPath = createFileAndFolder()
         val inputPath = sessionManager.getCreateVideoPath().toString()
         myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
+
+        var cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
+
+        if (sessionManager.getCreateVideoSpeedState().equals(ConstValFile.SlowVideo)){
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=2.0*PTS[v];[0:a]atempo=0.5[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+
+        }else if(sessionManager.getCreateVideoSpeedState().equals(ConstValFile.FastVideo)){
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+        }
+        else if(sessionManager.getCreateVideoSpeedState().equals(ConstValFile.NormalVideo)) {
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=1.0*PTS[v];[0:a]atempo=0.25[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+        }/*else{
+            cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
+        }*/
+
+
 
         EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
@@ -397,35 +515,68 @@ class CompilerActivity : AppCompatActivity() {
 
         })
 
-        /*FFmpegKit.executeAsync(cmd,
-            { session ->
-                val state = session.state
-                val returnCode = session.returnCode
-                if (ReturnCode.isSuccess(returnCode)){
-                    myApplication.printLogD("Video Compress Complete",TARCK)
-                    if (File(videoOriginalPath).exists()){
-                        File(videoOriginalPath).delete()
-                    }
-                    videoOriginalPath = outputPath
-
-                    myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
-                    uploadVideoToS3()
-                }
-                // CALLED WHEN SESSION IS EXECUTED
-                Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
-                    state, returnCode,  session.failStackTrace))
-            },
-            {
-                myApplication.printLogD("log : $it","ffmpeg")
-            })
-        {
-            myApplication.printLogD("statistics : $it","ffmpeg")
-        }*/
     }
 
     private fun sendToUploadVideoActivity() {
         val intent = Intent(this@CompilerActivity,UploadVideoActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+
+
+
+     private inner class DownloadDuetVideo : AsyncTask<String, Void, String>() {
+        @SuppressLint("Range")
+        override fun doInBackground(vararg urls: String?): String {
+            val url: String = urls[0].toString()
+            downloadFilePath = createFileAndFolder()
+            val request = DownloadManager.Request(Uri.parse(url))
+                .setDestinationUri(Uri.fromFile(File(downloadFilePath)))
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+            request.allowScanningByMediaScanner()
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val downloadId = downloadManager.enqueue(request)
+            var downloading = true
+
+            while (downloading) {
+                val query = DownloadManager.Query()
+                query.setFilterById(downloadId)
+                val cursor: Cursor = downloadManager.query(query)
+                if (cursor.moveToFirst()) {
+                    val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        downloading = false
+                        return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))
+                    } else if (status == DownloadManager.STATUS_FAILED) {
+                        val reason: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+                        // Handle the download failure
+                        downloading = false
+                        return ""
+                    }
+                }
+                cursor.close()
+            }
+            return ""
+        }
+
+         override fun onPostExecute(path: String?) {
+             if (path != null) {
+                 downloadFilePath = path
+                 myApplication.printLogD("video Download Complete : $path",TAG)
+                 val outputPath1 = sessionManager.getCreateDuetVideoUrl()
+                 val outputPath2 = downloadFilePath
+                 sessionManager.setDuetVideoUrl(downloadFilePath)
+//                 val prepareFirstVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath1"
+                 val finalPath =  createFileAndFolder()
+                 val cmd1 = "-y -i $outputPath1 -i $outputPath2 -filter_complex [0:v]scale=640x360,setsar=1[v0];[1:v]scale=640x360,setsar=1[v1];[v0][v1]hstack -c:a copy $finalPath"
+                 val finalCmd = "-y -i $outputPath1 -i $outputPath2 -preset ultrafast -filter_complex hstack $finalPath"
+                    funComipler(finalCmd,finalPath)
+
+             } else {
+                 myApplication.printLogD("video Download Failed : ",TAG)
+             }
+         }
     }
 }

@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -56,40 +55,24 @@ class MessageActivity : AppCompatActivity() {
         viewBinding = ActivityMessageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-
         viewBinding.backPressIC.setOnClickListener {
             finish()
         }
 
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        getChatData()
-
-
-
         mSocket = VideoCacheWork.mSocket!!
-        viewBinding.chatsRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
-
-        val job1 = JSONObject()
-        try {
-            job1.put("senderId", sessionManager.getUserSelfID())
-            job1.put("receiverId", userid)
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-        mSocket.emit("seen", job1)
+//        viewBinding.chatsRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
 
         viewBinding.sendMessage.setOnClickListener(View.OnClickListener {
-            val messageText: String = viewBinding.messageET.text.toString().trim { it <= ' ' }
+            Log.i("ChatSizeCheck","Before : ${chat_list.size}")
+            val messageText: String = viewBinding.messageET.text.toString().trim()
             if (messageText.isNotEmpty()) {
                 val jsonObject = JSONObject()
                 try {
                     jsonObject.put("senderId", sessionManager.getUserSelfID())
                     jsonObject.put("receiverId", userid)
                     jsonObject.put("message", messageText)
+
+                    mSocket.emit("message", jsonObject)
                 } catch (e: JSONException) {
                     e.printStackTrace()
                 }
@@ -105,8 +88,7 @@ class MessageActivity : AppCompatActivity() {
                 val seconds = calendar.seconds
                 var now: Date? = null
                 try {
-                    now =
-                        dateFormat.parse(year.toString() + "-" + month + "-" + day + "T" + hour + ":" + minutes + ":" + seconds)
+                    now = dateFormat.parse(year.toString() + "-" + month + "-" + day + "T" + hour + ":" + minutes + ":" + seconds)
                 } catch (e: ParseException) {
                     e.printStackTrace()
                 }
@@ -116,9 +98,10 @@ class MessageActivity : AppCompatActivity() {
                 ob.receiverId = userid
                 ob.createdAt = now.toString()
                 chat_list.add(0, ob)
+                Log.i("ChatSizeCheck","After : ${chat_list.size}")
                 adapter!!.notifyDataSetChanged()
-                Log.i("size", "SIze is " + chat_list.size)
-                mSocket.emit("message", jsonObject)
+                Log.i("ChatSizeCheck","after notify : ${chat_list.size}")
+                Log.i("ChatSizeCheck","after notify : ${viewBinding.chatsRV.layoutManager!!.childCount}")
             } else {
                 Toast.makeText(applicationContext, "Please Enter Something..", Toast.LENGTH_SHORT).show()
             }
@@ -133,7 +116,7 @@ class MessageActivity : AppCompatActivity() {
                     val calendar = Calendar.getInstance().time
                     val year = calendar.year
                     val month = calendar.month + 1
-                    val day = calendar.day
+                    val day = calendar.date
                     val hour = calendar.hours
                     val minutes = calendar.minutes
                     val seconds = calendar.seconds
@@ -169,13 +152,42 @@ class MessageActivity : AppCompatActivity() {
                         getChatData()
                     }
                 }
+
+//                val layoutManager = viewBinding.chatsRV.layoutManager!!
+//
+//                val visibleItemCount: Int = layoutManager.childCount
+//                val totalItemCount: Int = layoutManager.itemCount
+//                val firstVisibleItemPosition: Int = layoutManager.findFirstCompletelyVisibleItemPosition()
+//
+//                if (visibleItemCount + firstVisibleItemPosition >= totalItemCount && firstVisibleItemPosition >= 0) {
+//                    if (canLoadData) {
+//                        page_no++
+//                        getChatData()
+//                    }
+//                }
             }
         })
 
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getChatData()
+
+        val job1 = JSONObject()
+        try {
+            job1.put("senderId", sessionManager.getUserSelfID())
+            job1.put("receiverId", userid)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
+        mSocket.emit("seen", job1)
     }
 
     fun getChatData() {
-
+Log.i("canLoadData","Page_no $page_no")
         val responseCall: Call<ChatsGetSet> =
             apiInterface.getChatHistory(sessionManager.getToken(), userid, page_no)
         responseCall.enqueue(object : Callback<ChatsGetSet> {
@@ -183,12 +195,15 @@ class MessageActivity : AppCompatActivity() {
                 Log.d("check", response.toString())
                 if (response.isSuccessful()) {
                     Log.d("check", response.toString())
-                    chat_list = response.body()!!.data!!
-                    if (chat_list.size > 0) {
+                   val chat_list1 = response.body()!!.data!!
+                    chat_list.addAll(chat_list1)
+                    if (chat_list1.size > 0) {
+                        canLoadData = true
                         if (page_no == 1) {
                             adapter = ChatsAdapter(this@MessageActivity, chat_list)
                             viewBinding.chatsRV.adapter = adapter
-                        } else adapter!!.notifyDataSetChanged()
+                        } else
+                            adapter!!.notifyDataSetChanged()
                     } else {
                         canLoadData = false
                         if (page_no == 1) {

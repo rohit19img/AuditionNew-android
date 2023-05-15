@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
@@ -140,7 +141,7 @@ import java.util.ArrayList
         val blockUnblockReq = apiInterface.blockUnblockUser(sessionManager.getToken(),
         userID,status)
 
-        blockUnblockReq.enqueue(object :Callback<CommanResponse>{
+        blockUnblockReq.enqueue(@UnstableApi object :Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()?.success!!){
                     startActivity(Intent(this@OtherUserProfileActivity, HomeActivity::class.java))
@@ -167,10 +168,15 @@ import java.util.ArrayList
             viewBinding.followBtn.text = ConstValFile.Follow
         }
 
-        getUserData(userID)
+        if (bundle!!.getBoolean(ConstValFile.isSearchAuditionID)){
+            getUserByAuditionId(bundle!!.getString(ConstValFile.AuditionID)!!)
+        }else{
+            getUserData(userID)
 
 
-        getUserVideo(userID)
+            getUserVideo(userID)
+        }
+
         super.onStart()
     }
 
@@ -292,7 +298,6 @@ import java.util.ArrayList
             e.printStackTrace()
         }
         viewBinding.followBtn.setOnClickListener {
-            viewBinding.followBtn.isSelected = false
             if (!(sessionManager.isUserLoggedIn())){
                 myApplication.showToast(ConstValFile.LoginMsg)
                 sendToLoginScreen()
@@ -303,12 +308,14 @@ import java.util.ArrayList
                     myApplication.printLogD("UserPro : $position","check 900")
                     if (!followStatus){
                         list[position].followStatus = true
+                        followStatus = true
                         adapter.notifyDataSetChanged()
                         followUserApi(userID, "followed")
                         viewBinding.followBtn.text = ConstValFile.Following
                         viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
                     }else{
                         list[position].followStatus = false
+                        followStatus = false
                         followFollowingTrackIntent = adapter
                         adapter.notifyDataSetChanged()
                         followUserApi(userID,"unfollowed")
@@ -338,4 +345,58 @@ import java.util.ArrayList
          super.onBackPressed()
      }
 
+     private fun getUserByAuditionId(auditionID: String) {
+         myApplication.printLogD(auditionID.toString(),"Other User ID")
+
+         val getUserReq = apiInterface.getUserByAuditionId(sessionManager.getToken(),auditionID)
+         getUserReq.enqueue(object : Callback<GetOtherUserResponse>{
+             override fun onResponse(call: Call<GetOtherUserResponse>, response: Response<GetOtherUserResponse>) {
+                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                     viewBinding.l1.stopShimmer()
+                     viewBinding.l1.hideShimmer()
+                     val userData = response.body()!!.data[0]
+                     userID = userData.Id.toString()
+                     getUserVideo(userID)
+                     viewBinding.likeCount.text = userData.totalLike.toString()
+                     viewBinding.followCount.text = userData.followersCount.toString()
+                     viewBinding.followingCount.text = userData.followingCount.toString()
+                     if (userData.image.toString().isNotEmpty()){
+                         userimage = userData.image.toString()
+                         Glide.with(this@OtherUserProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into(viewBinding.userImageView)
+                     }else{
+                         userimage = ""
+                         viewBinding.userImageView.setImageResource(R.drawable.person_ic)
+                     }
+
+                     if (userData.bio.toString().isNotEmpty()){
+                         viewBinding.userBio.text = userData.bio.toString()
+                     }else{
+                         viewBinding.userBio.visibility = View.GONE
+                     }
+
+                     if (userData.name.toString().isNotEmpty()){
+                         viewBinding.userName.text = userData.name.toString()
+                     }else{
+                         viewBinding.userName.text = userData.auditionId.toString()
+                     }
+
+                     viewBinding.userID.text = userData.auditionId.toString()
+
+                     followStatus = userData.followStatus!!
+                     if (followStatus)
+                         viewBinding.followBtn.text = ConstValFile.Following
+                     else
+                         viewBinding.followBtn.text = ConstValFile.Follow
+
+                 }else{
+                     myApplication.printLogE("Get User Response Failed ${response.code()}",TAG)
+                 }
+             }
+
+             override fun onFailure(call: Call<GetOtherUserResponse>, t: Throwable) {
+                 myApplication.printLogE("Get User onFailure ${t.toString()}",TAG)
+             }
+
+         })
+     }
 }

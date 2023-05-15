@@ -72,14 +72,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
             searchBar.addTextChangedListener(
                 object : TextWatcher{
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int
-                    ) {
-
-                    }
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                         if(searchBar.text.toString().length > 2){
@@ -147,7 +140,7 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
                     myApplication.showToast("Something went wrong!!")
                 }
 
-                view.userRecycle.adapter = UserSearch_Adapter(userlist!!,contextFromHome)
+                view.userRecycle.adapter = UserSearch_Adapter(userlist!!,contextFromHome,"")
                 view.hashtagRecycle.adapter = HashtagSearch_Adapter(contextFromHome, hashtaglist!!)
                 view.videoRecycle.adapter = VideoSearch_Adapter(contextFromHome, videolist!!)
 

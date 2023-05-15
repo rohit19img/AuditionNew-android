@@ -54,6 +54,8 @@ class ChatsAdapter(var context: Context, var list: ArrayList<ChatsGetSet>) :
         } catch (e: ParseException) {
             e.printStackTrace()
         }
+
+//        holder.time.text = list[position].createdAt
     }
 
     override fun getItemCount(): Int {

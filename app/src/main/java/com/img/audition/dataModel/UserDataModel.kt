@@ -171,3 +171,16 @@ data class BlockedUserData(
     @SerializedName("name"        ) var name       : String? = null,
     @SerializedName("audition_id" ) var auditionId : String? = null
 )
+
+
+data class WebSliderResponse (
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : WebSliderData?    = WebSliderData()
+)
+
+data class  WebSliderData (
+
+    @SerializedName("image" ) var image : String? = null
+
+)

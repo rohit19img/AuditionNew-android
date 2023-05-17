@@ -180,11 +180,13 @@
            android:layout_width="match_parent"
            android:layout_height="match_parent"
            android:id="@+id/videoExoView"
+           app:keep_content_on_player_reset="true"
            app:resize_mode="fill"
-           android:orientation="vertical"
            app:surface_type="texture_view"
            app:use_controller="false"
            app:show_buffering="never" />
+
+
 
        <LinearLayout
            android:id="@+id/playPauseVolume"
@@ -218,12 +220,6 @@
            android:orientation="vertical"
            android:layout_alignParentEnd="true"
            android:layout_height="wrap_content">
-
-           <ImageView
-               android:visibility="gone"
-               android:id="@+id/duetVideo"
-               style="@style/imageButtonStyle"
-               android:src="@drawable/ic_duet"/>
 
            <ImageView
                android:visibility="gone"

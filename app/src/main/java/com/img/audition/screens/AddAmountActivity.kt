@@ -107,12 +107,18 @@ class AddAmountActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        AddAmount(amount, "Cashfree")
-//                        myApplication.showToast("Payment Gateway")
+                        if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
+                            AddAmount(amount, "Cashfree")
+                        }else{
+                            sendToVerficationActivity()
+                        }
                     }
                 } else {
-                    AddAmount(amount, "Cashfree")
-//                    myApplication.showToast("Payment Gateway")
+                    if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
+                        AddAmount(amount, "Cashfree")
+                    }else{
+                        sendToVerficationActivity()
+                    }
                 }
             } else {
                 Toast.makeText(this@AddAmountActivity, "Enter Amount", Toast.LENGTH_SHORT).show()
@@ -120,6 +126,11 @@ class AddAmountActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun sendToVerficationActivity() {
+        val intent = Intent(this@AddAmountActivity,VerificationActivity::class.java)
+        startActivity(intent)
     }
 
     private fun getOfferDetails() {
@@ -187,7 +198,13 @@ class AddAmountActivity : AppCompatActivity() {
                     d.setMessage("Something went wrong, Please try again")
                     d.setPositiveButton(
                         "Retry"
-                    ) { dialog, which -> AddAmount(Amount, from) }
+                    ) { dialog, which ->
+                        if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
+                            AddAmount(Amount, from)
+                        }else{
+                            sendToVerficationActivity()
+                        }
+                    }
                     d.setNegativeButton(
                         "Cancel"
                     ) { dialog, which -> finish() }

@@ -20,7 +20,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:cardBackgroundColor="@color/bgColorRed"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="6dp">
@@ -70,7 +70,7 @@
                         android:maxLength="10"
                         android:padding="10dp"
                         android:layout_marginTop="8dp"
-                        android:textColor="@color/black"
+                        android:textColor="@color/textColorBlack"
                         android:textColorHint="@color/Gray"
                         android:textSize="13sp" />
 
@@ -142,8 +142,8 @@
                             android:id="@+id/mobileText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="&#10004; Your mobile number is already verified."
-                            android:textColor="@color/white"
+                            android:text=""
+                            android:textColor="@color/textColorYellow"
                             android:textSize="14dp" />
 
                     </LinearLayout>
@@ -205,7 +205,7 @@
                         android:inputType="textEmailAddress"
                         android:padding="10dp"
                         android:layout_marginTop="8dp"
-                        android:textColor="@color/white"
+                        android:textColor="@color/textColorBlack"
                         android:textColorHint="@color/textHintColor"
                         android:textSize="13sp" />
 
@@ -251,11 +251,11 @@
                     android:orientation="horizontal"
                     android:padding="10dp">
 
-                    <!--<ImageView
+                    <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
-                        android:src="@drawable/ic_email_green" />-->
+                        android:src="@drawable/email_ic" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

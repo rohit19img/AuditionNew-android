@@ -1,8 +1,10 @@
 package com.img.audition.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -27,6 +29,11 @@ import com.img.audition.screens.LoginActivity
 import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.PlayPauseContestVideo
 import com.img.audition.videoWork.VideoCacheWork
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
+
 
 @UnstableApi
 class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
@@ -39,7 +46,10 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
     private lateinit var myApplication: MyApplication
     private lateinit var sessionManager: SessionManager
     lateinit var exoPlayer: ExoPlayer
-
+    var sDate = ""
+    var eDate = ""
+    var startDate: Date? = null
+    var endDate:Date? = null
     constructor(context: Context, contestList: ArrayList<LiveContestData>) : this() {
         this.context = context
         this.contestList = contestList
@@ -58,6 +68,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
         val contestProgressBar = itemView.contestPorgress
         val contestJoinedUser = itemView.contestJoinUser
         val contestMaxJoinUser = itemView.contestMaxJoinUser
+        val contestTimer = itemView.contestTimer
 
 
         //Video Cache
@@ -82,6 +93,99 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.apply {
             val contest = contestList[position]
+            //
+
+
+            val c: Calendar = Calendar.getInstance()
+            c.timeZone = TimeZone.getTimeZone("Asia/Calcutta")
+            val hour: Int = c.get(Calendar.HOUR_OF_DAY)
+            val minute: Int = c.get(Calendar.MINUTE)
+            val sec: Int = c.get(Calendar.SECOND)
+            val mYear1: Int = c.get(Calendar.YEAR)
+            val mMonth1: Int = c.get(Calendar.MONTH)
+            val mDay1: Int = c.get(Calendar.DAY_OF_MONTH)
+
+            sDate = mYear1.toString() + "-" + (mMonth1 + 1) + "-" + mDay1 + " " + hour + ":" + minute + ":" + sec
+            eDate = contest.startDate.toString()
+            Log.i("matchtime", contest.startDate.toString())
+
+            var dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                 startDate = dateFormat.parse(sDate);
+                 endDate = dateFormat.parse(eDate);
+
+            } catch (e: ParseException) {
+                e.printStackTrace()
+            }
+
+            val diffInMs = endDate!!.time - startDate!!.time;
+
+            val hours1 = (1*60*60 * 1000).toLong()
+            val hours4 = (4*60*60 * 1000).toLong()
+            val hours48 =(48*60*60 * 1000).toLong()
+
+
+            val cT: CountDownTimer = object : CountDownTimer(diffInMs, 1000) {
+                @SuppressLint("DefaultLocale", "SetTextI18n")
+                override fun onTick(millisUntilFinished: Long) {
+                    if (diffInMs < hours1) {
+                        contestTimer.text =  "Starts in : "+ String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                            ) + "m:"
+                                    + java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(
+                                    TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                                )
+                            ) + "s"
+                        )
+                    } else if (diffInMs < hours4) {
+                        contestTimer.text =  "Starts in : "+String.format(
+                            (java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                            ) + "h:"
+                                    + java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) - TimeUnit.HOURS.toMinutes(
+                                    TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                                )
+                            ) + " m")
+                        )
+                    } else if (diffInMs < hours48) {
+                        contestTimer.text =  "Starts in : "+String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                            ) + " h"
+                        )
+                    } else {
+                        contestTimer.text = "Starts in : "+String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toDays(millisUntilFinished)
+                            ) + " days"
+                        )
+                    }
+                }
+
+                override fun onFinish() {
+                    if (contest.status == "started"){
+                        contestTimer.text = "Contest Started"
+
+                    }else if(contest.status == "completed"){
+                        contestTimer.text = "Contest Completed"
+                    }
+
+                }
+            }
+            cT.start()
+
+
+
+            //
             contestWinPrize.text = "₹ " + contest.winAmount.toString()
             contestJoinBtn.text = "₹ " + contest.entryfee.toString()
             contestProgressBar.max = contest.maximumUser!!
@@ -93,20 +197,22 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 if (!(sessionManager.isUserLoggedIn())) {
                     sendToLoginScreen()
                 } else {
-                    if (!(contest.isJoined!!)) {
-                        myApplication.printLogD("User Not Joined", TAG)
-                        sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
-                        myApplication.printLogD("contest.entryfee ${sessionManager.getContestEntryFee()}", "contestCheck")
-                        myApplication.printLogD("contest.Id ${sessionManager.getContestID()}", "contestCheck")
-                        myApplication.printLogD("contest.fileType ${contest.fileType}", "contestCheck")
-                        myApplication.printLogD("contest.file ${contest.file}", "contestCheck")
+                    if (contest.status == "notstarted"){
+                        if (!(contest.isJoined!!)) {
+                            myApplication.printLogD("User Not Joined", TAG)
+                            sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                            myApplication.printLogD("contest.entryfee ${sessionManager.getContestEntryFee()}", "contestCheck")
+                            myApplication.printLogD("contest.Id ${sessionManager.getContestID()}", "contestCheck")
+                            myApplication.printLogD("contest.fileType ${contest.fileType}", "contestCheck")
+                            myApplication.printLogD("contest.file ${contest.file}", "contestCheck")
 
-                        Thread.sleep(300)
-                        sendForCreateVideo()
-                    } else {
-                        myApplication.printLogD("User Joined", TAG)
-                        myApplication.showToast("You Already join this contest")
+                            Thread.sleep(300)
+                            sendForCreateVideo()
+                        } else {
+                            myApplication.printLogD("User Joined", TAG)
+                            myApplication.showToast("You Already join this contest")
 
+                        }
                     }
                 }
             }
@@ -115,7 +221,12 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
                 val bundle = Bundle()
                 bundle.putString(ConstValFile.ContestID,contest.Id)
-                bundle.putBoolean(ConstValFile.IsContestJoin,contest.isJoined!!)
+                if (contest.status == "notstarted"){
+                    bundle.putBoolean(ConstValFile.IsContestJoin,contest.isJoined!!)
+                }else{
+                    bundle.putBoolean(ConstValFile.IsContestJoin,true)
+                }
+
                 myApplication.printLogD(contest.isJoined!!.toString(), "IsContestJoin")
                 sendToContestDetailsActivity(bundle)
             }
@@ -233,6 +344,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
     private fun sendForCreateVideo() {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest, true)
+        bundle.putBoolean(ConstValFile.isFromDuet, false)
         sessionManager.setIsFromContest(true)
         val intent = Intent(context, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)

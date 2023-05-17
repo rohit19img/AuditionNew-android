@@ -3,21 +3,21 @@ package com.img.audition.screens.fragment
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-
+import com.img.audition.R
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.GetLiveContestDataResponse
 import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.FragmentLiveContestBinding
+import com.img.audition.databinding.FragmentUpCommingContestBinding
 import com.img.audition.globalAccess.ConstValFile
-import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
@@ -26,11 +26,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-@UnstableApi
-class LiveContestFragment : Fragment() {
 
-    val TAG = "LiveContestFragment"
-    private var contestAdapter:ContestLiveAdapter = ContestLiveAdapter()
+@UnstableApi
+class UpComingContestFragment : Fragment() {
+
+    val TAG = "UpComingContestFragment"
+    private var contestAdapter: ContestLiveAdapter = ContestLiveAdapter()
     private val sessionManager by lazy {
         SessionManager(requireContext())
     }
@@ -41,19 +42,21 @@ class LiveContestFragment : Fragment() {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
+    var list : ArrayList<LiveContestData> = ArrayList()
+
     private var videoItemPlayPause: PlayPauseContestVideo = contestAdapter.onActivityStateChanged()
 
     private val bundle by lazy {
         arguments
     }
-    var list : ArrayList<LiveContestData> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view = FragmentLiveContestBinding.inflate(inflater,container,false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = FragmentUpCommingContestBinding.inflate(inflater,container,false)
         val pager by lazy {
             view.contestViewpager2
         }
@@ -65,8 +68,7 @@ class LiveContestFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("check 400", "onViewCreated: ")
-
-        list = bundle!!.getSerializable(ConstValFile.LiveContestList) as  ArrayList<LiveContestData>
+        list = bundle!!.getSerializable(ConstValFile.UpContestComingList) as  ArrayList<LiveContestData>
 
         if (list.size>0){
             noLiveContest.visibility = View.GONE
@@ -81,10 +83,10 @@ class LiveContestFragment : Fragment() {
         }
     }
 
-    /*private fun showLiveContest(context: Context) {
+   /* private fun showUpComingContest(context: Context) {
         val liveContestReq = apiInterface.getAllLiveContest(sessionManager.getToken())
 
-        liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse>{
+        liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse> {
             override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val contestData = response.body()!!.data
@@ -153,4 +155,5 @@ class LiveContestFragment : Fragment() {
         }
         super.onResume()
     }
+
 }

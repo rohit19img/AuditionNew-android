@@ -102,6 +102,11 @@ dependencies {
 
     //crop image for pan and bank verification
     implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
+    
+    // image crop
+    implementation 'com.github.mike14u:croperino:1.1.8'
+    implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
+
 
     //dimens sdp and dp
     implementation 'com.intuit.sdp:sdp-android:1.1.0'

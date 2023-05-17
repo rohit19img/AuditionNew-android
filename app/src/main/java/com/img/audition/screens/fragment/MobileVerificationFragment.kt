@@ -1,18 +1,28 @@
 package com.img.audition.screens.fragment
 
+import android.app.Dialog
+import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
-import com.img.audition.dataModel.CommanResponse
-import com.img.audition.dataModel.NumLoginRequest
-import com.img.audition.dataModel.UserVerificationResponse
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.gson.JsonObject
+import com.img.audition.R
+import com.img.audition.dataModel.*
 import com.img.audition.databinding.FragmentMobileVarificationBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.mukeshsolanki.OtpView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,6 +55,10 @@ class MobileVerificationFragment : Fragment() {
         view.verifyMobile.setOnClickListener {
             verifymobile(view.mobileNumber.text.toString())
         }
+
+        view.verifyEmail.setOnClickListener {
+            verifyEmail(view.email.text.toString())
+        }
         return view.root
     }
 
@@ -65,6 +79,7 @@ class MobileVerificationFragment : Fragment() {
                 if (response.isSuccessful){
                     if ( response.body()!!.success!!){
                         myApplication.showToast(response.body()!!.message.toString())
+                            showVerifyOTPDialog(false,"Verify Mobile Number",mobile)
                     }else{
                         myApplication.showToast(response.body()!!.message.toString())
                     } 
@@ -72,6 +87,34 @@ class MobileVerificationFragment : Fragment() {
                     myApplication.printLogE(response.code().toString(),TAG)
                 }
                
+            }
+
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
+    }
+
+    private fun verifyEmail(email: String) {
+        val verifyReq = apiInterface.verifyEmailAddress(sessionManager.getToken(), EmailLoginRequest(email))
+
+        verifyReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(
+                call: Call<CommanResponse>,
+                response: Response<CommanResponse>
+            ) {
+                if (response.isSuccessful){
+                    if ( response.body()!!.success!!){
+                        myApplication.showToast(response.body()!!.message.toString())
+                        showVerifyOTPDialog(true,"Verify Email Address",email)
+                    }else{
+                        myApplication.showToast(response.body()!!.message.toString())
+                    }
+                }else{
+                    myApplication.printLogE(response.code().toString(),TAG)
+                }
+
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
@@ -90,6 +133,13 @@ class MobileVerificationFragment : Fragment() {
             view.mobileVerify.visibility = View.VISIBLE
             view.mobileVerified.visibility = View.GONE
         }
+        if (sessionManager.getEmailVerified()) {
+            view.emailVerify.visibility = View.GONE
+            view.emailVerified.visibility = View.VISIBLE
+        } else {
+            view.emailVerify.visibility = View.VISIBLE
+            view.emailVerified.visibility = View.GONE
+        }
     }
 
     private fun AllVerify() {
@@ -105,29 +155,97 @@ class MobileVerificationFragment : Fragment() {
                         val mobile_verify = data.mobileVerify
                         val bank_verify = data.bankVerify
                         val pan_verify = data.pan_verify
+
                         if (mobile_verify == 1) {
                             sessionManager.setMobileVerified(true)
                             view.mobileVerified.visibility = View.VISIBLE
+                            view.mobileText.text = data.mobile.toString()
                             view.mobileVerify.visibility = View.GONE
                         } else {
                             sessionManager.setMobileVerified(false)
                             view.mobileVerified.visibility = View.GONE
                             view.mobileVerify.visibility = View.VISIBLE
                         }
+
+                        if (data.emailVerify == 1) {
+                            sessionManager.setEmailVerified(true)
+                            view.emailVerified.visibility = View.VISIBLE
+                            view.emailText.text = data.email.toString()
+                            view.emailVerify.visibility = View.GONE
+                        } else {
+                            sessionManager.setEmailVerified(false)
+                            view.emailVerified.visibility = View.GONE
+                            view.emailVerify.visibility = View.VISIBLE
+                        }
                         sessionManager.setBankVerified(bank_verify.toString())
                         sessionManager.setPANVerified(pan_verify.toString())
                     }
-
-
-
-
-
                 }else{
                     myApplication.printLogE(response.toString(),TAG)
                 }
             }
 
             override fun onFailure(call: Call<UserVerificationResponse>, t: Throwable) {
+                myApplication.printLogE(t.toString(),TAG)
+            }
+
+        })
+    }
+
+
+    private fun showVerifyOTPDialog(isEmail: Boolean,title:String,emailNumber:String) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.verify_otp_dialog)
+
+        val dialogTitle = dialog.findViewById<TextView>(R.id.title)
+        val otpView = dialog.findViewById<OtpView>(R.id.otpView)
+        val otpLoginBtn = dialog.findViewById<CardView>(R.id.otpLoginBtn)
+
+        dialogTitle!!.text = title
+
+        var otp = ""
+        otpView!!.setOtpCompletionListener {
+            otp = it
+        }
+
+
+        otpLoginBtn!!.setOnClickListener {
+            if (otp.length<4){
+                myApplication.showToast("Enter Valid OTP")
+            }else{
+                dialog.dismiss()
+               verifyOTP(otp,emailNumber,isEmail)
+            }
+        }
+
+//        dialog.window!!.setBackgroundDrawableResource(requireContext().getColor(R.color.float_transaparent))
+        dialog.show()
+    }
+
+    private fun verifyOTP(otp: String, emailNumber: String,isEmail:Boolean) {
+        val verifyOtpBody = JsonObject()
+        if (isEmail){
+            verifyOtpBody.addProperty("email",emailNumber)
+        }else{
+            verifyOtpBody.addProperty("mobile",emailNumber)
+        }
+        verifyOtpBody.addProperty("code",otp)
+        val verifyOtpReq = apiInterface.verifyOTP(sessionManager.getToken(),verifyOtpBody)
+
+        verifyOtpReq.enqueue(object : Callback<CommanResponse>{
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
+                if (response.isSuccessful) {
+                    if(response.body()!!.success!!){
+                        myApplication.showToast(response.body()!!.message.toString())
+                        AllVerify()
+                    }else{
+                        myApplication.showToast(response.body()!!.message.toString())
+                    }
+                }else{
+                    myApplication.printLogE(response.toString(),TAG)
+                }
+            }
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
             }
 

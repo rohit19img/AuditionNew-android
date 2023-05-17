@@ -159,6 +159,7 @@ import java.lang.Exception
     private fun sendForCreateVideo() {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest, true)
+        bundle.putBoolean(ConstValFile.isFromDuet, false)
         sessionManager.setIsFromContest(true)
         val intent = Intent(this@ContestDetailsActivity, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)

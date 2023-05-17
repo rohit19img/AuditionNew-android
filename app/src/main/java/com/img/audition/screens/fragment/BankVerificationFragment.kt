@@ -2,6 +2,7 @@ package com.img.audition.screens.fragment
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -25,11 +26,14 @@ import com.canhub.cropper.CropImage.getActivityResult
 import com.canhub.cropper.CropImageView
 import com.img.audition.R
 import com.img.audition.adapters.StateListAdapter
+import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentBankVerificationBinding
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.*
 import org.json.JSONException
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
 import java.io.*
 
 
@@ -72,6 +76,7 @@ class BankVerificationFragment() : Fragment() {
         val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
         view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
+        AllVerify(view1.context)
 
         try {
             view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -292,12 +297,10 @@ class BankVerificationFragment() : Fragment() {
                             view.holderName.setText(jsonObject.getString("accountholdername"))
                             val bankImage = jsonObject.getString("image")
                             if (bankImage != "") {
-                                Glide.with(requireContext()).load(bankImage)
+                                Glide.with(requireContext()).load(bankImage).into(view.passbook)
                             }
                             if (jsonObject.has("comment")) view.comment.setText(
-                                jsonObject.getString(
-                                    "comment"
-                                )
+                                jsonObject.getString("comment")
                             )
                             view.bankDetails.setVisibility(View.VISIBLE)
                         }
@@ -378,6 +381,78 @@ class BankVerificationFragment() : Fragment() {
                 myApplication!!.printLogE(e.message.toString(), TAG)
             }
         }
+    }
+
+    private fun AllVerify(context: Context) {
+        val allVerifyReq = apiInterface.getAllVerificationsData(sessionManager!!.getToken())
+        allVerifyReq.enqueue(object : Callback<UserVerificationResponse> {
+            override fun onResponse(
+                call: Call<UserVerificationResponse>,
+                response: retrofit2.Response<UserVerificationResponse>
+            ) {
+                Log.i("pan_verify","pan verify : ${response.body()!!.data!!.pan_verify}")
+
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                    val data = response.body()!!.data
+
+                    if (data!=null){
+                        val mobile_verify = data.mobileVerify
+                        val bank_verify = data.bankVerify
+                        val pan_verify = data.pan_verify
+
+
+                        if(pan_verify != -1){
+                            sessionManager!!.setBankVerified(bank_verify.toString())
+                            sessionManager!!.setPANVerified(pan_verify.toString())
+
+                            if (bank_verify == 0) {
+                                view.bankText.setText("Your bank account details are sent for verification.")
+                                view.bankVerified.setVisibility(View.VISIBLE)
+                                view.invalidBank.setVisibility(View.GONE)
+                                view.bankicon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_bank_red))
+                                view.bankNotVerified.setVisibility(View.GONE)
+                                BankDetails()
+                            } else if (bank_verify == 1) {
+                                view.invalidBank.setVisibility(View.GONE)
+                                view.bankNotVerified.setVisibility(View.GONE)
+                                view.bankVerified.setVisibility(View.VISIBLE)
+                                view.bankicon.setImageResource(R.drawable.ic_credit_card_green)
+                                BankDetails()
+                            } else if (bank_verify == -1) {
+                                view.bankicon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_bank_green))
+                                view.invalidBank.visibility = View.GONE
+                                view.bankVerified.setVisibility(View.GONE)
+                                view.bankNotVerified.setVisibility(View.VISIBLE)
+                            } else {
+                                view.bankicon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_bank_green))
+                                view.invalidBank.setVisibility(View.GONE)
+                                view.bankNotVerified.setVisibility(View.VISIBLE)
+                                view.comment.setVisibility(View.VISIBLE)
+                                view.bankText.setText("Your PAN Card details are Rejected.")
+                                view.bankText.setTextColor(ContextCompat.getColor(context, R.color.bgColorRed))
+                                view.bankVerified.setVisibility(View.VISIBLE)
+                                BankDetails()
+                            }
+                        } else {
+                            view.invalidBank.visibility = View.VISIBLE
+                            view.bankNotVerified.setVisibility(View.GONE)
+                            view.comment.setVisibility(View.GONE)
+                            view.bankVerified.setVisibility(View.GONE)
+                        }
+                    }
+
+                }else{
+                    myApplication!!.printLogE(response.toString(),TAG)
+                }
+            }
+
+            override fun onFailure(call: Call<UserVerificationResponse>, t: Throwable) {
+                myApplication!!.printLogE(t.toString(),TAG)
+                Log.i("Exception",t.toString())
+                Log.i("Exception",t.message.toString())
+            }
+
+        })
     }
 
 }

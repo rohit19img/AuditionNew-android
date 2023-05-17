@@ -19,6 +19,9 @@ data class LoginData (
 data class NumLoginRequest(
     @SerializedName("mobile" ) var mobile : String? = null
 )
+data class EmailLoginRequest(
+    @SerializedName("email" ) var email : String? = null
+)
 
 data class CommanResponse(
     @SerializedName("success" ) var success : Boolean? = null,

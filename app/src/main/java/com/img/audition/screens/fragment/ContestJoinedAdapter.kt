@@ -1,8 +1,10 @@
 package com.img.audition.screens.fragment
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +20,8 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.img.audition.R
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.JoinedContestData
 import com.img.audition.dataModel.LiveContestData
@@ -28,7 +32,11 @@ import com.img.audition.network.SessionManager
 import com.img.audition.screens.ContestDetailsActivity
 import com.img.audition.videoWork.PlayPauseContestVideo
 import com.img.audition.videoWork.VideoCacheWork
+import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 @UnstableApi
 class ContestJoinedAdapter() :
@@ -41,6 +49,11 @@ class ContestJoinedAdapter() :
     private lateinit var myApplication: MyApplication
     private lateinit var sessionManager: SessionManager
     lateinit var exoPlayer: ExoPlayer
+
+    var sDate = ""
+    var eDate = ""
+    var startDate: Date? = null
+    var endDate:Date? = null
     constructor(context: Context, contestList: ArrayList<JoinedContestData>) : this() {
         this.context = context
         this.contestList = contestList
@@ -57,7 +70,6 @@ class ContestJoinedAdapter() :
        val priceText = itemView.prizetxt
        val contestStart = itemView.start
        val contestEndDate = itemView.enddate
-       val contestLeaderboard = itemView.leaderboard
        val maxUser = itemView.maxuser
        val winAmount = itemView.winamount
        val joinUser = itemView.joinuser
@@ -66,7 +78,7 @@ class ContestJoinedAdapter() :
        val contestName = itemView.contestName
        val playerViewExo = itemView.contestVideo
        val contestImage = itemView.contestImage
-
+        val contestTimer = itemView.contestTimer
 
         //Video Cache
         val mediaSource = ProgressiveMediaSource.Factory(
@@ -93,7 +105,94 @@ class ContestJoinedAdapter() :
         val data = contestList[position]
 
         holder.apply {
-            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+            //
+            val contest = contestList[position]
+            //
+
+            val c: Calendar = Calendar.getInstance()
+            c.timeZone = TimeZone.getTimeZone("Asia/Calcutta")
+            val hour: Int = c.get(Calendar.HOUR_OF_DAY)
+            val minute: Int = c.get(Calendar.MINUTE)
+            val sec: Int = c.get(Calendar.SECOND)
+            val mYear1: Int = c.get(Calendar.YEAR)
+            val mMonth1: Int = c.get(Calendar.MONTH)
+            val mDay1: Int = c.get(Calendar.DAY_OF_MONTH)
+
+            sDate = mYear1.toString() + "-" + (mMonth1 + 1) + "-" + mDay1 + " " + hour + ":" + minute + ":" + sec
+            eDate = contest.startDate.toString()
+            Log.i("matchtime", contest.startDate.toString())
+
+            var dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                startDate = dateFormat.parse(sDate);
+                endDate = dateFormat.parse(eDate);
+
+            } catch (e: ParseException) {
+                e.printStackTrace()
+            }
+
+            val diffInMs = endDate!!.time - startDate!!.time;
+
+            val hours1 = (1*60*60 * 1000).toLong()
+            val hours4 = (4*60*60 * 1000).toLong()
+            val hours48 =(48*60*60 * 1000).toLong()
+
+
+            val cT: CountDownTimer = object : CountDownTimer(diffInMs, 1000) {
+                @SuppressLint("DefaultLocale", "SetTextI18n")
+                override fun onTick(millisUntilFinished: Long) {
+                    if (diffInMs < hours1) {
+                        contestTimer.text =  "Starts in : "+ String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                            ) + "m:"
+                                    + java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(
+                                    TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                                )
+                            ) + "s"
+                        )
+                    } else if (diffInMs < hours4) {
+                        contestTimer.text =  "Starts in : "+String.format(
+                            (java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                            ) + "h:"
+                                    + java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) - TimeUnit.HOURS.toMinutes(
+                                    TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                                )
+                            ) + " m")
+                        )
+                    } else if (diffInMs < hours48) {
+                        contestTimer.text =  "Starts in : "+String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toHours(millisUntilFinished)
+                            ) + " h"
+                        )
+                    } else {
+                        contestTimer.text = "Starts in : "+String.format(
+                            java.lang.String.format(
+                                "%02d",
+                                TimeUnit.MILLISECONDS.toDays(millisUntilFinished)
+                            ) + " days"
+                        )
+                    }
+                }
+
+                override fun onFinish() {
+                    contestTimer.text = "Contest Completed"
+                }
+            }
+            cT.start()
+
+            //
+
+           /* val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
             val simpleDateFormat1 = SimpleDateFormat("MMM dd, HH:mm aa")
 
            try {
@@ -101,11 +200,12 @@ class ContestJoinedAdapter() :
                contestStart.text = simpleDateFormat1.format(simpleDateFormat.format(data.startDate!!))
            }catch (e:Exception){
                myApplication.printLogE(e.toString(),TAG)
-           }
+           }*/
             maxUser.text = data.maximumUser.toString()
             winAmount.text = data.winAmountStr.toString()
             joinUser.text = data.joinedusers.toString()
 
+            contestEndDate.text = "Total Joined : "+data.joinedusers.toString()
             winner.text = data.totalwinners.toString()
 
             teamEnteredProBar.max = data.maximumUser!!
@@ -134,7 +234,7 @@ class ContestJoinedAdapter() :
                 val imageUrl = ConstValFile.BASEURL+contest.file.toString()
                 playerViewExo.visibility = View.GONE
                 contestImage.visibility = View.VISIBLE
-                Glide.with(context).load(imageUrl).into(contestImage)
+                Glide.with(context).load(imageUrl).placeholder(R.drawable.splash_icon).diskCacheStrategy(DiskCacheStrategy.ALL).into(contestImage)
             }else{
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
@@ -144,7 +244,7 @@ class ContestJoinedAdapter() :
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
                 exoPlayer.prepare()
-                exoPlayer.playWhenReady = true
+                exoPlayer.play()
 
                  if (cPos>=0){
                      myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}",TAG)
@@ -184,6 +284,7 @@ class ContestJoinedAdapter() :
             val contest = contestList[position]
             if (!(contest.fileType.equals(ConstValFile.TYPE_IMAGE))) {
                 if (exoPlayer.isPlaying) {
+                    myApplication.printLogD("video Pause","videoCheck")
                     playerViewExo.player!!.playWhenReady = false
                     playerViewExo.player!!.seekTo(0)
                     playerViewExo.player!!.pause()

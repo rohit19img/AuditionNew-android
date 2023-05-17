@@ -22,9 +22,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:visibility="gone"
                 app:cardBackgroundColor="@color/bgColorRed"
                 app:cardCornerRadius="4dp"
+                android:visibility="gone"
                 app:cardElevation="6dp">
 
                 <LinearLayout
@@ -335,6 +335,7 @@
                             android:visibility="gone" />
 
                         <TextView
+                            android:visibility="gone"
                             android:id="@+id/imageText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -356,7 +357,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="5dp"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:cardBackgroundColor="@color/bgColorRed"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="6dp">

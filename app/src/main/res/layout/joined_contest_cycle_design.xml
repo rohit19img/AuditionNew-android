@@ -70,12 +70,11 @@
                 android:background="@drawable/card_rummy_design">
 
                 <TextView
-                    android:id="@+id/leaderboard"
+                    android:id="@+id/contestTimer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/green_button"
                     android:fontFamily="sans-serif-medium"
                     android:padding="2.5dp"
                     android:hint="Check PrizeCard"
@@ -193,6 +192,7 @@
                             android:orientation="horizontal">
 
                             <TextView
+                                android:visibility="gone"
                                 android:id="@+id/joinuser"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -206,6 +206,7 @@
                                 android:textStyle="normal" />
 
                             <TextView
+                                android:visibility="gone"
                                 android:id="@+id/maxuser"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -232,14 +233,16 @@
                             android:progressDrawable="@drawable/custom_progressbar" />
 
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:paddingTop="2dp"
+                            android:layout_gravity="end"
                             android:layout_marginTop="2dp"
                             android:paddingBottom="2dp">
 
                             <TextView
+                                android:visibility="gone"
                                 android:id="@+id/start"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -255,7 +258,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
-                                android:hint="05/10/2050"
+                                android:layout_gravity="end"
+                                android:gravity="end"
+                                android:hint="Total Joined : "
                                 android:textColorHint="@color/textColorYellow"
                                 android:textColor="@color/textColorYellow"
                                 android:textSize="12dp"/>

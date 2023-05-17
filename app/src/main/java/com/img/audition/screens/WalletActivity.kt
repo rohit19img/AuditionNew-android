@@ -41,7 +41,7 @@ class WalletActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
-        getUserSelfDetails()
+
 
         viewBinding.btnAddCash.setOnClickListener {
             sendToAddCashActivity()
@@ -143,9 +143,14 @@ class WalletActivity : AppCompatActivity() {
         }
     }
 
+
     fun closeBottomSheet() {
         val behavior = BottomSheetBehavior.from(viewBinding.frameContainer)
         behavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
+    override fun onResume() {
+        super.onResume()
+        getUserSelfDetails()
+    }
 }

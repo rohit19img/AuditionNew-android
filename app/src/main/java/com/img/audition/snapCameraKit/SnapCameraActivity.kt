@@ -84,6 +84,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     private var videoFilePath = ""
 
     private var isFromContest = false
+    private var isFromDuet = false
     private var hashTag = ""
 
     private lateinit var cameraSession:Session
@@ -152,7 +153,13 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     override fun onStart() {
         super.onStart()
         isFromContest = bundle!!.getBoolean(ConstValFile.IsFromContest, false)
+        isFromDuet = bundle!!.getBoolean(ConstValFile.isFromDuet, false)
         hashTag = bundle!!.getString(ConstValFile.VideoHashTag, "")
+
+        if (!(isFromDuet)){
+            sessionManager.clearDuetSession()
+        }
+
         if (!(isFromContest)) {
             sessionManager.clearContestSession()
             findViewById<ImageView>(R.id.selectFromGallery).visibility = View.GONE
@@ -225,19 +232,14 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             override fun onTick(millisUntilFinished: Long) {
                 timeRemainingInMillis = millisUntilFinished
                 updateCountdownTextView()
-
                 if (totalTime>=maxVideoDuration){
                     isTimerRunning = false
-                    myApplication.printLogD("Countdown finished 1","check time")
-                    this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
                     onFinish()
                 }
             }
-
             override fun onFinish() {
                 isTimerRunning = false
-                myApplication.printLogD("Countdown finished 2","check time")
-                this@SnapCameraActivity.onEnd(SnapButtonView.CaptureType.CONTINUOUS)
+                myApplication.printLogD("Countdown finished","check time")
             }
         }.start()
 
@@ -275,10 +277,9 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     }
 
     override fun onSaved(file: File) {
-        Thread.sleep(100)
-        if (totalTime <= minVideoDuration-1000){
+        myApplication.printLogD("onSaved Call","check 200")
+        if (totalTime <= minVideoDuration){
             recordingCloseable?.close()
-
             if (file.exists())
                     file.delete()
             runOnUiThread {
@@ -286,6 +287,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 stopTimer()
             }
         }else{
+            stopTimer()
             var selectVideoDuration = 0L
             try {
                 val retriever =  MediaMetadataRetriever()
@@ -298,6 +300,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 myApplication.printLogE(e.toString(),TRACK)
             }
             sendToVideoPreview(file.absolutePath,selectVideoDuration)
+
         }
     }
 
@@ -410,6 +413,9 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     private fun sendToVideoPreview(videoUri: String,videoDuration: Long) {
         myApplication.printLogD("sendToVideoPreview Call","TrimAudio")
         recordingCloseable?.close()
+        cameraSession?.close()
+        mediaCaptureExecutor?.shutdown()
+        audioProcessorExecutor?.shutdown()
         if (sessionManager.getIsFromTryAudio()){
             sessionManager.setCreateVideoSession(videoUri,"",videoDuration)
             myApplication.printLogD("sendToVideoPreview audioURl ${sessionManager.getVideoSongUrl()}","audioUrl")
@@ -538,6 +544,7 @@ class SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     }
 
     override fun onEnd(captureType: SnapButtonView.CaptureType) {
+        myApplication.printLogD("onEnd Call","check 200")
         if (sessionManager.getIsFromTryAudio()){
             playerExo.seekTo(0)
             playerExo.pause()

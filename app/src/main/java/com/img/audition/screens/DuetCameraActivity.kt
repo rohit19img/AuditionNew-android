@@ -3,7 +3,6 @@ package com.img.audition.screens
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -40,8 +39,6 @@ import com.snap.camerakit.*
 import com.snap.camerakit.common.Consumer
 import com.snap.camerakit.lenses.LensesComponent
 import com.snap.camerakit.lenses.whenHasSome
-import com.snap.camerakit.support.camera.AllowsSnapshotCapture
-import com.snap.camerakit.support.camera.AllowsVideoCapture
 import com.snap.camerakit.support.camerax.CameraXImageProcessorSource
 import com.snap.camerakit.support.permissions.HeadlessFragmentPermissionRequester
 import com.snap.camerakit.support.widget.SnapButtonView
@@ -53,7 +50,8 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@UnstableApi class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener{
+@UnstableApi
+class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener{
 
     val TAG = "DuetCameraActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -66,6 +64,10 @@ import java.util.concurrent.Executors
 
     private val myApplication by lazy {
         MyApplication(this@DuetCameraActivity)
+    }
+
+    private val bundle by lazy {
+        intent.getBundleExtra(ConstValFile.Bundle)
     }
 
     lateinit var videoPlayer : ExoPlayer
@@ -83,6 +85,9 @@ import java.util.concurrent.Executors
     private var minVideoDuration: Long = 5 * 1000
 
     private var videoFilePath = ""
+    private var duetVideoUrl =""
+    private var duetWithId = ""
+
     private lateinit var mLineView: LineProgressView
 
     //snapCamera
@@ -245,8 +250,6 @@ import java.util.concurrent.Executors
             layoutManager = GridLayoutManager(this@DuetCameraActivity, 3)
             adapter = lensesAdapter
         }
-
-
 
     }
 
@@ -416,23 +419,30 @@ import java.util.concurrent.Executors
 
     }
 
-    private fun sendToVideoMerge(videoUri: String,videoDuration: Long) {
-        sessionManager.setCreateDuetVideoUrl(videoUri)
+    private fun sendToVideoMerge(createVideoUrl: String,videoDuration: Long) {
+        sessionManager.setDuetVideoSession(createVideoUrl,duetVideoUrl,duetWithId,true)
+        sessionManager.setCreateVideoDuration(videoDuration)
+        permissionRequest?.close()
+        lensRepositorySubscription?.close()
+        recordingCloseable?.close()
+        cameraKitSession.close()
+        processorExecutor.shutdown()
+        mediaCaptureExecutor.shutdown()
+        audioProcessorExecutor.shutdown()
         val bundle = Bundle()
         bundle.putString(ConstValFile.CompileTask,ConstValFile.MergeVideo)
         val intent = Intent(this@DuetCameraActivity, CompilerActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)
-
-
     }
 
 
     override fun onResume() {
         super.onResume()
+        duetVideoUrl = bundle!!.getString(ConstValFile.DuetVideoUrl).toString()
+        duetWithId = "#duet with ${bundle!!.getString(ConstValFile.AuditionID)}"
         viewBinding.videoPreview.player = videoPlayer
-        sessionManager.setDuetVideoUrl("https://audition.sgp1.digitaloceanspaces.com/audition/video-1683884729530.mp4")
-        val mediaItem = MediaItem.fromUri(sessionManager.getDuetVideoUrl()!!)
+        val mediaItem = MediaItem.fromUri(duetVideoUrl)
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
 
@@ -449,6 +459,7 @@ import java.util.concurrent.Executors
                     }
                     ExoPlayer.STATE_READY -> {
                         Log.d("check 200", "STATE_READY: ")
+                        viewBinding.progressLoading.visibility = View.GONE
                         myApplication.printLogD("Duet videoDuration : ${videoPlayer.contentDuration}","check 200")
                         maxVideoDuration = videoPlayer.contentDuration
                         minVideoDuration = videoPlayer.contentDuration
@@ -549,7 +560,14 @@ import java.util.concurrent.Executors
             }
         }
         if (captureType == SnapButtonView.CaptureType.CONTINUOUS) {
+
             myApplication.printLogI("onStart Camera",TRACK)
+
+            videoPlayer.seekTo(0)
+            videoPlayer.prepare()
+            videoPlayer.play()
+
+
             if (isStartTime){
                 resumeTimer()
             }else{
@@ -587,6 +605,8 @@ import java.util.concurrent.Executors
 
     override fun onEnd(captureType: SnapButtonView.CaptureType) {
 
+        videoPlayer.seekTo(0)
+        videoPlayer.pause()
         when (captureType) {
             // Only showing support for video recording in this sample
             SnapButtonView.CaptureType.CONTINUOUS -> {
@@ -626,6 +646,23 @@ import java.util.concurrent.Executors
 
     override fun onError(e: Exception) {
         myApplication.printLogE(e.toString(),TRACK)
+    }
+
+
+    override fun onBackPressed() {
+        if(videoFilePath.isNotEmpty() && File(videoFilePath).exists()){
+            File(videoFilePath).delete()
+        }
+        videoPlayer.stop()
+        videoPlayer.release()
+        permissionRequest?.close()
+        lensRepositorySubscription?.close()
+        recordingCloseable?.close()
+        cameraKitSession.close()
+        processorExecutor.shutdown()
+        mediaCaptureExecutor.shutdown()
+        audioProcessorExecutor.shutdown()
+        super.onBackPressed()
     }
 
 

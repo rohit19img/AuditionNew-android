@@ -71,9 +71,6 @@ class PanValidationFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentPanValidationBinding.inflate(inflater,container,false)
 
-
-
-
         return view.root
     }
 
@@ -361,7 +358,7 @@ class PanValidationFragment : Fragment() {
                         val pan_verify = data.pan_verify
 
 
-                        if(mobile_verify == 1){
+                        if(mobile_verify == 1 && data.emailVerify == 1){
                             sessionManager.setBankVerified(bank_verify.toString())
                             sessionManager.setPANVerified(pan_verify.toString())
 

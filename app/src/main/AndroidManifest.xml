@@ -17,13 +17,8 @@
         tools:targetApi="31">
         <activity
             android:name=".screens.DuetCameraActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".screens.SharedVideoPlayActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
@@ -60,33 +55,42 @@
         </activity>
         <activity
             android:name=".screens.PostLocationVideoActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.AboutUsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.PrivacyPolicyActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.TermsAndConditionActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.TryAudioActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.HashtagVideoActivity"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".snapCameraKit.SnapPreviewActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".snapCameraKit.SnapCameraActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.BlockedUsersActivity"
             android:exported="false"
@@ -190,11 +194,15 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".screens.SplashActivity"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".screens.HomeActivity"

@@ -11,6 +11,13 @@ interface ApiInterface {
     @POST(APITags.GuestLogin)
     fun guestLogin(@Body guestRequest: GuestLoginRequest): Call<LoginResponse>
 
+    suspend fun getReels(
+        @Header(APITags.AUTHORIZATION) Auth: String,
+        @Query("language") language: String?,
+        @Query("lat") lat: Double?,
+        @Query("long") lang: Double?
+    ):VideoResponse
+
     @GET(APITags.GetVideo)
     fun getVideo(
         @Header(APITags.AUTHORIZATION) Auth: String,
@@ -80,6 +87,12 @@ interface ApiInterface {
 
     @POST(APITags.VerifyMobileNumber)
     fun verifyMobileNumber(@Header(APITags.AUTHORIZATION) Auth: String?, @Body loginRequest:NumLoginRequest): Call<CommanResponse>
+
+    @POST(APITags.VerifyEmailAddress)
+    fun verifyEmailAddress(@Header(APITags.AUTHORIZATION) Auth: String?, @Body loginRequest:EmailLoginRequest): Call<CommanResponse>
+
+    @POST(APITags.VerifyOTP)
+    fun verifyOTP(@Header(APITags.AUTHORIZATION) Auth: String?, @Body loginRequest:JsonObject): Call<CommanResponse>
 
     @GET(APITags.AllVerify)
     fun getAllVerificationsData(@Header(APITags.AUTHORIZATION)Auth: String?) : Call<UserVerificationResponse>
@@ -248,4 +261,6 @@ interface ApiInterface {
     @GET("get-web-slider")
     fun getWebSliderBanner(@Header(APITags.AUTHORIZATION) Auth: String?): Call<WebSliderResponse>
 
+    @GET(APITags.ContestVideo)
+    fun getContestVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("userid") userID: String?, @Query("challengeid") challengeId: String?): Call<VideoResponse>
 }

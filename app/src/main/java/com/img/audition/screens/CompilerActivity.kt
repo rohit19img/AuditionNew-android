@@ -55,6 +55,7 @@ class CompilerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
     }
 
     override fun onResume() {
@@ -89,12 +90,14 @@ class CompilerActivity : AppCompatActivity() {
 
     private fun mergeVideo() {
 
+
         DownloadDuetVideo().execute(sessionManager.getDuetVideoUrl()!!)
 
 
     }
 
     fun prepareFirstVideo(cmd: String, outputPath1: String){
+
         EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("prepareFirstVideo onSuccess ",TAG)
@@ -310,6 +313,7 @@ class CompilerActivity : AppCompatActivity() {
     }
 
     fun funComipler(cmd: String, outputPath: String){
+
         EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("Compile Complete",TAG)
@@ -327,6 +331,7 @@ class CompilerActivity : AppCompatActivity() {
             override fun onFailure() {
                 myApplication.printLogD("Compile : onFailure",TAG)
 //                myApplication.showToast("Failed, Try Again..")
+                myApplication.showToast("Something went wrong,Try Again..")
                 startActivity(Intent(this@CompilerActivity,SnapPreviewActivity::class.java))
                 finish()
             }
@@ -451,7 +456,6 @@ class CompilerActivity : AppCompatActivity() {
             encoder.releaseOutputBuffer(outputBufferIndex, false)
         }
 
-
         encoder.stop();
         encoder.release();
         muxer.stop();
@@ -484,7 +488,6 @@ class CompilerActivity : AppCompatActivity() {
         }*/
 
 
-
         EpEditor.execCmd(cmd,0,object : OnEditorListener {
             override fun onSuccess() {
                 myApplication.printLogD("log : onSuccess",TARCK)
@@ -507,6 +510,7 @@ class CompilerActivity : AppCompatActivity() {
 
             override fun onFailure() {
                 myApplication.printLogD("log : onFailure",TARCK)
+                sendToUploadVideoActivity()
             }
 
             override fun onProgress(progress: Float) {
@@ -522,8 +526,6 @@ class CompilerActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-
-
 
 
      private inner class DownloadDuetVideo : AsyncTask<String, Void, String>() {
@@ -564,15 +566,18 @@ class CompilerActivity : AppCompatActivity() {
          override fun onPostExecute(path: String?) {
              if (path != null) {
                  downloadFilePath = path
+                 sessionManager.setDuetVideoUrl(downloadFilePath)
                  myApplication.printLogD("video Download Complete : $path",TAG)
+                /* val outputPath1 =  createFileAndFolder()
+                 val inputPath = sessionManager.getCreateDuetVideoUrl()
+                 val prepareFirstVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath1"
+                 prepareFirstVideo(prepareFirstVideoCmd,outputPath1)*/
+
                  val outputPath1 = sessionManager.getCreateDuetVideoUrl()
                  val outputPath2 = downloadFilePath
-                 sessionManager.setDuetVideoUrl(downloadFilePath)
-//                 val prepareFirstVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath1"
                  val finalPath =  createFileAndFolder()
-                 val cmd1 = "-y -i $outputPath1 -i $outputPath2 -filter_complex [0:v]scale=640x360,setsar=1[v0];[1:v]scale=640x360,setsar=1[v1];[v0][v1]hstack -c:a copy $finalPath"
                  val finalCmd = "-y -i $outputPath1 -i $outputPath2 -preset ultrafast -filter_complex hstack $finalPath"
-                    funComipler(finalCmd,finalPath)
+                 funComipler(finalCmd,finalPath)
 
              } else {
                  myApplication.printLogD("video Download Failed : ",TAG)

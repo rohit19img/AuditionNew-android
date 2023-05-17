@@ -122,7 +122,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         val commentBtn = itemView.commentButton
         val showCommentView = itemView.showComment
         val postLocation = itemView.postLocation
-        val duetVideoBtn = itemView.duetVideo
         val commentCount = itemView.commentCount
         val playPauseVolumeBtn = itemView.playPauseVolume
         val playPauseIc = itemView.videoPlayPause
@@ -782,6 +781,12 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         }
     }
 
+    private fun sendToDuetCameraActivity(bundle: Bundle) {
+        val intent = Intent(contextFromActivity.applicationContext,DuetCameraActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle,bundle)
+        contextFromActivity.startActivity(intent)
+    }
+
     private fun moredialog(i: Int) {
         val dialog1 = BottomSheetDialog(contextFromActivity, R.style.CustomBottomSheetDialogTheme)
         dialog1.setContentView(R.layout.more_dialog)
@@ -789,9 +794,15 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         val iv_share_not_intersested =
             dialog1.findViewById<ImageView>(R.id.iv_share_not_intersested)
         val iv_share_report = dialog1.findViewById<ImageView>(R.id.iv_share_report)
-        val iv_share_duet = dialog1.findViewById<ImageView>(R.id.iv_share_duet)
+        val iv_share_duet = dialog1.findViewById<LinearLayout>(R.id.iv_share_duet)
         val iv_share_download = dialog1.findViewById<LinearLayout>(R.id.iv_share_download)
         val iv_share_watch_later = dialog1.findViewById<LinearLayout>(R.id.iv_share_watch_later)
+
+        if (!(videoList[i].allowDuet!!)){
+            iv_share_duet!!.visibility = View.GONE
+        }else{
+            iv_share_duet!!.visibility = View.VISIBLE
+        }
 
         //BoostPost
         val boostPost = dialog1.findViewById<LinearLayout>(R.id.boost_post)
@@ -861,13 +872,16 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             dialog1.dismiss()
         }
 
-        iv_share_duet!!.setOnClickListener {
+        iv_share_duet.setOnClickListener {
             if (!sessionManager.isUserLoggedIn()) {
                 val intent =
                     Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
                 contextFromActivity.startActivity(intent)
             } else {
-                Toast.makeText(contextFromActivity, "Coming Soon..", Toast.LENGTH_SHORT).show()
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.DuetVideoUrl,videoList[i].file)
+                bundle.putString(ConstValFile.AuditionID,videoList[i].auditionId)
+                sendToDuetCameraActivity(bundle)
             }
         }
 

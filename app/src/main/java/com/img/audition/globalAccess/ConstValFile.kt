@@ -32,6 +32,10 @@ class ConstValFile {
         const val AddText = "AddText"
         const val VideoOriginalPath ="videoOriginalPath"
         const val TYPE_IMAGE = "image"
+        const val UpContestComingList = "UpContestList"
+        const val LiveContestList = "LiveContestList"
+        const val CompletedContestList = "CompletedContestList"
+
         const val CompileTask = "compileTask"
         const val TaskMuxing = "TaskMuxing"
         const val UploadSuccess = "Uploaded Successfully."
@@ -55,6 +59,8 @@ class ConstValFile {
         const val VideoList = "VideoList"
         const val VideoFilePath = "videoFilePath"
         const val DuetVideoUrl = "DuetVideoUrl"
+        const val DuetCaption = "DuetCaption"
+        const val isFromDuet = "isFromDuet"
         const val duetVideoUrl = "videoFilePath"
         const val TrimAudioUrl = "trimAudioUrl"
         const val VideoSpeedState = "videoSpeedState"
@@ -100,6 +106,7 @@ class ConstValFile {
         const val Unfollow = "Unfollow"
         const val Follow = "Follow"
         const val MobileVerified = "MobileVerified"
+        const val EmailVerified = "EmailVerified"
         const val PanVerified = "PanVerified"
         const val BankVerified = "BankVerified"
         const val REQUEST_PERMISSION_CODE_LOCATION = 1001

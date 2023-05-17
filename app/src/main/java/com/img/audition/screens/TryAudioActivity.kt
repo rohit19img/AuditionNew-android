@@ -115,6 +115,7 @@ class TryAudioActivity : AppCompatActivity() {
     private fun sendForCreateVideo(songID: String,songUrl:String) {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest,false)
+        bundle.putBoolean(ConstValFile.isFromDuet, false)
         bundle.putString(ConstValFile.SongID,songID)
         sessionManager.setVideoSongID(songID)
         sessionManager.setVideoSongUrl(songUrl)

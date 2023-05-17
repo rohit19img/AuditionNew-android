@@ -91,6 +91,15 @@ class SessionManager(context: Context) {
         prefEditorMain.commit()
     }
 
+    fun getEmailVerified(): Boolean {
+        return sharedPrefMain.getBoolean(ConstValFile.EmailVerified,false)
+    }
+
+    fun setEmailVerified(mVerify:Boolean){
+        prefEditorMain.putBoolean(ConstValFile.EmailVerified,mVerify)
+        prefEditorMain.commit()
+    }
+
     fun setPANVerified(v: String?) {
         prefEditorMain.putString(ConstValFile.PanVerified,v)
         prefEditorMain.commit()
@@ -140,6 +149,11 @@ class SessionManager(context: Context) {
     fun clearContestSession(){
         prefEditorContest.clear()
         prefEditorContest.commit()
+    }
+
+    fun clearDuetSession(){
+        prefEditorDuetVideoSession.clear()
+        prefEditorDuetVideoSession.commit()
     }
 
     fun getContestEntryFee(): Int {
@@ -289,18 +303,30 @@ class SessionManager(context: Context) {
         return sharedPrefAudioVideoSession.getString(ConstValFile.SongUrl,"")
     }
 
+
     fun setDuetVideoUrl(duetVideoUrl: String) {
         prefEditorDuetVideoSession.putString(ConstValFile.DuetVideoUrl,duetVideoUrl)
         prefEditorDuetVideoSession.commit()
     }
 
-    fun setCreateDuetVideoUrl(createVideoUrl: String) {
+    fun setDuetVideoSession(createVideoUrl: String, duetVideoUrl: String, duetWithId: String, isFromDuet: Boolean) {
         prefEditorDuetVideoSession.putString(ConstValFile.VideoFilePath,createVideoUrl)
+        prefEditorDuetVideoSession.putString(ConstValFile.DuetVideoUrl,duetVideoUrl)
+        prefEditorDuetVideoSession.putString(ConstValFile.DuetCaption,duetWithId)
+        prefEditorDuetVideoSession.putBoolean(ConstValFile.isFromDuet,isFromDuet)
         prefEditorDuetVideoSession.commit()
     }
 
     fun getDuetVideoUrl():String?{
         return sharedPrefDuetVideoSession.getString(ConstValFile.DuetVideoUrl,"")
+    }
+
+    fun getDuetCaption():String?{
+        return sharedPrefDuetVideoSession.getString(ConstValFile.DuetCaption,"")
+    }
+
+    fun getIsFromDuet():Boolean{
+        return sharedPrefDuetVideoSession.getBoolean(ConstValFile.isFromDuet,false)
     }
 
     fun getCreateDuetVideoUrl():String?{

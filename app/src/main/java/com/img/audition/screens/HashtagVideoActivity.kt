@@ -75,6 +75,7 @@ class HashtagVideoActivity : AppCompatActivity() {
     private fun sendForCreateVideo(hashTag: String) {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest,false)
+        bundle.putBoolean(ConstValFile.isFromDuet, false)
         bundle.putString(ConstValFile.VideoHashTag,hashTag)
         sessionManager.setVideoHashTag(hashTag)
         val intent = Intent(this@HashtagVideoActivity, SnapCameraActivity::class.java)

@@ -1,5 +1,6 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -48,14 +49,24 @@ class WithdrawActivity : AppCompatActivity() {
                     myApplication.showToast("Enter Valid Amount")
                     viewBinding.withdrawCashET.error = "Enter Valid Amount"
 
-                }else
+                }else{
                     myApplication.showToast("Enter Amount")
                     viewBinding.withdrawCashET.error = "Enter Amount"
+                }
             }else{
                 viewBinding.withdrawCashET.text.clear()
-                withdrawRequest(amount)
+                if (sessionManager.getBankVerified() == "1"){
+                    withdrawRequest(amount)
+                }else{
+                    myApplication.showToast("Please verify KYC")
+                   sendToVerficationActivity()
+                }
             }
         }
+    }
+    private fun sendToVerficationActivity() {
+        val intent = Intent(this@WithdrawActivity,VerificationActivity::class.java)
+        startActivity(intent)
     }
 
     private fun withdrawRequest(amount: String) {

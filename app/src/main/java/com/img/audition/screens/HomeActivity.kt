@@ -247,6 +247,7 @@ import java.io.IOException
     private fun sendForCreateVideo() {
         val bundle = Bundle()
         bundle.putBoolean(ConstValFile.IsFromContest,false)
+        bundle.putBoolean(ConstValFile.isFromDuet, false)
         val intent = Intent(this@HomeActivity, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         startActivity(intent)

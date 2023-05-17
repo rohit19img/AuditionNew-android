@@ -5,12 +5,16 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.GetJoinedContestDataResponse
+import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.FragmentJoinedContestBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
@@ -22,11 +26,16 @@ import retrofit2.Response
 
 
 @UnstableApi
-class JoinedContestFragment : Fragment() {
+class CompletedContestFragment : Fragment() {
 
-    val TAG = "JoinedContestFragment"
+
+
+    lateinit var contestViewpager2: ViewPager2
+    lateinit var noLiveContest: TextView
+
+    val TAG = "CompletedContestFragment"
     private lateinit var _viewBinding : FragmentJoinedContestBinding
-    private var contestAdapter:ContestJoinedAdapter = ContestJoinedAdapter()
+    private var contestAdapter:ContestLiveAdapter = ContestLiveAdapter()
 
     private val view get() = _viewBinding
     private val sessionManager by lazy {
@@ -42,7 +51,10 @@ class JoinedContestFragment : Fragment() {
 
     private var videoItemPlayPause: PlayPauseContestVideo = contestAdapter.onActivityStateChanged()
 
-
+    private val bundle by lazy {
+        arguments
+    }
+    var list : ArrayList<LiveContestData> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,14 +62,33 @@ class JoinedContestFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentJoinedContestBinding.inflate(inflater,container,false)
-
-        view.contestViewpager2.offscreenPageLimit = 1
-        showJoinedContest()
+        val pager by lazy {
+            view.contestViewpager2
+        }
+        contestViewpager2 = pager
+        noLiveContest = view.noJoinedContest
         return view.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        list = bundle!!.getSerializable(ConstValFile.CompletedContestList) as  ArrayList<LiveContestData>
 
-    private fun showJoinedContest() {
+        if (list.size>0){
+            noLiveContest.visibility = View.GONE
+            contestAdapter = ContestLiveAdapter(view.context,list)
+            contestViewpager2.adapter = contestAdapter
+            videoItemPlayPause = contestAdapter.onActivityStateChanged()
+
+            Log.d("check 400" ,"onResponse: videoItemPlayPause")
+        }else{
+            Log.d(TAG, " No Live Contest")
+            noLiveContest.visibility = View.VISIBLE
+        }
+    }
+
+
+    /*private fun showJoinedContest() {
         val liveContestReq = apiInterface.getJoinedContest(sessionManager.getToken())
 
         liveContestReq.enqueue( object : Callback<GetJoinedContestDataResponse> {
@@ -66,7 +97,7 @@ class JoinedContestFragment : Fragment() {
                     val contestData = response.body()!!.data
                     if (contestData.size>0){
                         view.noJoinedContest.visibility = View.GONE
-                        contestAdapter = ContestJoinedAdapter(requireContext(),contestData)
+                        contestAdapter = ContestLiveAdapter(requireContext(),contestData)
                         view.contestViewpager2.adapter = contestAdapter
                         videoItemPlayPause = contestAdapter.onActivityStateChanged()
                     }else{
@@ -85,7 +116,7 @@ class JoinedContestFragment : Fragment() {
             }
 
         })
-    }
+    }*/
 
     override fun onPause() {
         super.onPause()

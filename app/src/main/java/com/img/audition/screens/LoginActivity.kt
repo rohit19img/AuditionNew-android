@@ -179,7 +179,6 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
         }
     }
 
-
     private fun handleSignInResult(result: GoogleSignInResult) {
         myApplication.printLogE( "handleSignInResult:$result",TAG)
         if (result.isSuccess) {
@@ -218,7 +217,7 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
                     sessionManager.setUserSelfID(userId)
                     sessionManager.setToken(token)
                     sessionManager.setUserName(FGname)
-                    sessionManager.setMobileVerified(true)
+                    sessionManager.setEmailVerified(true)
                     Thread.sleep(500)
                     myApplication.showToast("Login Successfully..")
                     sendToHomeActivity()

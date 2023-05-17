@@ -39,7 +39,7 @@ data class LiveContestData(
     @SerializedName("updatedAt"            ) var updatedAt          : String?           = null,
     @SerializedName("isJoined"             ) var isJoined           : Boolean?          = null
 
-)
+) : java.io.Serializable
 
 data class GetJoinedContestDataResponse(
     @SerializedName("success" ) var success : Boolean?        = null,
@@ -135,7 +135,8 @@ data class LeaderboardData(
     @SerializedName("userid"       ) var userid       : String? = null,
     @SerializedName("name"         ) var name         : String? = null,
     @SerializedName("auditionId"   ) var auditionId   : String? = null,
-    @SerializedName("image"        ) var image        : String? = null
+    @SerializedName("image"        ) var image        : String? = null,
+    @SerializedName("status"       ) var status        : String? = null
 )
 
 data class LiveContestPriceCard (
@@ -150,4 +151,4 @@ data class LiveContestPriceCard (
     @SerializedName("type"          ) var type         : String? = null,
     @SerializedName("_id"           ) var Id           : String? = null
 
-)
+) : java.io.Serializable

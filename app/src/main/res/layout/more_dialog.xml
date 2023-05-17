@@ -108,16 +108,16 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:id="@+id/iv_share_duet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="7dp"
-                    android:visibility="gone"
                     android:orientation="vertical">
 
-                    <androidx.cardview.widget.CardView style="@style/cardview_share">
+                    <androidx.cardview.widget.CardView
+                        style="@style/cardview_share">
 
                         <ImageView
-                            android:id="@+id/iv_share_duet"
                             style="@style/imageview_share"
                             android:src="@drawable/share_duet" />
 

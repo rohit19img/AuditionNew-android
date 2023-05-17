@@ -139,7 +139,6 @@ class UploadVideoActivity : AppCompatActivity() {
             Places.initialize(this@UploadVideoActivity, "AIzaSyBmniloMXEznkrAL6k0VfoFsJJFAfcRBgg", Locale.ENGLISH);
         }
 
-
         videoCapEt = viewBinding.captionForVideoET
         cycleViewlayout = viewBinding.cycleView
         progressDialog = ProgressDialog(this@UploadVideoActivity)
@@ -171,21 +170,23 @@ class UploadVideoActivity : AppCompatActivity() {
 
                 Log.d(TAG, "onTextChanged: "+substrings)
 
-                if (substrings.contains("@") && substrings.length>2){
-                    if(!check)
-                    {
-                        val caption = substrings.toString().trim()
+                if (!(sessionManager.getIsFromDuet())){
+                    if (substrings.contains("@") && substrings.length>2){
+                        if(!check)
+                        {
+                            val caption = substrings.toString().trim()
 //                val caption = viewBinding.captionForVideoET.text.toString().trim()
-                        if (caption.contains("@")){
-                            val atIndex =  caption.indexOf("@")
-                            if (atIndex!=-1){
-                                searchUserName = caption
-                                searchUser(searchUserName)
+                            if (caption.contains("@")){
+                                val atIndex =  caption.indexOf("@")
+                                if (atIndex!=-1){
+                                    searchUserName = caption
+                                    searchUser(searchUserName)
+                                }
                             }
                         }
-                    }
-                    else{
-                        check=false
+                        else{
+                            check=false
+                        }
                     }
                 }
 
@@ -220,8 +221,7 @@ class UploadVideoActivity : AppCompatActivity() {
             val hashArray: MutableList<String> = ArrayList()
             while (findMatchHash.find()) {
                 findMatchHash.group(1)?.let { it1 -> hashArray.add(it1) }
-                videoHashTag =
-                    videoHashTag + "#" + Objects.requireNonNull(findMatchHash.group(1)) + " "
+                videoHashTag = videoHashTag + "#" + Objects.requireNonNull(findMatchHash.group(1)) + " "
                 Log.d("checkHash", "postWrite: hashTag InLoop : " + findMatchHash.group(1))
             }
         }
@@ -233,7 +233,6 @@ class UploadVideoActivity : AppCompatActivity() {
         }else{
             extractAudioFromVideo(videoOriginalPath)
         }
-
 
        /* val outputPath = createFileAndFolder()
         myApplication.printLogD("Call Compress Video Fun",TARCK)
@@ -553,7 +552,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("songLink", sessionManager.getVideoSongUrl())
         obj.addProperty("postId", postID)
-        obj.addProperty("songid", videoSongID)
+        if (videoSongID.isNotEmpty())
+            obj.addProperty("songid", videoSongID)
         myApplication.printLogD("uploadTime = $videoSongID","SongID")
         obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
@@ -602,7 +602,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("postId", postID)
         obj.addProperty("contestId", sessionManager.getContestID())
         obj.addProperty("status", "contest")
-        obj.addProperty("songid", videoSongID)
+        if (videoSongID.isNotEmpty())
+            obj.addProperty("songid", videoSongID)
         obj.addProperty("songLink", sessionManager.getVideoSongUrl())
         obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
@@ -644,7 +645,9 @@ class UploadVideoActivity : AppCompatActivity() {
         val videoUri = sessionManager.getCreateVideoPath()
 
         viewBinding.captionForVideoET.setText(sessionManager.getVideoHashTag().toString())
+        viewBinding.captionForVideoET.setText(sessionManager.getDuetCaption().toString())
         myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} onStart","videoHashTag")
+        myApplication.printLogD("${sessionManager.getDuetCaption().toString()} onStart","videoHashTag")
         myApplication.printLogD("$isFromContest onStart"," isFromContest")
         myApplication.printLogD(videoUri!!, "videoUri")
 //        videoOriginalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
@@ -798,6 +801,7 @@ class UploadVideoActivity : AppCompatActivity() {
 
             override fun onFailure() {
                 myApplication.printLogD("log : onFailure",TARCK)
+                uploadVideoToS3()
             }
 
             override fun onProgress(progress: Float) {

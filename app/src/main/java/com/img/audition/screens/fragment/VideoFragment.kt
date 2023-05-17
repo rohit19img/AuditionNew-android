@@ -253,6 +253,7 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
 
         sessionManager.clearVideoSession()
         sessionManager.clearContestSession()
+        sessionManager.clearDuetSession()
 
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -327,4 +328,6 @@ class VideoFragment(val contextFromActivity: Context) : Fragment() {
         Log.d(TRACK, "onStart: ")
         super.onStart()
     }
+
+
 }

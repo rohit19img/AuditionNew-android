@@ -65,22 +65,8 @@ class SnapPreviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
-        videoPlayer = ExoPlayer.Builder(this@SnapPreviewActivity).build()
-
 
         viewBinding.exitButton.setOnClickListener { onBackPressed() }
-
-        viewBinding.sendToUploadBtn.setOnClickListener {
-            videoPlayer.pause()
-            videoPlayer.stop()
-            sendToCompressAndUploadVideoActivity()
-        }
-
-        viewBinding.music.setOnClickListener {
-            videoPlayer.volume = 0F
-            sendToMusicActivity()
-        }
-
 
         viewBinding.slowVideo.setOnClickListener {
             sessionManager.setCreateVideoSpeedState(ConstValFile.SlowVideo)
@@ -104,20 +90,7 @@ class SnapPreviewActivity : AppCompatActivity() {
             }
         }
 
-        viewBinding.x5Speed.setOnClickListener {
-            sessionManager.setCreateVideoSpeedState(ConstValFile.SlowVideo)
-            videoPlayer.setPlaybackSpeed(0.5f)
-        }
 
-        viewBinding.x1Speed.setOnClickListener {
-            sessionManager.setCreateVideoSpeedState(ConstValFile.NormalVideo)
-            videoPlayer.setPlaybackSpeed(1f)
-        }
-
-        viewBinding.x2Speed.setOnClickListener {
-            sessionManager.setCreateVideoSpeedState(ConstValFile.FastVideo)
-            videoPlayer.setPlaybackSpeed(2f)
-        }
 
 
         viewBinding.fastVideo.setOnClickListener {
@@ -139,6 +112,7 @@ class SnapPreviewActivity : AppCompatActivity() {
         }else{
             viewBinding.music.visibility = View.VISIBLE
         }
+        videoPlayer = ExoPlayer.Builder(this@SnapPreviewActivity).build()
 
         viewBinding.videoPreview.player = videoPlayer
         val videoUri = sessionManager.getCreateVideoPath()
@@ -170,6 +144,33 @@ class SnapPreviewActivity : AppCompatActivity() {
                 }
             }
         })
+
+
+        viewBinding.sendToUploadBtn.setOnClickListener {
+            videoPlayer.pause()
+            videoPlayer.stop()
+            sendToCompressAndUploadVideoActivity()
+        }
+
+        viewBinding.music.setOnClickListener {
+            videoPlayer.volume = 0F
+            sendToMusicActivity()
+        }
+
+        viewBinding.x5Speed.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.SlowVideo)
+            videoPlayer.setPlaybackSpeed(0.5f)
+        }
+
+        viewBinding.x1Speed.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.NormalVideo)
+            videoPlayer.setPlaybackSpeed(1f)
+        }
+
+        viewBinding.x2Speed.setOnClickListener {
+            sessionManager.setCreateVideoSpeedState(ConstValFile.FastVideo)
+            videoPlayer.setPlaybackSpeed(2f)
+        }
 
         super.onResume()
     }

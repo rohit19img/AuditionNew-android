@@ -21,7 +21,7 @@ import retrofit2.Response
 
 class DetailsPrizecardFragment(val contestID: String) : Fragment() {
 
-    val TAG = "JoinedContestFragment"
+    val TAG = "CompletedContestFragment"
     private lateinit var _viewBinding : FragmentDetailsPrizecardBinding
     private val view get() = _viewBinding
     private val sessionManager by lazy {

@@ -45,15 +45,16 @@ class WithdrawActivity : AppCompatActivity() {
         viewBinding.withdrawBtn.setOnClickListener {
             val amount = viewBinding.withdrawCashET.text.toString().trim()
             if (amount.isEmpty()){
-                if (amount.toInt()>0){
-                    myApplication.showToast("Enter Valid Amount")
-                    viewBinding.withdrawCashET.error = "Enter Valid Amount"
-
+                if (amount.isNotEmpty()){
+                    if (amount.toInt()>0){
+                        viewBinding.withdrawCashET.error = "Enter Valid Amount"
+                    }else{
+                        viewBinding.withdrawCashET.error = "Enter Amount"
+                    }
                 }else{
-                    myApplication.showToast("Enter Amount")
-                    viewBinding.withdrawCashET.error = "Enter Amount"
+                    viewBinding.withdrawCashET.error = "Enter Valid Amount"
                 }
-            }else{
+            } else{
                 viewBinding.withdrawCashET.text.clear()
                 if (sessionManager.getBankVerified() == "1"){
                     withdrawRequest(amount)

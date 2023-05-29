@@ -132,13 +132,13 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/iv_share_not_intersested"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="7dp"
                     android:orientation="vertical">
 
                     <ImageView
-                        android:id="@+id/iv_share_not_intersested"
                         style="@style/imageview_share"
                         android:src="@drawable/share_not_intersested" />
 
@@ -151,6 +151,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/iv_share_report"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="7dp"
@@ -159,7 +160,7 @@
                     <androidx.cardview.widget.CardView style="@style/cardview_share">
 
                         <ImageView
-                            android:id="@+id/iv_share_report"
+
                             style="@style/imageview_share"
                             android:src="@drawable/share_report"
                             />

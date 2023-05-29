@@ -37,6 +37,12 @@
             android:orientation="horizontal"
             android:padding="8dp">
 
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/audioPlayerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:show_timeout="0"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -103,7 +109,6 @@
                     android:id="@+id/audio15SecFrame"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
-                    android:layout_marginHorizontal="18dp"
                     android:scrollbars="none">
 
                     <RelativeLayout
@@ -118,20 +123,25 @@
                             android:layout_marginVertical="10dp"
                             app:wave_background_color="@color/bgColorBlack"
                             app:wave_corner_radius="2dp"
-                            app:wave_gap="2dp"
+                            app:wave_gap="1dp"
                             app:wave_gravity="center"
                             app:wave_min_height="5dp"
-                            app:wave_padding_Bottom="2dp"
+                            app:wave_padding_Bottom="1dp"
+                            app:marker_color="@color/bgColorYellow"
+                            app:marker_width="2dp"
                             app:wave_padding_left="2dp"
                             app:wave_padding_right="2dp"
                             app:wave_padding_top="2dp"
                             app:wave_progress_color="@color/bgColorRed"
-                            app:wave_width="5dp" />
+                            app:wave_width="4dp" />
 
                     </RelativeLayout>
+
+
                 </HorizontalScrollView>
 
                 <ImageView
+                    android:layout_marginHorizontal="15dp"
                     android:id="@+id/imageFrame"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -231,7 +241,6 @@
             app:trackColor="#FF9800"
             app:trackThickness="10dp"
             android:id="@+id/progressTrimMusic"/>
-
 
 
     </RelativeLayout>

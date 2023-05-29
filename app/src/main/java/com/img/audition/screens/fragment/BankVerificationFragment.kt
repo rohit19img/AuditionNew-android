@@ -455,5 +455,10 @@ class BankVerificationFragment() : Fragment() {
         })
     }
 
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
+    }
 }
 

@@ -1,14 +1,17 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
 import android.util.Log
 import android.view.View
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.adapters.VideoAdapter
 import com.img.audition.adapters.VideoItemAdapter
@@ -22,12 +25,15 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.videoWork.VideoItemPlayPause
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 @UnstableApi class CommanVideoPlayActivity : AppCompatActivity() {
-    val TAG = "CommanVideoPlayActivity"
+    private val TAG = "CommanVideoPlayActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCommanVideoPlayBinding.inflate(layoutInflater)
     }
@@ -42,16 +48,20 @@ import retrofit2.Response
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
-    lateinit var videoItemPlayPause: VideoItemPlayPause
+    private lateinit var videoItemPlayPause: VideoItemPlayPause
 
      private val apiInterface by lazy{
          RetrofitClient.getInstance().create(ApiInterface::class.java)
      }
 
+    private lateinit var mainViewModel: MainViewModel
 
-     override fun onCreate(savedInstanceState: Bundle?) {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         if (bundle!=null){
             if (bundle!!.getBoolean(ConstValFile.IsFromContest)){
@@ -131,7 +141,48 @@ import retrofit2.Response
          super.onStop()
      }
 
-     private fun getContestVideo(userID: String,contestID:String) {
+    private fun getContestVideo(userID: String,contestID:String){
+        mainViewModel.getContestVideo(userID,contestID)
+            .observe(this){
+                it.let {videoResponse->
+                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
+                    when(videoResponse.status){
+                        Status.SUCCESS ->{
+                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
+                            if (videoResponse.data.success!!){
+                                val videoData = videoResponse.data.data
+                                if (videoData.size>0){
+                                    val videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoData)
+                                    viewBinding.videoViewpager2.adapter = videoAdapter
+                                    videoItemPlayPause = videoAdapter.onActivityStateChanged()
+                                }else{
+                                    myApplication.printLogD("No Video Data",TAG)
+                                    myApplication.showToast(videoResponse.data!!.message!!)
+                                }
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (videoResponse.message!!.contains("401")){
+                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this, SplashActivity::class.java))
+                                finishAffinity()
+                            }else{
+                                myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                                myApplication.showToast(videoResponse.data!!.message!!)
+                                onBackPressed()
+                            }
+                        }
+                    }
+                }
+            }
+    }
+
+
+  /*  private fun getContestVideo(userID: String,contestID:String) {
          val getUserVideoReq = apiInterface.getContestVideo(sessionManager.getToken(),userID,contestID)
 
          getUserVideoReq.enqueue( object : Callback<VideoResponse> {
@@ -156,5 +207,5 @@ import retrofit2.Response
              }
 
          })
-     }
+     }*/
 }

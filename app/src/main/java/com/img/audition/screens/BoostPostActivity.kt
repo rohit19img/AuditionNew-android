@@ -1,6 +1,7 @@
 package com.img.audition.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,6 +22,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.motion.widget.Debug.getLocation
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -34,44 +37,52 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class BoostPostActivity : AppCompatActivity() {
+@UnstableApi class BoostPostActivity : AppCompatActivity() {
 
-    val TAG = "BoostPostActivity"
-    var boostPostTool: Toolbar? = null
-    var budgetSeekbar: SeekBar? = null
-    var durationSeekBar: SeekBar? = null
-    var kmRadiusSeekBar: SeekBar? = null
-    var budgetValue: TextView? = null
-    var durationValue: TextView? = null
-    var totalBudgetSpend: TextView? = null
-    var totalDaysSpend: TextView? = null
-    var btnBoostPost: TextView? = null
-    var kmRadiusValue: TextView? = null
-    var selectLocationBtn: TextView? = null
-    var totalKmRadius: TextView? = null
-    var budget = 0
-    var duration: Int = 0
-    var kmRadius: Int = 0
-    var boostRate: Int = 0
-    var videoID = ""
+    private val TAG = "BoostPostActivity"
+    private var boostPostTool: Toolbar? = null
+    private var budgetSeekbar: SeekBar? = null
+    private var durationSeekBar: SeekBar? = null
+    private var kmRadiusSeekBar: SeekBar? = null
+    private var budgetValue: TextView? = null
+    private var durationValue: TextView? = null
+    private var totalBudgetSpend: TextView? = null
+    private var totalDaysSpend: TextView? = null
+    private var btnBoostPost: TextView? = null
+    private var kmRadiusValue: TextView? = null
+    private var selectLocationBtn: TextView? = null
+    private var totalKmRadius: TextView? = null
+    private var budget = 0
+    private var duration: Int = 0
+    private var kmRadius: Int = 0
+    private var boostRate: Int = 0
+    private var videoID = ""
 
-    lateinit var fusedLocation : FusedLocationProviderClient
-    lateinit var userLatLang: UserLatLang
-    lateinit var locationManager:LocationManager
+    private lateinit var fusedLocation : FusedLocationProviderClient
+    private lateinit var userLatLang: UserLatLang
+    private lateinit var locationManager:LocationManager
 
-    var sessionManager: SessionManager? = null
-    var dialog: ProgressDialog? = null
+    private var dialog: ProgressDialog? = null
 
-    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+    private val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
 
     private val myApplication by lazy {
         MyApplication(this@BoostPostActivity)
     }
 
+    private val sessionManager by lazy {
+        SessionManager(this@BoostPostActivity)
+    }
+
+    private lateinit var mainViewModel: MainViewModel
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_boost_post)
@@ -80,8 +91,8 @@ class BoostPostActivity : AppCompatActivity() {
         dialog!!.setTitle("Progressing")
         dialog!!.setMessage("Please wait..")
 
-        sessionManager = SessionManager(this@BoostPostActivity)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@BoostPostActivity)
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         boostPostTool = findViewById(R.id.boostPostTool)
         budgetSeekbar = findViewById(R.id.budgetSeekbar)
@@ -109,13 +120,13 @@ class BoostPostActivity : AppCompatActivity() {
             resources.getColor(R.color.white),
             PorterDuff.Mode.SRC_ATOP
         )
-        boostPostTool!!.setNavigationOnClickListener(View.OnClickListener { onBackPressed() })
+        boostPostTool!!.setNavigationOnClickListener({ onBackPressed() })
 
 
         videoID = intent.getStringExtra("videoID")!!
         Log.d("videoID", "onCreate: BOAC : $videoID")
 
-        val boostRateReq: Call<JsonObject> = apiInterface.getBoostRate(sessionManager!!.getToken())
+        val boostRateReq: Call<JsonObject> = apiInterface.getBoostRate(sessionManager.getToken())
         boostRateReq.enqueue(object : Callback<JsonObject?> {
             override fun onResponse(call: Call<JsonObject?>, response: Response<JsonObject?>) {
                 if (response.isSuccessful) {
@@ -135,7 +146,7 @@ class BoostPostActivity : AppCompatActivity() {
             }
         })
 
-        selectLocationBtn!!.setOnClickListener(View.OnClickListener { })
+        selectLocationBtn!!.setOnClickListener({ })
         budgetSeekbar!!.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 budget = seekBar.progress
@@ -197,10 +208,10 @@ class BoostPostActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
 
-        btnBoostPost!!.setOnClickListener(View.OnClickListener {
+        btnBoostPost!!.setOnClickListener {
             dialog!!.show()
             getUserWalletBalance(budget)
-        })
+        }
 
     }
 
@@ -217,12 +228,9 @@ class BoostPostActivity : AppCompatActivity() {
             boostObject.addProperty("long", kmRadius)
             boostObject.addProperty("videoId", videoID)
             val boostAPi: ApiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-            val boostReq: Call<BoostPostGetSet> = boostAPi.boostPost(sessionManager!!.getToken(), boostObject)
+            val boostReq: Call<BoostPostGetSet> = boostAPi.boostPost(sessionManager.getToken(), boostObject)
             boostReq.enqueue(object : Callback<BoostPostGetSet> {
-                override fun onResponse(
-                    call: Call<BoostPostGetSet>,
-                    response: Response<BoostPostGetSet>
-                ) {
+                override fun onResponse(call: Call<BoostPostGetSet>, response: Response<BoostPostGetSet>) {
                     dialog!!.dismiss()
                     Log.d("BoostPostDetails", "onResponse: $response")
                     Log.d(
@@ -240,7 +248,7 @@ class BoostPostActivity : AppCompatActivity() {
             })
         } else {
             dialog!!.dismiss()
-            Toast.makeText(this@BoostPostActivity, "Please Select All ", Toast.LENGTH_SHORT)
+            Toast.makeText(this@BoostPostActivity, "Check Internet & location permission..", Toast.LENGTH_SHORT)
                 .show()
         }
     }
@@ -282,55 +290,78 @@ class BoostPostActivity : AppCompatActivity() {
         }
     }
 
-    private fun getUserWalletBalance(contestFees: Int) {
-        val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager!!.getToken())
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
-            override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    myApplication.printLogD(response.toString(),TAG)
-                    val userData = response.body()!!.data
-                    if(userData!=null){
-                        val walletBalance =  userData.walletamaount!!
-
-                        Log.i(TAG,"Boost Fees : $contestFees")
-                        Log.i(TAG,"walletBalance : $walletBalance")
-
-                        val totalWon =  userData.totalwon
-                        if (contestFees <=  walletBalance){
-                           boostPost()
-                        }else{
-                            val sweetAlertDialog = SweetAlertDialog(this@BoostPostActivity, SweetAlertDialog.WARNING_TYPE)
-                            sweetAlertDialog.titleText = "Wallet Balance"
-                            sweetAlertDialog.contentText = "Please Add Balance"
-                            sweetAlertDialog.confirmText = "₹ Add"
-                            sweetAlertDialog.setConfirmClickListener {
-                                sweetAlertDialog.dismiss()
-                                sendToAddAmountActivity()
+    private fun getUserWalletBalance(boostAmount: Int){
+        mainViewModel.getUserSelfDetails()
+            .observe(this){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if (resources.data!!.success!!){
+                                val userData = resources.data.data
+                                if(userData!=null){
+                                    val walletBalance =  userData.walletamaount!!
+                                    Log.i(TAG,"Boost Fees : $boostAmount")
+                                    Log.i(TAG,"walletBalance : $walletBalance")
+                                    if (boostAmount <=  walletBalance){
+                                        boostPost()
+                                    }else{
+                                        val sweetAlertDialog = SweetAlertDialog(this@BoostPostActivity, SweetAlertDialog.WARNING_TYPE)
+                                        sweetAlertDialog.titleText = "Wallet Balance"
+                                        sweetAlertDialog.contentText = "Please Add Balance"
+                                        sweetAlertDialog.confirmText = "₹ Add"
+                                        sweetAlertDialog.setConfirmClickListener {
+                                            sweetAlertDialog.dismiss()
+                                            sendToAddAmountActivity()
+                                        }
+                                        sweetAlertDialog.cancelText = "No"
+                                        sweetAlertDialog.setCancelClickListener {
+                                            sweetAlertDialog.dismiss()
+                                            onBackPressed()
+                                        }
+                                        sweetAlertDialog.show()
+                                    }
+                                }else{
+                                    myApplication.printLogE("Wallet Data Null",TAG)
+                                }
+                            }else{
+                                myApplication.showToast("Something went wrong..")
                             }
-                            sweetAlertDialog.cancelText = "No"
-                            sweetAlertDialog.setCancelClickListener {
-                                sweetAlertDialog.dismiss()
-                                onBackPressed()
-
-                            }
-                            sweetAlertDialog.show()
                         }
-                    }else{
-                        myApplication.printLogE("Wallet Data Null",TAG)
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this@BoostPostActivity, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                }else{
-                    myApplication.printLogE("Get getUserWalletBalance Response Failed ${response.code()}",TAG)
                 }
             }
 
-            override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get getUserWalletBalance onFailure ${t.toString()}",TAG)
-            }
-        })
-    }
 
+    }
     private fun sendToAddAmountActivity() {
         val intent = Intent(this@BoostPostActivity, AddAmountActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun getLocation() {
+        if (ActivityCompat.checkSelfPermission(this@BoostPostActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this@BoostPostActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            myApplication.printLogD("ask permission from BoostPostActivity activity",TAG)
+        } else {
+            fusedLocation.lastLocation.addOnSuccessListener {location ->
+                if (location != null) {
+                    userLatLang = UserLatLang(location.latitude,location.longitude)
+                    myApplication.printLogI(userLatLang.lat.toString(), "latitude")
+                    myApplication.printLogI(userLatLang.long.toString(),"longitude")
+                }
+            }
+        }
     }
 }

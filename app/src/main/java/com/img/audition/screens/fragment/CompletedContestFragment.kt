@@ -35,21 +35,11 @@ class CompletedContestFragment : Fragment() {
 
     val TAG = "CompletedContestFragment"
     private lateinit var _viewBinding : FragmentJoinedContestBinding
-    private var contestAdapter:ContestLiveAdapter = ContestLiveAdapter()
+    lateinit var contestAdapter:ContestLiveAdapter
 
     private val view get() = _viewBinding
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
 
-    private val myApplication by lazy {
-        MyApplication(requireContext())
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
-    private var videoItemPlayPause: PlayPauseContestVideo = contestAdapter.onActivityStateChanged()
+    lateinit var videoItemPlayPause: PlayPauseContestVideo
 
     private val bundle by lazy {
         arguments
@@ -87,43 +77,17 @@ class CompletedContestFragment : Fragment() {
         }
     }
 
-
-    /*private fun showJoinedContest() {
-        val liveContestReq = apiInterface.getJoinedContest(sessionManager.getToken())
-
-        liveContestReq.enqueue( object : Callback<GetJoinedContestDataResponse> {
-            override fun onResponse(call: Call<GetJoinedContestDataResponse>, response: Response<GetJoinedContestDataResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val contestData = response.body()!!.data
-                    if (contestData.size>0){
-                        view.noJoinedContest.visibility = View.GONE
-                        contestAdapter = ContestLiveAdapter(requireContext(),contestData)
-                        view.contestViewpager2.adapter = contestAdapter
-                        videoItemPlayPause = contestAdapter.onActivityStateChanged()
-                    }else{
-                        myApplication.printLogD(" No Live Contest",TAG)
-                        view.noJoinedContest.visibility = View.VISIBLE
-                    }
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
-                    view.noJoinedContest.visibility = View.VISIBLE
-                }
-            }
-
-            override fun onFailure(call: Call<GetJoinedContestDataResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
-                view.noJoinedContest.visibility = View.VISIBLE
-            }
-
-        })
-    }*/
+    override fun onDestroyView() {
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
+    }
 
     override fun onPause() {
         super.onPause()
         Log.d("check 400", "onPause: $TAG")
         try {
             val cPos = view.contestViewpager2.currentItem
-            val holder: ContestJoinedAdapter.MyViewHolder = (view.contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestJoinedAdapter.MyViewHolder
+            val holder: ContestLiveAdapter.MyViewHolder = (view.contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestLiveAdapter.MyViewHolder
             Log.d("check 400", " onPause cPos: $cPos")
             videoItemPlayPause.onPause(holder,cPos)
         }catch (e:java.lang.Exception){
@@ -135,7 +99,7 @@ class CompletedContestFragment : Fragment() {
         Log.d("check 400", "onResume: $TAG")
         try {
             val cPos = view.contestViewpager2.currentItem
-            val holder: ContestJoinedAdapter.MyViewHolder = (view.contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestJoinedAdapter.MyViewHolder
+            val holder: ContestLiveAdapter.MyViewHolder = (view.contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestLiveAdapter.MyViewHolder
             videoItemPlayPause.onResume(holder,cPos)
             Log.d("check 400", " onResume cPos: $cPos")
         }catch (e:java.lang.Exception){
@@ -144,4 +108,16 @@ class CompletedContestFragment : Fragment() {
         super.onResume()
     }
 
+    override fun onStop() {
+        Log.d("check 400", "onStop: $TAG")
+        try {
+            val cPos = contestViewpager2.currentItem
+            val holder: ContestLiveAdapter.MyViewHolder = (contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestLiveAdapter.MyViewHolder
+            Log.d("check 400", " onPause cPos: $cPos")
+            videoItemPlayPause.onStop(holder,cPos)
+        }catch (e:java.lang.Exception){
+            Log.e("check 400", "1 $e")
+        }
+        super.onStop()
+    }
 }

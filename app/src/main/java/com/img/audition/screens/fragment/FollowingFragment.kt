@@ -19,7 +19,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FollowingFragment : Fragment() {
+class FollowingFragment(val userID:String) : Fragment() {
 
     val TAG = "FollowingFragment"
 
@@ -47,7 +47,7 @@ class FollowingFragment : Fragment() {
     }
 
     private fun showFollowingList() {
-        val followReq = apiInterface.getFollowFollowingList(sessionManager.getToken())
+        val followReq = apiInterface.getFollowFollowingList(sessionManager.getToken(),userID)
 
         followReq.enqueue(object : Callback<FollowerFollowingListResponse> {
             override fun onResponse(call: Call<FollowerFollowingListResponse>, response: Response<FollowerFollowingListResponse>) {

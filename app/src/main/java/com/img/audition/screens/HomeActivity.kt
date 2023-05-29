@@ -1,7 +1,6 @@
 package com.img.audition.screens
 
 import android.Manifest
-import com.img.audition.R
 import android.app.ActivityManager
 import android.app.Dialog
 import android.content.Context
@@ -10,6 +9,8 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.view.Window
 import android.widget.Button
@@ -22,6 +23,7 @@ import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.img.audition.R
 import com.img.audition.dataModel.UserLatLang
 import com.img.audition.dataModel.WebSliderResponse
 import com.img.audition.databinding.ActivityHomeBinding
@@ -34,7 +36,6 @@ import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.*
 import com.img.audition.snapCameraKit.SnapCameraActivity
-import com.img.audition.videoWork.VideoCacheWork
 import org.apache.commons.io.IOUtils
 import retrofit2.Call
 import retrofit2.Callback
@@ -43,9 +44,11 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.ref.WeakReference
 
 
-@UnstableApi class HomeActivity : AppCompatActivity() {
+@UnstableApi
+class HomeActivity : AppCompatActivity() {
     val TAG = "HomeActivity"
     lateinit var appPermission : AppPermission
     lateinit var fusedLocation : FusedLocationProviderClient
@@ -56,11 +59,13 @@ import java.io.IOException
     var authToken = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityHomeBinding.inflate(layoutInflater)
+        ActivityHomeBinding.inflate(layoutInflater)
     }
     private val sessionManager by lazy {
         SessionManager(this@HomeActivity)
     }
 
+    private val mHandler = MyHandler(this)
     private val myApplication by lazy {
         MyApplication(this@HomeActivity)
     }
@@ -75,6 +80,10 @@ import java.io.IOException
         val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         val runningTasks = activityManager.getRunningTasks(1)
         val currentActivity = runningTasks[0].topActivity!!.className
+
+        val message = mHandler.obtainMessage()
+        message.what = 1
+        mHandler.sendMessageDelayed(message, 1000)
 
         if (!(SplashActivity.isPopupBannerShow)){
             SplashActivity.isPopupBannerShow = true
@@ -106,17 +115,21 @@ import java.io.IOException
         viewBinding.bottomNav.setOnItemSelectedListener {
             when(it.itemId){
                 R.id.home -> {
+                    clearTempSession()
                     loadFragment(VideoFragment(this@HomeActivity))
                     true
                 }
                 R.id.search->{
+                    clearTempSession()
                     loadFragment(TrendingSearchFragment(this@HomeActivity))
                     true
                 }R.id.contest->{
+                    clearTempSession()
                     loadFragment(ContestFragment(this@HomeActivity))
                     true
                 }
                 R.id.createVideo->{
+                    clearTempSession()
                     if (!(sessionManager.isUserLoggedIn())){
                         sendToLoginScreen()
                     }else{
@@ -126,6 +139,7 @@ import java.io.IOException
                     false
                 }
                 R.id.profile->{
+                    clearTempSession()
                     if (!(sessionManager.isUserLoggedIn())){
                         sendToLoginScreen()
                     }else{
@@ -133,6 +147,7 @@ import java.io.IOException
                     }
                     true
                 }else -> {
+                    clearTempSession()
                     loadFragment(VideoFragment(this@HomeActivity))
                     true
 
@@ -145,7 +160,7 @@ import java.io.IOException
         val popupDialog = Dialog(this)
         popupDialog.window!!.requestFeature(Window.FEATURE_NO_TITLE)
         popupDialog.setContentView(layoutInflater.inflate(R.layout.popup_dialog_layout, null))
-        popupDialog.show()
+
 
         val popupImage = popupDialog.findViewById<ImageView>(R.id.popupImage)
         val popupButton = popupDialog.findViewById<Button>(R.id.popupButton)
@@ -165,10 +180,9 @@ import java.io.IOException
             override fun onFailure(call: Call<WebSliderResponse>, t: Throwable) {
                 myApplication.printLogE(t.toString(),TAG)
             }
-
         })
 
-
+        popupDialog.show()
 
     }
 
@@ -181,11 +195,7 @@ import java.io.IOException
 
 
     private fun askForLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this@HomeActivity,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this@HomeActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -274,8 +284,36 @@ import java.io.IOException
     }
 
 
+    override fun onResume() {
+        super.onResume()
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
+        mHandler.removeCallbacksAndMessages(null)
+    }
+
+
+    private class MyHandler(activity: HomeActivity?) : Handler() {
+        private val activityRef: WeakReference<HomeActivity>
+
+        init {
+            activityRef = WeakReference(activity)
+        }
+
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            val activity = activityRef.get()
+            if (activity != null) { }
+        }
+    }
+
+    private fun clearTempSession(){
+
+        sessionManager.clearVideoSession()
+        sessionManager.clearContestSession()
+        sessionManager.clearDuetSession()
     }
 
 }

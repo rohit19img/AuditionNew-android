@@ -110,13 +110,16 @@ class AddAmountActivity : AppCompatActivity() {
                         if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                             AddAmount(amount, "Cashfree")
                         }else{
+                            myApplication.showToast("Please Verify Mobile & Email")
                             sendToVerficationActivity()
+
                         }
                     }
                 } else {
                     if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                         AddAmount(amount, "Cashfree")
                     }else{
+                        myApplication.showToast("Please Verify Mobile & Email")
                         sendToVerficationActivity()
                     }
                 }
@@ -202,6 +205,7 @@ class AddAmountActivity : AppCompatActivity() {
                         if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                             AddAmount(Amount, from)
                         }else{
+                            myApplication.showToast("Please Verify Mobile & Email")
                             sendToVerficationActivity()
                         }
                     }

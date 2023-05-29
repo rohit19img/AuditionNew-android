@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.*
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -30,16 +33,20 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.*
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
+@UnstableApi
 class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     val TAG = "ProfileFragment"
 
     private lateinit var _viewBinding: FragmentProfileBinding
-    private val view get() = _viewBinding!!
+    private val view get() = _viewBinding
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
     }
@@ -61,11 +68,13 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     lateinit var menuButton: ImageView
     lateinit var drawerLayout: DrawerLayout
 
+    private lateinit var mainViewModel: MainViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _viewBinding = FragmentProfileBinding.inflate(inflater, container, false)
 
 
@@ -88,7 +97,13 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view1, savedInstanceState)
 
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+
         view.shimmerVideoView.startShimmer()
+
+        getUserSelfDetails()
+
+        getUserVideo()
 
         view.editProfileBtn.setOnClickListener {
             senToEditProfile()
@@ -205,6 +220,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         val bundle = Bundle()
         bundle.putInt(ConstValFile.PagePosition, pagePos)
         bundle.putString(ConstValFile.UserName, userName)
+        bundle.putString(ConstValFile.USER_ID, sessionManager.getUserSelfID())
         val intent = Intent(contextFromActivity, FollowFollowingListActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)
         startActivity(intent)
@@ -255,102 +271,115 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         })
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        getUserSelfDetails()
 
-        getUserSelfVideo()
+    private fun getUserVideo(){
+        mainViewModel.getUserVideo(sessionManager.getUserSelfID()!!)
+            .observe(viewLifecycleOwner){
+                it.let {videoResponse->
+                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
+                    when(videoResponse.status){
+                        Status.SUCCESS ->{
+                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
+                            if (videoResponse.data.success!!){
+                                val videoData = videoResponse.data.data
+                                if (videoData.size > 0) {
+                                    val videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
+                                    userVideoRecycle.adapter = videoItemAdapter
+                                    view.shimmerVideoView.stopShimmer()
+                                    view.shimmerVideoView.hideShimmer()
+                                    view.shimmerVideoView.visibility = View.GONE
+                                    userVideoRecycle.visibility = View.VISIBLE
+                                } else {
+                                    myApplication.printLogD("No Video Data", TAG)
+                                    view.shimmerVideoView.stopShimmer()
+                                    view.shimmerVideoView.hideShimmer()
+                                    noVideoImage.visibility = View.VISIBLE
+                                }
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (videoResponse.message!!.contains("401")){
+                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(contextFromActivity, SplashActivity::class.java))
+                                requireActivity().finishAffinity()
+                            }
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                        }
+                    }
+                }
+            }
     }
 
-    private fun getUserSelfVideo() {
-        val userVideoReq = apiInterface.getUserSelfVideo(sessionManager.getToken())
-        userVideoReq.enqueue(object : Callback<VideoResponse> {
-            override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
-                    val videoData = response.body()!!.data
-                    if (videoData.size > 0) {
-                        val videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
-                        userVideoRecycle.adapter = videoItemAdapter
-                        view.shimmerVideoView.stopShimmer()
-                        view.shimmerVideoView.hideShimmer()
-                        view.shimmerVideoView.visibility = View.GONE
-                        userVideoRecycle.visibility = View.VISIBLE
-                    } else {
-                        myApplication.printLogD("No Video Data", TAG)
-                        view.shimmerVideoView.stopShimmer()
-                        view.shimmerVideoView.hideShimmer()
-                        noVideoImage.visibility = View.VISIBLE
+    fun getUserSelfDetails(){
+        mainViewModel.getUserSelfDetails()
+            .observe(viewLifecycleOwner){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if (resources.data!!.success!!){
+                                val userData = resources.data.data
+                                if (userData != null) {
+                                    likeCount.text = userData.totalLike.toString()
+                                    followCount.text = userData.followersCount.toString()
+                                    followingCount.text = userData.followingCount.toString()
+                                    if (userData.image.toString().isNotEmpty()) {
+                                        Glide.with(contextFromActivity).load(userData.image.toString())
+                                            .placeholder(R.drawable.person_ic).into(userImageView)
+                                        sessionManager.setUserProfileImage(userData.image.toString())
+                                    } else {
+                                        userImageView.setImageResource(R.drawable.person_ic)
+                                    }
+                                    if (userData.bio.toString().isNotEmpty()) {
+                                        userBio.text = userData.bio.toString()
+                                    } else {
+                                        userBio.visibility = View.GONE
+                                    }
+                                    if (userData.name.toString().isNotEmpty()) {
+                                        userName.text = userData.name.toString()
+                                        sessionManager.setUserName(userData.name.toString())
+                                    } else {
+                                        userName.text = userData.auditionId.toString()
+                                        sessionManager.setUserName(userData.auditionId.toString())
+                                    }
+                                    auditionID.text = userData.auditionId.toString()
+                                } else {
+                                    myApplication.printLogE("User Data Null", TAG)
+                                }
+                            }else{
+                                myApplication.showToast("Something went wrong..")
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(contextFromActivity, SplashActivity::class.java))
+                                requireActivity().finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                } else {
-                    myApplication.printLogE(
-                        "Get Other User Self Video Response Failed ${response.code()}",
-                        TAG
-                    )
                 }
             }
 
-            override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Video onFailure ${t.toString()}", TAG)
-            }
-        })
-    }
 
-
-    private fun getUserSelfDetails() {
-        val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
-
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
-            override fun onResponse(
-                call: Call<UserSelfProfileResponse>,
-                response: Response<UserSelfProfileResponse>
-            ) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
-                    myApplication.printLogD(response.toString(), TAG)
-                    val userData = response.body()!!.data
-                    if (userData != null) {
-                        likeCount.text = userData!!.totalLike.toString()
-                        followCount.text = userData!!.followersCount.toString()
-                        followingCount.text = userData!!.followingCount.toString()
-                        if (userData.image.toString().isNotEmpty()) {
-                            Glide.with(contextFromActivity).load(userData.image.toString())
-                                .placeholder(R.drawable.person_ic).into(userImageView)
-                            sessionManager.setUserProfileImage(userData.image.toString())
-                        } else {
-                            userImageView.setImageResource(R.drawable.person_ic)
-                        }
-                        if (userData.bio.toString().isNotEmpty()) {
-                            userBio.text = userData.bio.toString()
-                        } else {
-                            userBio.visibility = View.GONE
-                        }
-                        if (userData.name.toString().isNotEmpty()) {
-                            userName.text = userData.name.toString()
-                            sessionManager.setUserName(userData.name.toString())
-                        } else {
-                            userName.text = userData.auditionId.toString()
-                            sessionManager.setUserName(userData.auditionId.toString())
-                        }
-                        auditionID.text = userData.auditionId.toString()
-                    } else {
-                        myApplication.printLogE("User Data Null", TAG)
-                    }
-                } else {
-                    myApplication.printLogE(
-                        "Get Other User Self Data Response Failed ${response.code()}",
-                        TAG
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Data onFailure ${t.toString()}", TAG)
-            }
-
-        })
     }
 
     private fun showLanguageDialog() {
         val showLangDialog = LanguageSelecteDialog()
         showLangDialog.show(parentFragmentManager, showLangDialog.tag)
+    }
+
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
     }
 }

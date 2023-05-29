@@ -20,12 +20,14 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amazonaws.auth.BasicAWSCredentials
@@ -59,6 +61,9 @@ import com.img.audition.network.APITags
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
@@ -73,16 +78,16 @@ import java.util.regex.Pattern
 @UnstableApi
 class UploadVideoActivity : AppCompatActivity() {
 
-    val TAG = "UploadVideoActivity"
-    val TARCK = "check 100"
+    private val TAG = "UploadVideoActivity"
+    private val TARCK = "check 100"
     private var videoSongName = ""
     private var videoSongID = ""
     private var audiFilePath = ""
-    var check:Boolean=false
+    private var check:Boolean=false
 
-    val PLACE_PICKER_REQUEST = 200
+    private val PLACE_PICKER_REQUEST = 200
 
-    var postLocation = ""
+    private var postLocation = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityUploadVideoBinding.inflate(layoutInflater)
     }
@@ -107,28 +112,32 @@ class UploadVideoActivity : AppCompatActivity() {
     private var isAllowComment = true
     private var isAllowSharing = true
     private var isAllowDuet = true
-    var userlist: ArrayList<SearchUserData>? = null
+    private var userlist: ArrayList<SearchUserData>? = null
     private var walletBalance = 0
 
-    lateinit var fusedLocation : FusedLocationProviderClient
-    lateinit var userLatLang: UserLatLang
-    lateinit var locationManager: LocationManager
-    lateinit var appPermission : AppPermission
+    private lateinit var fusedLocation : FusedLocationProviderClient
+    private lateinit var userLatLang: UserLatLang
+    private lateinit var locationManager: LocationManager
+    private lateinit var appPermission : AppPermission
 
     private var videoOriginalPath: String = ""
     private var audioOriginalPath: String = ""
     private var videoCaption: String = ""
     private var videoHashTag: String = ""
     private var videoTimeStamp: String = ""
-    lateinit var progressDialog: ProgressDialog
+    private lateinit var progressDialog: ProgressDialog
 
     lateinit var videoCapEt : EditText
     lateinit var cycleViewlayout : RelativeLayout
 
     var searchUserName = ""
+    private lateinit var mainViewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         appPermission =  AppPermission(this@UploadVideoActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
         fusedLocation = LocationServices.getFusedLocationProviderClient(this@UploadVideoActivity)
@@ -158,6 +167,11 @@ class UploadVideoActivity : AppCompatActivity() {
         viewBinding.addHashtagBtn.setOnClickListener {
             viewBinding.captionForVideoET.append(" #")
         }
+
+        if (sessionManager.getIsFromDuet()){
+            isAllowDuet = false
+        }
+
 
         viewBinding.captionForVideoET.addTextChangedListener(object : TextWatcher{
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -380,62 +394,6 @@ class UploadVideoActivity : AppCompatActivity() {
 
     }
 
-
-    /*fun compressVideo(inputPath:String,outputPath:String){
-
-        myApplication.printLogD("InSide Compress Video",TARCK)
-        val cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 28 $outputPath"
-
-
-        EpEditor.execCmd(cmd,0,object : OnEditorListener {
-            override fun onSuccess() {
-                myApplication.printLogD("log : onSuccess","ffmpeg")
-                myApplication.printLogD("Video Compress Complete",TARCK)
-                if (!sessionManager.getIsVideoFromGallery()){
-                    if (File(videoOriginalPath).exists()){
-                        File(videoOriginalPath).delete()
-                    }
-                }
-                videoOriginalPath = outputPath
-                extractAudioFromVideo(videoOriginalPath)
-            }
-
-            override fun onFailure() {
-                myApplication.printLogD("log : onFailure","ffmpeg")
-            }
-
-            override fun onProgress(progress: Float) {
-                myApplication.printLogD("log onProgress : $progress","ffmpeg")
-            }
-
-        })
-
-        FFmpegKit.executeAsync(cmd,
-            { session ->
-                val state = session.state
-                val returnCode = session.returnCode
-                if (ReturnCode.isSuccess(returnCode)){
-                    myApplication.printLogD("Video Compress Complete",TARCK)
-                    if (File(videoOriginalPath).exists()){
-                        File(videoOriginalPath).delete()
-                    }
-                    videoOriginalPath = outputPath
-
-                    myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
-                    uploadVideoToS3()
-                }
-                // CALLED WHEN SESSION IS EXECUTED
-                Log.d(TAG, String.format("FFmpeg process exited with state %s and rc %s.%s",
-                    state, returnCode,  session.failStackTrace))
-            },
-            {
-                myApplication.printLogD("log : $it","ffmpeg")
-            })
-        {
-            myApplication.printLogD("statistics : $it","ffmpeg")
-        }
-    }*/
-
     private fun uploadVideoToS3() {
         myApplication.printLogD("Inside uploadVideoToS3 Fun",TARCK)
         val s3: AmazonS3Client
@@ -505,7 +463,8 @@ class UploadVideoActivity : AppCompatActivity() {
         val postData: HashMap<String, Any> = HashMap()
         postData.put("video_url",finalVideoUrl)
         postData.put("video_caption",videoCaption)
-        postData.put("hash_tag",videoHashTag)
+        if (videoHashTag.isNotEmpty())
+            postData.put("hash_tag",videoHashTag.trim())
         postData.put("lat",userLatLang.lat.toString())
         postData.put("long",userLatLang.long.toString())
         postData.put("user_name",sessionManager.getUserName().toString())
@@ -547,7 +506,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("isAllowComment", isAllowComment)
         myApplication.printLogD("isAllowComment = $isAllowComment","isAllow")
         obj.addProperty("caption", videoCaption)
-            obj.addProperty("hashtag",videoHashTag)
+        if (videoHashTag.isNotEmpty())
+            obj.addProperty("hashtag",videoHashTag.trim())
         obj.addProperty("typename", "")
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("songLink", sessionManager.getVideoSongUrl())
@@ -596,7 +556,8 @@ class UploadVideoActivity : AppCompatActivity() {
         obj.addProperty("comment", "")
         obj.addProperty("shares", 0)
         obj.addProperty("caption", videoCaption)
-        obj.addProperty("hashtag",videoHashTag)
+        if (videoHashTag.isNotEmpty())
+            obj.addProperty("hashtag",videoHashTag.trim())
         obj.addProperty("typename", "")
         obj.addProperty("filename", finalVideoUrl)
         obj.addProperty("postId", postID)
@@ -685,65 +646,81 @@ class UploadVideoActivity : AppCompatActivity() {
         }
     }
 
-    private fun getUserWalletBalance(contestFees: Int) {
-        val userDetailsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
-        userDetailsReq.enqueue(object : Callback<UserSelfProfileResponse> {
-            override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    myApplication.printLogD(response.toString(),TAG)
-                    val userData = response.body()!!.data
-                    if(userData!=null){
-                        walletBalance =  userData.walletamaount!!
-                        myApplication.printLogD("walletBalance $walletBalance",TARCK)
-                        myApplication.printLogD("contestFees $contestFees",TARCK)
-                        val isValid  =  contestFees <=  walletBalance
-                        Log.i(TRACK,"contestFees : $contestFees")
-                        Log.i(TRACK,"walletBalance : $walletBalance")
 
-                        myApplication.printLogD("condition $isValid",TARCK)
-                        val totalWon =  userData.totalwon
-                        if (contestFees <=  walletBalance){
-                            myApplication.printLogD("Inside getUserWalletBalance",TARCK)
-                            myApplication.printLogD("walletBalance $walletBalance",TARCK)
-                            myApplication.printLogD("contestFees $contestFees",TARCK)
-                            myApplication.printLogD("totalWon $totalWon",TARCK)
-                            myApplication.printLogD("Call uploadVideoMainFun",TARCK)
-                            uploadVideoMainFun()
-                        }else{
-                            myApplication.printLogD("Inside getUserWalletBalance",TARCK)
-                            myApplication.printLogD("walletBalance $walletBalance",TARCK)
-                            myApplication.printLogD("contestFees $contestFees",TARCK)
-                            myApplication.printLogD("totalWon $totalWon",TARCK)
-                            progressDialog.dismiss()
-                            val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.WARNING_TYPE)
-                            sweetAlertDialog.titleText = "Wallet Balance"
-                            sweetAlertDialog.contentText = "Please Add Balance"
-                            sweetAlertDialog.confirmText = "₹ Add"
-                            sweetAlertDialog.setConfirmClickListener {
-                                sweetAlertDialog.dismiss()
-                                sendToAddAmountActivity()
-                            }
-                            sweetAlertDialog.cancelText = "No"
-                            sweetAlertDialog.setCancelClickListener {
-                                sweetAlertDialog.dismiss()
-                                onBackPressed()
+    private fun getUserWalletBalance(contestFees: Int){
+        mainViewModel.getUserSelfDetails()
+            .observe(this){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if (resources.data!!.success!!){
+                                val userData = resources.data.data
+                                if(userData!=null){
+                                    walletBalance =  userData.walletamaount!!
+                                    myApplication.printLogD("walletBalance $walletBalance",TARCK)
+                                    myApplication.printLogD("contestFees $contestFees",TARCK)
+                                    val isValid  =  contestFees <=  walletBalance
+                                    Log.i(TRACK,"contestFees : $contestFees")
+                                    Log.i(TRACK,"walletBalance : $walletBalance")
 
+                                    myApplication.printLogD("condition $isValid",TARCK)
+                                    val totalWon =  userData.totalwon
+                                    if (contestFees <=  walletBalance){
+                                        myApplication.printLogD("Inside getUserWalletBalance",TARCK)
+                                        myApplication.printLogD("walletBalance $walletBalance",TARCK)
+                                        myApplication.printLogD("contestFees $contestFees",TARCK)
+                                        myApplication.printLogD("totalWon $totalWon",TARCK)
+                                        myApplication.printLogD("Call uploadVideoMainFun",TARCK)
+                                        uploadVideoMainFun()
+                                    }else{
+                                        myApplication.printLogD("Inside getUserWalletBalance",TARCK)
+                                        myApplication.printLogD("walletBalance $walletBalance",TARCK)
+                                        myApplication.printLogD("contestFees $contestFees",TARCK)
+                                        myApplication.printLogD("totalWon $totalWon",TARCK)
+                                        progressDialog.dismiss()
+                                        val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.WARNING_TYPE)
+                                        sweetAlertDialog.titleText = "Wallet Balance"
+                                        sweetAlertDialog.contentText = "Please Add Balance"
+                                        sweetAlertDialog.confirmText = "₹ Add"
+                                        sweetAlertDialog.setConfirmClickListener {
+                                            sweetAlertDialog.dismiss()
+                                            sendToAddAmountActivity()
+                                        }
+                                        sweetAlertDialog.cancelText = "No"
+                                        sweetAlertDialog.setCancelClickListener {
+                                            sweetAlertDialog.dismiss()
+                                            onBackPressed()
+
+                                        }
+                                        sweetAlertDialog.show()
+                                    }
+                                }else{
+                                    myApplication.printLogE("Wallet Data Null",TAG)
+                                }
+                            }else{
+                                myApplication.showToast("Something went wrong..")
                             }
-                            sweetAlertDialog.show()
                         }
-                    }else{
-                        myApplication.printLogE("Wallet Data Null",TAG)
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this@UploadVideoActivity, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                }else{
-                    myApplication.printLogE("Get getUserWalletBalance Response Failed ${response.code()}",TAG)
                 }
             }
 
-            override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get getUserWalletBalance onFailure ${t.toString()}",TAG)
-            }
-        })
+
     }
+
+
 
     private fun createAudioFilePath():String{
         val timestamp = System.currentTimeMillis()
@@ -838,14 +815,13 @@ class UploadVideoActivity : AppCompatActivity() {
          audiFilePath = File(audiFile).absolutePath
         val file = File(audiFile)
 
-
         val reqData = MultipartBody.Part.createFormData("typename","musicUpload/mp3")
         val reqFile = MultipartBody.Part.createFormData("audio",videoSongName,file.asRequestBody())
 
-        val audioReq = apiInterface.uploadVideoMusic(sessionManager.getToken(),reqData,reqFile)
-        audioReq.enqueue(object : Callback<UploadMusicResponse>{
+        val req = apiInterface.uploadVideoMusic(sessionManager.getToken(),reqData,reqFile)
+
+        req.enqueue(object :Callback<UploadMusicResponse>{
             override fun onResponse(call: Call<UploadMusicResponse>, response: Response<UploadMusicResponse>) {
-               myApplication.printLogD("uploadAudioToServer $response",TRACK)
                 if (response.isSuccessful && response.body()!!.success!!){
                     val songLink = response.body()!!.data?.trackAacFormat.toString()
                     if (sessionManager.getAppSongID()!!.trim().isNotEmpty()){
@@ -853,18 +829,20 @@ class UploadVideoActivity : AppCompatActivity() {
                         sessionManager.setVideoSongUrl(songLink)
                         uploadVideoToS3()
                     }else{
-                       videoSongID = response.body()!!.data?.Id.toString()
+                        videoSongID =response.body()!!.data?.Id.toString()
                         sessionManager.setVideoSongUrl(songLink)
                         uploadVideoToS3()
                     }
+                }else{
+                    myApplication.showToast("Something went wrong..")
                 }
             }
 
             override fun onFailure(call: Call<UploadMusicResponse>, t: Throwable) {
-                myApplication.printLogD(t.toString(),TRACK)
+                myApplication.printLogE(t.message.toString(),TAG)
             }
-        })
 
+        })
     }
 
 
@@ -876,6 +854,12 @@ class UploadVideoActivity : AppCompatActivity() {
         val allowComment = dialog.findViewById<Switch>(R.id.allowComment)
         val allowSharing = dialog.findViewById<Switch>(R.id.allowSharing)
         val allowDuet = dialog.findViewById<Switch>(R.id.allowDuet)
+        val duetVIew = dialog.findViewById<LinearLayout>(R.id.duetVIew)
+
+        if (sessionManager.getIsFromDuet()) {
+            duetVIew!!.visibility = View.GONE
+        }
+
         val applyBtn = dialog.findViewById<TextView>(R.id.applyBtn)
 
         allowComment!!.isChecked = isAllowComment
@@ -896,43 +880,55 @@ class UploadVideoActivity : AppCompatActivity() {
 
     }
 
+
+
+
+
     fun searchUser(userName : String){
         val obj = JsonObject()
         obj.addProperty("search", userName)
         Log.i("request",obj.toString())
 
-        val responseCall: Call<SearchResponse> = apiInterface.search(sessionManager.getToken(), obj)
-        responseCall.enqueue( object : Callback<SearchResponse> {
-            override fun onResponse(call: Call<SearchResponse>, response: Response<SearchResponse>) {
-                if (response.isSuccessful) {
-                    response.body()!!.message
-
-                    userlist = ArrayList()
-
-                    if(response.body()!!.success!!){
-                        userlist = response.body()!!.data!!.users
-                        Log.i("list_size", "Users : " + userlist!!.size)
-
+        mainViewModel.getSearchData(obj)
+            .observe(this){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if(resources.data!!.success!!){
+                                userlist = ArrayList()
+                                userlist = resources.data.data!!.users
+                                cycleViewlayout.visibility = View.VISIBLE
+                                viewBinding.userCycle.adapter = UserSearch_Adapter(userlist!!,this@UploadVideoActivity,userName)
+                                Log.i("list_size", "Users : " + userlist!!.size)
+                            }else{
+                                myApplication.showToast("Something went wrong!!")
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this@UploadVideoActivity, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                } else {
-                    myApplication.showToast("Something went wrong!!")
                 }
-                cycleViewlayout.visibility = View.VISIBLE
-                viewBinding.userCycle.adapter = UserSearch_Adapter(userlist!!,this@UploadVideoActivity,userName)
             }
 
-            override fun onFailure(call: Call<SearchResponse>, t: Throwable) {
-                myApplication.printLogE(t.message!!, TAG)
-            }
-        })
 
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
-                val place =Autocomplete.getPlaceFromIntent(data)
+                val place =Autocomplete.getPlaceFromIntent(data!!)
                 val lat = place.latLng?.latitude
                 val lng = place.latLng?.longitude
                 userLatLang = UserLatLang(lat,lng)

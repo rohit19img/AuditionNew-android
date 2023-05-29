@@ -101,7 +101,6 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
             }else{
                 val commentText = view.commentET.text.toString().trim()
                 val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
-                val adapter = VideoFragment.videoAdapter
                 val position = bundle!!.getInt(ConstValFile.UserPositionInList)
                 if (commentText.isNotEmpty()){
                     view.commentET.text.clear()

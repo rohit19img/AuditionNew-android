@@ -1,11 +1,18 @@
 package com.img.audition.screens
 
+import VideoHandle.EpEditor
+import VideoHandle.OnEditorListener
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -44,6 +51,7 @@ import com.snap.camerakit.support.permissions.HeadlessFragmentPermissionRequeste
 import com.snap.camerakit.support.widget.SnapButtonView
 import java.io.Closeable
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.*
@@ -429,11 +437,13 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
         processorExecutor.shutdown()
         mediaCaptureExecutor.shutdown()
         audioProcessorExecutor.shutdown()
-        val bundle = Bundle()
-        bundle.putString(ConstValFile.CompileTask,ConstValFile.MergeVideo)
-        val intent = Intent(this@DuetCameraActivity, CompilerActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
-        startActivity(intent)
+        runOnUiThread {
+            viewBinding.progressLoading.visibility  = View.VISIBLE
+            viewBinding.progressText.visibility  = View.VISIBLE
+        }
+
+        DownloadDuetVideo().execute(sessionManager.getDuetVideoUrl()!!)
+
     }
 
 
@@ -460,9 +470,11 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                     ExoPlayer.STATE_READY -> {
                         Log.d("check 200", "STATE_READY: ")
                         viewBinding.progressLoading.visibility = View.GONE
+                        viewBinding.progressText.visibility = View.GONE
                         myApplication.printLogD("Duet videoDuration : ${videoPlayer.contentDuration}","check 200")
                         maxVideoDuration = videoPlayer.contentDuration
                         minVideoDuration = videoPlayer.contentDuration
+                        viewBinding.captureButton.progressDuration = maxVideoDuration
 
                     }
                     else -> {
@@ -666,4 +678,116 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     }
 
 
+    private inner class DownloadDuetVideo : AsyncTask<String, Void, String>() {
+        @SuppressLint("Range")
+        override fun doInBackground(vararg urls: String?): String {
+            val url: String = urls[0].toString()
+            val downloadFilePath = createFileAndFolder()
+            val request = DownloadManager.Request(Uri.parse(url))
+                .setDestinationUri(Uri.fromFile(File(downloadFilePath)))
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+            request.allowScanningByMediaScanner()
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+            val downloadId = downloadManager.enqueue(request)
+            var downloading = true
+
+            while (downloading) {
+                val query = DownloadManager.Query()
+                query.setFilterById(downloadId)
+                val cursor: Cursor = downloadManager.query(query)
+                if (cursor.moveToFirst()) {
+                    val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        downloading = false
+                        return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI))
+                    } else if (status == DownloadManager.STATUS_FAILED) {
+                        val reason: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+                        // Handle the download failure
+                        downloading = false
+                        return ""
+                    }
+                }
+                cursor.close()
+            }
+            return ""
+        }
+
+        override fun onPostExecute(path: String?) {
+            if (path != null) {
+                val downloadFilePath = path
+                sessionManager.setDuetVideoUrl(downloadFilePath)
+                myApplication.printLogD("video Download Complete : $path",TAG)
+                /* val outputPath1 =  createFileAndFolder()
+                 val inputPath = sessionManager.getCreateDuetVideoUrl()
+                 val prepareFirstVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath1"
+                 prepareFirstVideo(prepareFirstVideoCmd,outputPath1)*/
+
+                val outputPath1 = sessionManager.getCreateDuetVideoUrl()
+                val outputPath2 = downloadFilePath
+                val finalPath =  createFileAndFolder()
+                val finalCmd = "-y -i $outputPath1 -i $outputPath2 -filter_complex [0:v]scale=480:640[p1];[1:v]scale=480:640[p2];[p1][p2]hstack -c:v libx264 -crf 30 -preset ultrafast -threads 8 $finalPath"
+                funComipler(finalCmd,finalPath)
+
+            } else {
+                myApplication.printLogD("video Download Failed : ",TAG)
+            }
+
+
+        }
+
+        fun getImageAbsolutePath(context: Context, fileName: String): String {
+            val assetManager = context.assets
+            val inputStream = assetManager.open(fileName)
+            val file = File(context.cacheDir, fileName)
+
+            try {
+                val outputStream = FileOutputStream(file)
+                val buffer = ByteArray(1024)
+                var read: Int
+                while (inputStream.read(buffer).also { read = it } != -1) {
+                    outputStream.write(buffer, 0, read)
+                }
+                inputStream.close()
+                outputStream.flush()
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            return file.absolutePath
+        }
+    }
+
+    fun funComipler(cmd: String, outputPath: String){
+
+        EpEditor.execCmd(cmd,0, object : OnEditorListener {
+            override fun onSuccess() {
+                myApplication.printLogD("Compile Complete",TAG)
+                val retriever =  MediaMetadataRetriever()
+                retriever.setDataSource(this@DuetCameraActivity, Uri.parse(outputPath));
+                val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                retriever.release()
+                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
+                val selectVideoDuration = time!!.toLong()
+                sessionManager.setCreateVideoPath(outputPath)
+                sessionManager.setCreateVideoDuration(selectVideoDuration)
+                val bundle = Bundle()
+                bundle.putString(ConstValFile.CompileTask,ConstValFile.MergeVideo)
+                val intent = Intent(this@DuetCameraActivity, CompilerActivity::class.java)
+                intent.putExtra(ConstValFile.Bundle,bundle)
+                startActivity(intent)
+            }
+            override fun onFailure() {
+                myApplication.printLogD("Compile : onFailure",TAG)
+//                myApplication.showToast("Failed, Try Again..")
+//                Toast.makeText(this@CompilerActivity,"Something went wrong,Try Again..", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this@DuetCameraActivity,SnapPreviewActivity::class.java))
+                finish()
+            }
+            override fun onProgress(progress: Float) {
+                myApplication.printLogD("Compile onProgress : $progress",TAG)
+            }
+        })
+    }
 }

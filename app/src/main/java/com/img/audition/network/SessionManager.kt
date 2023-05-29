@@ -299,10 +299,18 @@ class SessionManager(context: Context) {
         return sharedPrefAudioVideoSession.getBoolean(ConstValFile.isFromTryAudio,false)
     }
 
+    fun setIsAppAudio(appAudio: Boolean) {
+        prefEditorVideoSession.putBoolean(ConstValFile.AppAudio,appAudio)
+        prefEditorVideoSession.commit()
+    }
+
+    fun getIsAppAudio(): Boolean {
+        return sharedPrefAudioVideoSession.getBoolean(ConstValFile.AppAudio,false)
+    }
+
     fun getVideoSongUrl(): String? {
         return sharedPrefAudioVideoSession.getString(ConstValFile.SongUrl,"")
     }
-
 
     fun setDuetVideoUrl(duetVideoUrl: String) {
         prefEditorDuetVideoSession.putString(ConstValFile.DuetVideoUrl,duetVideoUrl)

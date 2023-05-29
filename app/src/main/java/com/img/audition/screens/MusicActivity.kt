@@ -15,22 +15,11 @@ import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.AllMusicFragment
 import com.img.audition.screens.fragment.FavMusicFragment
 
-@UnstableApi class MusicActivity : AppCompatActivity() {
+@UnstableApi
+class MusicActivity : AppCompatActivity() {
 
-    val TAG = "MusicActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityMusicBinding.inflate(layoutInflater)
-    }
-    private val sessionManager by lazy {
-        SessionManager(this@MusicActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@MusicActivity)
-    }
-
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
     lateinit var searchMusicET:EditText
@@ -64,6 +53,7 @@ import com.img.audition.screens.fragment.FavMusicFragment
             override fun onTabReselected(tab: TabLayout.Tab?) {}
 
         })
+
 
     }
 

@@ -67,6 +67,8 @@ import retrofit2.Response
                 context.startActivity(intent)
             }
 
+            Log.d("video userID", "onBindViewHolder: ${list.userId}")
+            Log.d("video userID", "onBindViewHolder: self ${sessionManager.getUserSelfID()}")
             if (list.userId.equals(sessionManager.getUserSelfID())){
                 videoItemDelete.visibility = View.VISIBLE
 

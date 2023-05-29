@@ -28,7 +28,7 @@ class DetailsPrizecardAdapter(val context:Context,val list:ArrayList<SingleConte
 
     override fun onBindViewHolder(holder: DetailsPrizecardAdapter.MyViewHolder, position: Int) {
        holder.apply {
-           winnersleader.text = "Rank: " + list[position].winners
+           winnersleader.text = "Rank: " + list[position].startPosition
            priceleader.text = String.valueOf("₹" + list[position].price)
        }
     }

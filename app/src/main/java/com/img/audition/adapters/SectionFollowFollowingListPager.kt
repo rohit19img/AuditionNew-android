@@ -6,15 +6,15 @@ import androidx.fragment.app.FragmentStatePagerAdapter
 import com.img.audition.screens.fragment.FollowersFragment
 import com.img.audition.screens.fragment.FollowingFragment
 
-class SectionFollowFollowingListPager (fm: FragmentManager) : FragmentStatePagerAdapter(fm) {
+class SectionFollowFollowingListPager (fm: FragmentManager,val userID:String) : FragmentStatePagerAdapter(fm) {
     override fun getCount(): Int {
         return 2
     }
 
     override fun getItem(position: Int): Fragment {
         return when (position) {
-            0 -> FollowersFragment()
-            else -> FollowingFragment()
+            0 -> FollowersFragment(userID)
+            else -> FollowingFragment(userID)
         }
     }
 

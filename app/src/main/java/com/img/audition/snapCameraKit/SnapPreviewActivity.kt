@@ -118,7 +118,7 @@ class SnapPreviewActivity : AppCompatActivity() {
         val videoUri = sessionManager.getCreateVideoPath()
 
         Log.d("video url", "onResume: $videoUri")
-        val mediaItem = MediaItem.fromUri(videoUri!!)
+        val mediaItem = MediaItem.Builder().setMimeType("video/*").setUri(videoUri!!).build()
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
         videoPlayer.play()
@@ -244,6 +244,7 @@ class SnapPreviewActivity : AppCompatActivity() {
 
     private fun sendToMusicActivity() {
         val intent = Intent(this@SnapPreviewActivity, MusicActivity::class.java)
+        sessionManager.setIsAppAudio(false)
         startActivity(intent)
     }
 
@@ -253,6 +254,23 @@ class SnapPreviewActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    /*
+     val videoUri = sessionManager.getCreateVideoPath()
+
+        val uri = Uri.parse(videoUri)
+        viewBinding.videoView.setVideoURI(uri);
+        val mediaController = MediaController(this)
+        mediaController.setAnchorView(viewBinding.videoView);
+
+        // sets the media player to the videoView
+        mediaController.setMediaPlayer(viewBinding.videoView);
+
+        // sets the media controller to the videoView
+        viewBinding.videoView.setMediaController(mediaController);
+
+        // starts the video
+        viewBinding.videoView.start();
+     */
 
     override fun onPause() {
         videoPlayer.pause()

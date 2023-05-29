@@ -11,13 +11,15 @@ import java.io.File
 import java.net.URISyntaxException
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheSpan
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import java.lang.RuntimeException
 
 
 @UnstableApi
-class VideoCacheWork : Application(), CameraXConfig.Provider {
+class VideoCacheWork : Application() {
     companion object{
         lateinit var simpleCache: SimpleCache
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
@@ -41,12 +43,9 @@ class VideoCacheWork : Application(), CameraXConfig.Provider {
         leastRecentlyUsedCacheEvictor = LeastRecentlyUsedCacheEvictor(exoCacheSize)
         standaloneDatabaseProvider = StandaloneDatabaseProvider(this)
         simpleCache = SimpleCache(File(this.cacheDir, "videoCache"), leastRecentlyUsedCacheEvictor, standaloneDatabaseProvider)
-    }
 
-    override fun getCameraXConfig(): CameraXConfig {
-        return CameraXConfig.Builder.fromConfig(Camera2Config.defaultConfig())
-            .setMinimumLoggingLevel(Log.ERROR).build()
-    }
 
+
+    }
 
 }

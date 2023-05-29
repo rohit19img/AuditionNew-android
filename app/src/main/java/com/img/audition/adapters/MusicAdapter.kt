@@ -1,11 +1,10 @@
 package com.img.audition.adapters
 
 
-
-
 import VideoHandle.EpEditor
 import VideoHandle.OnEditorListener
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
@@ -43,6 +42,7 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.CompilerActivity
+import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.PlayPauseAudio
 import com.img.audition.videoWork.VideoCacheWork
 import com.masoudss.lib.SeekBarOnProgressChanged
@@ -57,14 +57,16 @@ import java.util.*
 
 
 @UnstableApi
-class MusicAdapter(val contextFromActivity: Context, private var musicList: ArrayList<MusicData>) : RecyclerView.Adapter<MusicAdapter.MyMusicHolder>() {
+class MusicAdapter(val contextFromActivity: Context, private var musicList: ArrayList<MusicData>) :
+    RecyclerView.Adapter<MusicAdapter.MyMusicHolder>() {
 
-    val songTimeHandler = Handler()
+
     val playerExo = ExoPlayer.Builder(contextFromActivity).build()
     private val myApplication by lazy { MyApplication(contextFromActivity) }
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
     }
+    var startTrimFrom = 0
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     private val mediaSource by lazy {
         ProgressiveMediaSource.Factory(
@@ -72,11 +74,15 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 .setCache(VideoCacheWork.simpleCache)
                 .setUpstreamDataSourceFactory(
                     DefaultHttpDataSource.Factory()
-                        .setUserAgent("ExoPlayer"))
-                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR))
+                        .setUserAgent("ExoPlayer")
+                )
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+        )
     }
     val TAG = "MusicAdapter"
-    inner class MyMusicHolder(itemView: MusiclistrecycledesignBinding) : RecyclerView.ViewHolder(itemView.root) {
+
+    inner class MyMusicHolder(itemView: MusiclistrecycledesignBinding) :
+        RecyclerView.ViewHolder(itemView.root) {
 
         val mImage = itemView.img
         val mName = itemView.songname
@@ -89,7 +95,11 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyMusicHolder {
-        val itemBinding = MusiclistrecycledesignBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val itemBinding = MusiclistrecycledesignBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return MyMusicHolder(itemBinding)
     }
 
@@ -101,19 +111,21 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     override fun onBindViewHolder(holder: MyMusicHolder, position: Int) {
         holder.apply {
             val audioData = musicList[position]
-            Glide.with(contextFromActivity).load(ConstValFile.BASEURL+audioData.Image).placeholder(R.drawable.ic_music).into(mImage)
+            Glide.with(contextFromActivity).load(ConstValFile.BASEURL + audioData.Image)
+                .placeholder(R.drawable.ic_music).into(mImage)
             mName.text = audioData.title.toString()
-            sName.text  = audioData.subtitle.toString()
+            sName.text = audioData.subtitle.toString()
 
             playBtn.setOnClickListener {
-                    for (play in musicList){
-                        play.isPlay = false
-                    }
+                for (play in musicList) {
+                    play.isPlay = false
+                }
                 audioData.isPlay = true
                 notifyDataSetChanged()
 
 
-                val mediaItem = MediaItem.fromUri(Uri.parse(ConstValFile.BASEURL+audioData.trackAacFormat.toString()))
+                val mediaItem =
+                    MediaItem.fromUri(Uri.parse(ConstValFile.BASEURL + audioData.trackAacFormat.toString()))
                 val audioMediaSource = mediaSource.createMediaSource(mediaItem)
                 audioExoPlayer.player = playerExo
                 playerExo.setMediaSource(audioMediaSource)
@@ -123,43 +135,62 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 pauseBtn.visibility = View.VISIBLE
             }
 
-            if (musicList[position].isPlay){
+            if (musicList[position].isPlay) {
                 playBtn.visibility = View.GONE
                 pauseBtn.visibility = View.VISIBLE
-            }else{
+            } else {
                 playBtn.visibility = View.VISIBLE
                 pauseBtn.visibility = View.GONE
             }
 
-            if (audioData.isFav){
-                addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic_music))
+            if (audioData.isFav) {
+                addFavMusic.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        contextFromActivity,
+                        R.drawable.liked_ic_music
+                    )
+                )
                 addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
-            }else{
-                addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic_music))
+            } else {
+                addFavMusic.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        contextFromActivity,
+                        R.drawable.like_ic_music
+                    )
+                )
                 addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
             }
 
             addFavMusic.setOnClickListener {
                 val songID = audioData.Id.toString()
-                myApplication.printLogD(songID,"songID")
-                if (audioData.isFav){
-                    addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.like_ic_music))
+                myApplication.printLogD(songID, "songID")
+                if (audioData.isFav) {
+                    addFavMusic.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            contextFromActivity,
+                            R.drawable.like_ic_music
+                        )
+                    )
                     addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
                     audioData.isFav = false
                     addFavMusic(songID)
-                }else{
+                } else {
                     audioData.isFav = true
-                    addFavMusic.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic_music))
+                    addFavMusic.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            contextFromActivity,
+                            R.drawable.liked_ic_music
+                        )
+                    )
                     addFavMusic.setColorFilter(contextFromActivity.resources.getColor(R.color.white))
                     addFavMusic(songID)
                 }
 
 
-
             }
 
             pauseBtn.setOnClickListener {
-                if (playerExo.isPlaying){
+                if (playerExo.isPlaying) {
                     playerExo.stop()
                     playBtn.visibility = View.VISIBLE
                     pauseBtn.visibility = View.GONE
@@ -175,25 +206,35 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 playerExo.playWhenReady = false
                 playBtn.visibility = View.VISIBLE
                 pauseBtn.visibility = View.GONE
-                myApplication.printLogD(ConstValFile.BASEURL+audioData.trackAacFormat.toString(),"Audio url")
+                myApplication.printLogD(
+                    ConstValFile.BASEURL + audioData.trackAacFormat.toString(),
+                    "Audio url"
+                )
                 val songID = audioData.Id.toString()
-                showAudioTrimDialog(audioData.title.toString(),audioData.subtitle.toString(),ConstValFile.BASEURL+audioData.Image,ConstValFile.BASEURL+audioData.trackAacFormat.toString(),songID)
+                showAudioTrimDialog(
+                    audioData.title.toString(),
+                    audioData.subtitle.toString(),
+                    ConstValFile.BASEURL + audioData.Image,
+                    ConstValFile.BASEURL + audioData.trackAacFormat.toString(),
+                    songID
+                )
             }
 
         }
     }
 
-    fun onActivityStateChanged() : PlayPauseAudio {
+    fun onActivityStateChanged(): PlayPauseAudio {
         return object : PlayPauseAudio {
             override fun stop() {
-                myApplication.printLogD("stop: ",TAG)
+                myApplication.printLogD("stop: ", TAG)
                 playerExo.seekTo(0)
                 playerExo.pause()
                 playerExo.playWhenReady = false
                 playerExo.release()
             }
+
             override fun play() {
-                myApplication.printLogD("play: ",TAG)
+                myApplication.printLogD("play: ", TAG)
             }
 
         }
@@ -206,10 +247,10 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         audioFile: String,
         songID: String
     ) {
-        val audioSheet = BottomSheetDialog(contextFromActivity,R.style.CustomBottomSheetDialogTheme)
+        val audioSheet =
+            BottomSheetDialog(contextFromActivity, R.style.CustomBottomSheetDialogTheme)
         audioSheet.setCanceledOnTouchOutside(false)
         audioSheet.setContentView(R.layout.audio_trim_sheet_design)
-
 
 
         val audioPlayer = MediaPlayer()
@@ -228,75 +269,129 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         val trimFrom = audioSheet.findViewById<TextView>(R.id.trimFrom)
         val trimTo = audioSheet.findViewById<TextView>(R.id.trimTo)
 
-        Glide.with(contextFromActivity).load(image).placeholder(R.drawable.ic_music).into(audioImage!!)
+        progressTrimMusic!!.visibility = View.VISIBLE
+
+        val songTimeHandler = Handler()
+
+        Glide.with(contextFromActivity).load(image).placeholder(R.drawable.ic_music)
+            .into(audioImage!!)
         audioName!!.text = title
         audioSingerName!!.text = subTitle
 
-
         val byteThread = Thread {
-            try { audioWaveSeekbar!!.setSampleFrom( audioFile) }
-            catch (e: Exception) { e.printStackTrace() }
+            try {
+                audioWaveSeekbar!!.setSampleFrom(audioFile)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
         byteThread.start()
 
 
-        audioPlayer.setDataSource(audioFile)
-        audioPlayer.prepareAsync()
-        audioPlayer.setOnPreparedListener { mediaPlayer ->
-            mediaPlayer.start()
-            audioWaveSeekbar!!.maxProgress = audioPlayer.duration.toFloat()
+        val audioThread = Thread {
+            audioPlayer.setDataSource(audioFile)
+            audioPlayer.prepareAsync()
+            audioPlayer.setOnPreparedListener { mediaPlayer ->
+                mediaPlayer.start()
+                progressTrimMusic.visibility = View.GONE
+                audioWaveSeekbar!!.maxProgress = audioPlayer.duration.toFloat()
+                (contextFromActivity as Activity).runOnUiThread(object : Runnable {
+                    override fun run() {
+                        audioWaveSeekbar!!.progress = audioPlayer.currentPosition.toFloat()
+                        songTimeHandler.postDelayed(this, 1000)
+
+                        if (trimFrom!!.text.trim() == trimTo!!.text.trim()){
+                            myApplication.printLogD("start Music : $startTrimFrom","TrimAudio")
+                        }
+                    }
+
+                })
+
+            }
         }
+        audioThread.start()
+
+
 
         audioSheet.setOnDismissListener {
             try {
-                if (audioPlayer!=null && audioPlayer.isPlaying){
+                if (audioPlayer != null && audioPlayer.isPlaying) {
                     audioPlayer.stop()
                 }
-            }catch (e:Exception){
-                myApplication.printLogE(e.toString(),TAG)
+            } catch (e: Exception) {
+                myApplication.printLogE(e.toString(), TAG)
             }
         }
-        audioWaveSeekbar!!.progress = audioPlayer.currentPosition.toFloat()
-
 
         try {
-           myApplication.printLogI(audioPlayer.duration.toString(),TAG+"duration")
-           audioWaveSeekbar!!.onProgressChanged = object : SeekBarOnProgressChanged {
-               override fun onProgressChanged(waveformSeekBar: WaveformSeekBar, progress: Float, fromUser: Boolean) {
-                   val fromTrimDuration = getTimeString(audioPlayer.currentPosition.toLong())!!
-                   val toTrimDuration = getTimeString(audioPlayer.currentPosition.toLong()+sessionManager.getCreateVideoDuration())
-                   audioPlayer.seekTo(progress.toInt())
-                   trimFrom!!.text = fromTrimDuration
-                   trimTo!!.text = toTrimDuration
-               }
-           }
-       }catch (e:java.lang.Exception){
-           myApplication.printLogD(e.toString(),TAG)
-       }
 
-        audioPlayer.setOnCompletionListener {m->
+            /* val map = hashMapOf<Float,String>()
+             map[audioWaveSeekbar!!.maxProgress/2] = "The middle"
+             audioWaveSeekbar.marker = map*/
+
+            audioWaveSeekbar!!.onProgressChanged = object : SeekBarOnProgressChanged {
+                override fun onProgressChanged(
+                    waveformSeekBar: WaveformSeekBar,
+                    progress: Float,
+                    fromUser: Boolean
+                ) {
+                    val fromTrimDuration = getTimeString(audioPlayer.currentPosition.toLong())!!
+                    trimFrom!!.text = fromTrimDuration
+
+                    if (sessionManager.getIsAppAudio()){
+                        val toTrimDuration = "${getTimeString(25000L)}"
+                        trimTo!!.text = toTrimDuration
+                    }else{
+                        val toTrimDuration = "${getTimeString(sessionManager.getCreateVideoDuration())}"
+                        trimTo!!.text = toTrimDuration
+                    }
+
+
+
+                    val map = hashMapOf<Float, String>()
+                    map[audioWaveSeekbar.progress] = ""
+                    audioWaveSeekbar.marker = map
+
+                    /* val scrollX = calculateScrollPosition(audio15SecFrame!!,progress.toInt(),audioPlayer.duration)
+                     audio15SecFrame.post {
+                         audio15SecFrame.scrollTo(scrollX,0)
+                     }*/
+                    if (fromUser) {
+                        audioPlayer.seekTo(progress.toInt())
+                        startTrimFrom = progress.toInt()
+                    }
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            myApplication.printLogD(e.toString(), TAG)
+        }
+
+        audioPlayer.setOnCompletionListener { m ->
             m.start()
         }
 
         closeAudioSheetBtn!!.setOnClickListener {
             progressTrimMusic!!.visibility = View.GONE
-            audioPlayer.pause()
-            audioPlayer.stop()
             audioPlayer.release()
             audioSheet.dismiss()
+            audioThread.interrupt()
+            byteThread.interrupt()
         }
 
         trimAndUseBtn!!.setOnClickListener {
 
-
-            val fromTrimDuration = audioPlayer.currentPosition.toLong()
+            val fromTrimDuration = startTrimFrom
             val totalAudioDuration = audioPlayer.duration
-            val trimAudioLength = audioPlayer.currentPosition.toLong()+sessionManager.getCreateVideoDuration()
-            if (trimAudioLength>totalAudioDuration){
-                Toast.makeText(contextFromActivity,"Reselect Audio Trim Position",Toast.LENGTH_SHORT).show()
-            }else{
+            var toTrimDuration = sessionManager.getCreateVideoDuration()
+            if (sessionManager.getIsAppAudio()){
+                toTrimDuration =  25000L
+            }
+
+            if (toTrimDuration > totalAudioDuration) {
+                Toast.makeText(contextFromActivity, "Reselect Audio Trim Position", Toast.LENGTH_SHORT).show()
+            } else {
                 progressTrimMusic!!.visibility = View.VISIBLE
-                TrimAudio(audioFile,fromTrimDuration ,sessionManager.getCreateVideoDuration(),songID)
+                TrimAudio(audioFile, fromTrimDuration.toLong(), toTrimDuration, songID)
                 audioPlayer.pause()
                 audioPlayer.stop()
                 audioPlayer.release()
@@ -304,7 +399,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         }
         audioSheet.show()
     }
-
 
 
     @SuppressLint("DefaultLocale")
@@ -322,37 +416,52 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     private fun TrimAudio(
         audioFile: String,
         audioTrimFromSec: Long,
-        createVideoDuration: Long,
+        toTrimDuration: Long,
         songID: String
     ) {
         val trimFilePath = createFileAndFolder()
-
-        val endPosition = audioTrimFromSec+createVideoDuration
-        val firstPosition = audioTrimFromSec/1000
-        myApplication.printLogD("VideoLength ${createVideoDuration/1000}","TrimAudio")
-        myApplication.printLogD("firstPosition $firstPosition","TrimAudio")
-        myApplication.printLogD("endPosition ${endPosition/1000}","TrimAudio")
-        myApplication.printLogD("trimFilePath $trimFilePath","TrimAudio")
+        val trimFrom = audioTrimFromSec / 1000
+        val trimTo = toTrimDuration / 1000
+        myApplication.printLogD("VideoLength ${sessionManager.getCreateVideoDuration() / 1000}", "TrimAudio")
+        myApplication.printLogD("firstPosition $trimFrom", "TrimAudio")
+        myApplication.printLogD("endPosition $trimTo", "TrimAudio")
+        myApplication.printLogD("trimFilePath $trimFilePath", "TrimAudio")
 
         val cmd =
-            "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
+            "-y -i $audioFile -ss $trimFrom -t $trimTo -acodec copy -preset veryfast -threads 8 $trimFilePath"
 
-        EpEditor.execCmd(cmd,0,object : OnEditorListener {
+        EpEditor.execCmd(cmd, 0, object : OnEditorListener {
             override fun onSuccess() {
-                myApplication.printLogD("TrimAudio Complete","TrimAudio")
+                myApplication.printLogD("TrimAudio Complete", "TrimAudio")
                 sessionManager.setCreateAudioSession(trimFilePath)
                 sessionManager.setAppSongID(songID)
-                val bundle = Bundle()
-                bundle.putString(ConstValFile.CompileTask,ConstValFile.TaskMuxing)
-                contextFromActivity.startActivity(Intent(contextFromActivity.applicationContext,CompilerActivity::class.java)
-                    .putExtra(ConstValFile.Bundle,bundle))
+
+                if (sessionManager.getIsAppAudio()){
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.AppAudio,trimFilePath)
+                    contextFromActivity.startActivity(
+                        Intent(contextFromActivity.applicationContext, SnapCameraActivity::class.java)
+                            .putExtra(ConstValFile.Bundle, bundle)
+                    )
+                }else{
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.CompileTask, ConstValFile.TaskMuxing)
+                    contextFromActivity.startActivity(
+                        Intent(contextFromActivity.applicationContext, CompilerActivity::class.java)
+                            .putExtra(ConstValFile.Bundle, bundle)
+                    )
+                }
+
+
 
             }
+
             override fun onFailure() {
-                myApplication.printLogD("TrimAudio : onFailure","TrimAudio")
+                myApplication.printLogD("TrimAudio : onFailure", "TrimAudio")
             }
+
             override fun onProgress(progress: Float) {
-                myApplication.printLogD("TrimAudio onProgress : $progress","TrimAudio")
+                myApplication.printLogD("TrimAudio onProgress : $progress", "TrimAudio")
             }
         })
 
@@ -381,19 +490,19 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         }*/
     }
 
-    private fun createFileAndFolder():String{
+    private fun createFileAndFolder(): String {
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.aac"
         val appData = contextFromActivity.getExternalFilesDir(null)
-        myApplication.printLogD(appData!!.absolutePath,TAG)
+        myApplication.printLogD(appData!!.absolutePath, TAG)
 
-        val createFile = File(appData,filename)
-        if (!(createFile.exists())){
+        val createFile = File(appData, filename)
+        if (!(createFile.exists())) {
             try {
                 createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath,TAG)
-            }catch (i: IOException){
-                myApplication.printLogE(i.toString(),TAG)
+                myApplication.printLogD(createFile.absolutePath, TAG)
+            } catch (i: IOException) {
+                myApplication.printLogE(i.toString(), TAG)
             }
         }
 
@@ -412,8 +521,11 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         return value
     }
 
-    private fun getByteArrayOfAudio(audioFile: String, audioWaveSeekbar: WaveformSeekBar?): IntArray {
-        var waveArray =  intArrayOf()
+    private fun getByteArrayOfAudio(
+        audioFile: String,
+        audioWaveSeekbar: WaveformSeekBar?
+    ): IntArray {
+        var waveArray = intArrayOf()
         Log.d("audioArray", "LoadAudio: in fun " + waveArray.size)
         Thread {
             try {
@@ -442,22 +554,40 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         return waveArray
     }
 
-    fun addFavMusic(songID:String){
+    fun addFavMusic(songID: String) {
         val favMusicobj = JsonObject()
-        favMusicobj.addProperty("favMusic",songID)
-        val favMusicReq = apiInterface.addFavMusic(sessionManager.getToken(),favMusicobj)
+        favMusicobj.addProperty("favMusic", songID)
+        val favMusicReq = apiInterface.addFavMusic(sessionManager.getToken(), favMusicobj)
 
-        favMusicReq.enqueue(object : Callback<CommanResponse>{
-            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
+        favMusicReq.enqueue(object : Callback<CommanResponse> {
+            override fun onResponse(
+                call: Call<CommanResponse>,
+                response: Response<CommanResponse>
+            ) {
 
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                myApplication.printLogE(t.toString(), TAG)
             }
 
         })
     }
-}
 
+    private fun calculateScrollPosition(
+        horizontalScrollView: HorizontalScrollView,
+        currentPosition: Int,
+        audioDuration: Int
+    ): Int {
+        val contentWidth = horizontalScrollView.getChildAt(0).width
+        val scrollViewWidth = horizontalScrollView.width
+        val maxScroll = contentWidth - scrollViewWidth
+
+        val positionRatio = currentPosition.toFloat() / audioDuration.toFloat()
+        val scrollPosition = (maxScroll * positionRatio).toInt()
+
+        return scrollPosition
+    }
+
+}
 

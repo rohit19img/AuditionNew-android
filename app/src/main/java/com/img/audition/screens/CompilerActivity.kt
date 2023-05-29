@@ -28,6 +28,7 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.snapCameraKit.SnapPreviewActivity
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -90,9 +91,15 @@ class CompilerActivity : AppCompatActivity() {
 
     private fun mergeVideo() {
 
+//        DownloadDuetVideo().execute(sessionManager.getDuetVideoUrl()!!)
 
-        DownloadDuetVideo().execute(sessionManager.getDuetVideoUrl()!!)
+        val outputPath1 = sessionManager.getCreateVideoPath()
+        val finalPath =  createFileAndFolder()
+//        val finalCmd = "-y -i $outputPath1 -vf scale=1280:720,pad=max(iw\\,ih):2*ow:((2*ow-iw)/2):((2*oh-ih)/2) -c:v libx264 -crf 30 -preset ultrafast -threads 8 $finalPath"
+        val finalCmd = "-y -i $outputPath1 -vf scale=1280:720,pad=max(iw\\,ih):ow:((ow-iw)/2):((oh-ih)/2) -c:v libx264 -crf 30 -preset ultrafast -threads 8 $finalPath"
 
+
+        funComipler(finalCmd,finalPath)
 
     }
 
@@ -331,7 +338,7 @@ class CompilerActivity : AppCompatActivity() {
             override fun onFailure() {
                 myApplication.printLogD("Compile : onFailure",TAG)
 //                myApplication.showToast("Failed, Try Again..")
-                myApplication.showToast("Something went wrong,Try Again..")
+//                Toast.makeText(this@CompilerActivity,"Something went wrong,Try Again..", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this@CompilerActivity,SnapPreviewActivity::class.java))
                 finish()
             }
@@ -476,13 +483,13 @@ class CompilerActivity : AppCompatActivity() {
         var cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
 
         if (sessionManager.getCreateVideoSpeedState().equals(ConstValFile.SlowVideo)){
-            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=2.0*PTS[v];[0:a]atempo=0.5[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]scale=1280:720,setpts=2.0*PTS[v];[0:a]atempo=0.5[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 -c:a aac $outputPath"
 
         }else if(sessionManager.getCreateVideoSpeedState().equals(ConstValFile.FastVideo)){
-            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]scale=1280:720,setpts=0.5*PTS[v];[0:a]atempo=2.0[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 -c:a aac $outputPath"
         }
         else if(sessionManager.getCreateVideoSpeedState().equals(ConstValFile.NormalVideo)) {
-            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]setpts=1.0*PTS[v];[0:a]atempo=0.25[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 $outputPath"
+            cmd = "-y -i $inputPath -vcodec libx264 -filter_complex [0:v]scale=1280:720,setpts=1.0*PTS[v];[0:a]atempo=0.25[a] -map [v] -map [a] -preset veryfast -threads 6 -crf 30 -c:a aac $outputPath"
         }/*else{
             cmd = "-y -i $inputPath -vcodec libx264 -preset veryfast -threads 6 -crf 30 $outputPath"
         }*/
@@ -582,6 +589,30 @@ class CompilerActivity : AppCompatActivity() {
              } else {
                  myApplication.printLogD("video Download Failed : ",TAG)
              }
-         }
+
+
     }
+
+         fun getImageAbsolutePath(context: Context, fileName: String): String {
+             val assetManager = context.assets
+             val inputStream = assetManager.open(fileName)
+             val file = File(context.cacheDir, fileName)
+
+             try {
+                 val outputStream = FileOutputStream(file)
+                 val buffer = ByteArray(1024)
+                 var read: Int
+                 while (inputStream.read(buffer).also { read = it } != -1) {
+                     outputStream.write(buffer, 0, read)
+                 }
+                 inputStream.close()
+                 outputStream.flush()
+                 outputStream.close()
+             } catch (e: Exception) {
+                 e.printStackTrace()
+             }
+
+             return file.absolutePath
+         }
+     }
 }

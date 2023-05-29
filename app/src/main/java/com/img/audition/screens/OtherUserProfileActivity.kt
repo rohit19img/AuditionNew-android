@@ -10,12 +10,15 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
+import com.img.audition.adapters.VideoAdapter
 import com.img.audition.adapters.VideoItemAdapter
 import com.img.audition.dataModel.*
 import com.img.audition.databinding.ActivityOtherUserProfileBinding
@@ -27,6 +30,9 @@ import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.VideoFragment
 import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.FollowFollowingTrack
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -55,13 +61,14 @@ import java.util.ArrayList
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
-    lateinit var userID : String
-    lateinit var userimage : String
-    var followStatus: Boolean = false
-    var position  = 0
+    private lateinit var userID : String
+    private lateinit var userimage : String
+    private var followStatus: Boolean = false
+    private var position  = 0
 
-     lateinit var followFollowingTrackIntent : FollowFollowingTrack
-    override fun onCreate(savedInstanceState: Bundle?) {
+     private lateinit var mainViewModel: MainViewModel
+
+     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
         val manager = GridLayoutManager(this@OtherUserProfileActivity, 3)
@@ -70,7 +77,9 @@ import java.util.ArrayList
         viewBinding.l1.startShimmer()
         viewBinding.shimmerVideoView.startShimmer()
 
-        viewBinding.messageBtn.setOnClickListener {
+         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+
+         viewBinding.messageBtn.setOnClickListener {
             startActivity(
                 Intent(this@OtherUserProfileActivity,MessageActivity::class.java)
                     .putExtra("name",viewBinding.userName.text.toString())
@@ -83,6 +92,7 @@ import java.util.ArrayList
             onBackPressed()
         }
 
+
         viewBinding.copy.setOnClickListener {
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("label",viewBinding.userID.text.toString())
@@ -94,7 +104,10 @@ import java.util.ArrayList
             showReportAndBlockDialog()
         }
 
+
     }
+
+
 
     private fun showReportAndBlockDialog() {
         val dialog1 = BottomSheetDialog(this@OtherUserProfileActivity,R.style.CustomBottomSheetDialogTheme)
@@ -177,40 +190,77 @@ import java.util.ArrayList
             getUserVideo(userID)
         }
 
+
+        viewBinding.followListBtn.setOnClickListener {
+            val userName = viewBinding.userName.text.toString()
+            sendToFollowFollowingListActivity(0, userName,userID)
+        }
+
+        viewBinding.followingListBtn.setOnClickListener {
+            val userName = viewBinding.userName.text.toString()
+            sendToFollowFollowingListActivity(1, userName,userID)
+        }
+
         super.onStart()
     }
 
-    private fun getUserVideo(userID: String?) {
-        val getUserVideoReq = apiInterface.getOtherUserVideo(sessionManager.getToken(),userID)
 
-        getUserVideoReq.enqueue( object : Callback<VideoResponse>{
-            override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val videoData = response.body()!!.data
-                    if (videoData.size>0){
-                        val videoItemAdapter = VideoItemAdapter(this@OtherUserProfileActivity,videoData)
-                        viewBinding.userVideoRecycle.adapter = videoItemAdapter
-                        viewBinding.shimmerVideoView.stopShimmer()
-                        viewBinding.shimmerVideoView.hideShimmer()
-                        viewBinding.shimmerVideoView.visibility = View.GONE
-                        viewBinding.userVideoRecycle.visibility = View.VISIBLE
+     private fun sendToFollowFollowingListActivity(pagePos: Int, userName: String,userId: String?) {
+         val bundle = Bundle()
+         bundle.putInt(ConstValFile.PagePosition, pagePos)
+         bundle.putString(ConstValFile.UserName, userName)
+         bundle.putString(ConstValFile.USER_ID,userId)
+         val intent = Intent(this@OtherUserProfileActivity, FollowFollowingListActivity::class.java)
+         intent.putExtra(ConstValFile.Bundle, bundle)
+         startActivity(intent)
+     }
 
-                    }else{
-                       myApplication.printLogD("No Video Data",TAG)
-                        viewBinding.shimmerVideoView.stopShimmer()
-                        viewBinding.shimmerVideoView.hideShimmer()
-                        viewBinding.noVideo.visibility = View.VISIBLE
-                    }
-                }else{
-                    myApplication.printLogE("Get Other User Video Response Failed ${response.code()}",TAG)
-                }
-            }
-            override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Video onFailure ${t.toString()}",TAG)
-            }
 
-        })
-    }
+     fun getUserVideo(userID: String){
+         mainViewModel.getUserVideo(userID)
+             .observe(this){
+                 it.let {videoResponse->
+
+                     myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
+                     when(videoResponse.status){
+                         Status.SUCCESS ->{
+                             myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
+                             if (videoResponse.data.success!!){
+                                 val videoData = videoResponse.data.data
+                                 if (videoData.size>0){
+                                     val videoItemAdapter = VideoItemAdapter(this@OtherUserProfileActivity,videoData)
+                                     viewBinding.userVideoRecycle.adapter = videoItemAdapter
+                                     viewBinding.shimmerVideoView.stopShimmer()
+                                     viewBinding.shimmerVideoView.hideShimmer()
+                                     viewBinding.shimmerVideoView.visibility = View.GONE
+                                     viewBinding.userVideoRecycle.visibility = View.VISIBLE
+
+                                 }else{
+                                     myApplication.printLogD("No Video Data",TAG)
+                                     viewBinding.shimmerVideoView.stopShimmer()
+                                     viewBinding.shimmerVideoView.hideShimmer()
+                                     viewBinding.noVideo.visibility = View.VISIBLE
+                                 }
+                             }
+                         }
+                         Status.LOADING ->{
+                             myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                         }
+                         else->{
+                             if (videoResponse.message!!.contains("401")){
+                                 myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
+                                 sessionManager.clearLogoutSession()
+                                 startActivity(Intent(this, SplashActivity::class.java))
+                                 finishAffinity()
+                             }
+                             myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+
+                         }
+                     }
+                 }
+             }
+
+     }
 
     private fun getUserData(userID: String) {
         myApplication.printLogD(userID.toString(),"Other User ID")
@@ -290,10 +340,8 @@ import java.util.ArrayList
     }
 
     override fun onResume() {
-        val adapter = (VideoFragment).videoAdapter
         try {
             position = bundle!!.getInt(ConstValFile.UserPositionInList,0)
-            followFollowingTrackIntent = adapter
         }catch (e:Exception){
             e.printStackTrace()
         }
@@ -309,15 +357,12 @@ import java.util.ArrayList
                     if (!followStatus){
                         list[position].followStatus = true
                         followStatus = true
-                        adapter.notifyDataSetChanged()
                         followUserApi(userID, "followed")
                         viewBinding.followBtn.text = ConstValFile.Following
                         viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.ITALIC)
                     }else{
                         list[position].followStatus = false
                         followStatus = false
-                        followFollowingTrackIntent = adapter
-                        adapter.notifyDataSetChanged()
                         followUserApi(userID,"unfollowed")
                         viewBinding.followBtn.text = ConstValFile.Follow
                         viewBinding.followBtn.setTypeface( viewBinding.followBtn.typeface, Typeface.NORMAL)
@@ -335,7 +380,7 @@ import java.util.ArrayList
          myApplication.printLogD("Intent onBackPressed : $followStatus","onIntentReceived")
          myApplication.printLogD("Intent onBackPressed : $userID","onIntentReceived")
          myApplication.printLogD("Intent onBackPressed : $position","onIntentReceived")
-         followFollowingTrackIntent.onIntentReceived(followStatus,userID,position)
+//         followFollowingTrackIntent.onIntentReceived(followStatus,userID,position)
        /*
          val backToIntent = Intent()
          backToIntent.putExtra(ConstValFile.VideoPosition,position)

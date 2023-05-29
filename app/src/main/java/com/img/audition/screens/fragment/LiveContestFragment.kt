@@ -30,18 +30,10 @@ import retrofit2.Response
 class LiveContestFragment : Fragment() {
 
     val TAG = "LiveContestFragment"
-    private var contestAdapter:ContestLiveAdapter = ContestLiveAdapter()
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
-
+    lateinit var contestAdapter:ContestLiveAdapter
     lateinit var contestViewpager2: ViewPager2
     lateinit var noLiveContest: TextView
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
-    private var videoItemPlayPause: PlayPauseContestVideo = contestAdapter.onActivityStateChanged()
+    lateinit var videoItemPlayPause: PlayPauseContestVideo
 
     private val bundle by lazy {
         arguments
@@ -81,40 +73,10 @@ class LiveContestFragment : Fragment() {
         }
     }
 
-    /*private fun showLiveContest(context: Context) {
-        val liveContestReq = apiInterface.getAllLiveContest(sessionManager.getToken())
-
-        liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse>{
-            override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val contestData = response.body()!!.data
-                    if (contestData.size>0){
-                        noLiveContest.visibility = View.GONE
-                        contestAdapter = ContestLiveAdapter(context,contestData)
-                        contestViewpager2.adapter = contestAdapter
-                        videoItemPlayPause = contestAdapter.onActivityStateChanged()
-
-                        Log.d("check 400" ,"onResponse: videoItemPlayPause")
-                    }else{
-                        Log.d(TAG, " No Live Contest")
-                        noLiveContest.visibility = View.VISIBLE
-                    }
-                }else{
-                    Log.e(TAG,response.toString())
-                    noLiveContest.visibility = View.VISIBLE
-                }
-            }
-
-            override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
-                Log.e(TAG,t.toString())
-                noLiveContest.visibility = View.VISIBLE
-            }
-
-        })
-    }*/
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
+        view?.destroyDrawingCache()
         super.onDestroyView()
     }
 
@@ -125,6 +87,14 @@ class LiveContestFragment : Fragment() {
 
     override fun onStop() {
         Log.d("check 400", "onStop: $TAG")
+        try {
+            val cPos = contestViewpager2.currentItem
+            val holder: ContestLiveAdapter.MyViewHolder = (contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestLiveAdapter.MyViewHolder
+            Log.d("check 400", " onPause cPos: $cPos")
+            videoItemPlayPause.onStop(holder,cPos)
+        }catch (e:java.lang.Exception){
+            Log.e("check 400", "1 $e")
+        }
         super.onStop()
     }
 

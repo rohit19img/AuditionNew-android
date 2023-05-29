@@ -56,7 +56,6 @@ class CameraActivity : AppCompatActivity(), RecordButton.OnGestureListener {
     private var isFromContest = false
     private var isComplete = false
 
-    var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
 
     companion object {
 

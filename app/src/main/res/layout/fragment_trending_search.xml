@@ -59,11 +59,22 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/trendingHashtagCycle"
                 android:layout_width="match_parent"
+                android:visibility="gone"
                 android:orientation="vertical"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/trending_hashtag_cycle"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerVideoView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                >
+                <include layout="@layout/user_videoitem_view_shimer" />
+
+            </com.facebook.shimmer.ShimmerFrameLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_marginHorizontal="@dimen/_8sdp"

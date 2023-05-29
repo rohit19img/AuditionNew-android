@@ -1,18 +1,16 @@
 package com.img.audition.screens.fragment
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.img.audition.R
-import com.img.audition.adapters.DetailsPrizecardAdapter
+import androidx.media3.common.util.UnstableApi
 import com.img.audition.adapters.LeaderboardAdapter
 import com.img.audition.dataModel.LeaderboardDataResponse
-import com.img.audition.databinding.FragmentDetailsPrizecardBinding
 import com.img.audition.databinding.FragmentLeaderboardBinding
-import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
@@ -23,7 +21,7 @@ import retrofit2.Response
 
 class LeaderboardFragment(val contestID: String) : Fragment() {
 
-    val TAG = "CompletedContestFragment"
+    private val TAG = "LeaderboardFragment"
     private lateinit var _viewBinding : FragmentLeaderboardBinding
     private val view get() = _viewBinding
     private val sessionManager by lazy {
@@ -48,26 +46,20 @@ class LeaderboardFragment(val contestID: String) : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        leaderboardapi()
+        leaderboardapi(view.context)
     }
 
-    private fun leaderboardapi() {
+    private fun leaderboardapi(context: Context) {
         val leaderboardapiReq = apiInterface.getLeaderboardDetails(sessionManager.getToken(),contestID)
 
-        leaderboardapiReq.enqueue(object : Callback<LeaderboardDataResponse>{
+        leaderboardapiReq.enqueue(@UnstableApi object : Callback<LeaderboardDataResponse>{
             override fun onResponse(call: Call<LeaderboardDataResponse>, response: Response<LeaderboardDataResponse>) {
-                if (response.isSuccessful && response.body()?.success!!){
-                    try {
-                        val data = response.body()!!.data
-                        val adapter = LeaderboardAdapter(requireContext(),data)
-                        view.leaderboard.adapter = adapter
-                    }catch (e:java.lang.Exception){
-                        Log.e(TAG, "onResponse: $e")
-                    }
-
-
+                if (response.isSuccessful && response.body()!!.success!!){
+                    val data = response.body()!!.data
+                    val adapter = LeaderboardAdapter(context,data,contestID)
+                    view.leaderboard.adapter = adapter
                 }else{
-                    Log.e(TAG, "onResponse: $response")
+                    Log.e(TAG, "onResponse33: $response")
                 }
             }
 
@@ -76,5 +68,11 @@ class LeaderboardFragment(val contestID: String) : Fragment() {
             }
 
         })
+    }
+
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
     }
 }

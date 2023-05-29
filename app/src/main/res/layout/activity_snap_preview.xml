@@ -14,6 +14,13 @@
         android:transitionName="@string/transition_shared_dummy"
         />
 
+    <VideoView
+        android:visibility="gone"
+        android:id="@+id/videoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true" />
+
     <androidx.media3.ui.PlayerView
         android:id="@+id/video_preview"
         android:layout_width="match_parent"

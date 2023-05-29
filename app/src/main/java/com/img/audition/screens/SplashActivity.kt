@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 
 import com.google.android.gms.tasks.OnCompleteListener
@@ -18,26 +20,34 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.videoWork.VideoCacheWork
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 
- @SuppressLint("CustomSplashScreen")
+ @UnstableApi @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
-    lateinit var sessionManager : SessionManager
-    lateinit var myApplication : MyApplication
-    val TAG = "SplashActivity"
-    var deviceID = ""
+    private lateinit var sessionManager : SessionManager
+    private lateinit var myApplication : MyApplication
+    private val TAG = "SplashActivity"
+    private var deviceID = ""
 
      companion object{
          var isPopupBannerShow = false
      }
+     private val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
 
+
+     private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sessionManager = SessionManager(this@SplashActivity)
         myApplication  = MyApplication(this@SplashActivity)
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         if (myApplication.isNetworkConnected()){
             FirebaseMessaging.getInstance().subscribeToTopic("Audition-All")
@@ -57,43 +67,6 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("HardwareIds")
-    private fun guestUserLogin() {
-        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-
-        deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-        if (deviceID!=""){
-
-            val guestRequestModel = GuestLoginRequest(deviceID, sessionManager.getNotificationToken())
-            myApplication.printLogI(guestRequestModel.deviceId.toString(),"guestLoginRequest deviceId:")
-            myApplication.printLogI(guestRequestModel.fcmToken.toString(),"guestLoginRequest appId:")
-
-            val guestLoginRequest = apiInterface.guestLogin(guestRequestModel)
-            guestLoginRequest.enqueue(object : Callback<LoginResponse>{
-                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                    if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                        val guestToken = response.body()!!.data!!.token.toString()
-                        val guestUserID = response.body()!!.data!!.id.toString()
-                        sessionManager.clearLogoutSession()
-                        myApplication.printLogD(guestToken,ConstValFile.TOKEN)
-                        myApplication.printLogD(guestUserID,ConstValFile.USER_ID)
-                        sessionManager.setGuestLogin(true)
-                        sessionManager.setUserSelfID(guestUserID)
-                        sessionManager.setToken(guestToken)
-                        Thread.sleep(500)
-                        sendToHomeActivity()
-                    }else{
-                        myApplication.printLogE("Guest User Response Failed ${response.code()}",TAG)
-                    }
-                }
-                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    myApplication.printLogE(t.message.toString(),TAG)
-                }
-            })
-        }else{
-            myApplication.showToast("Try Again..")//Device id Null
-        }
-    }
 
     fun onTokenRefresh() {
         val refreshedToken = arrayOf("")
@@ -116,6 +89,9 @@ class SplashActivity : AppCompatActivity() {
 
 
     fun sendToHomeActivity(){
+        sessionManager.clearVideoSession()
+        sessionManager.clearContestSession()
+        sessionManager.clearDuetSession()
         val homeIntent = Intent(this@SplashActivity,HomeActivity::class.java)
         startActivity(homeIntent)
         finish()
@@ -139,10 +115,12 @@ class SplashActivity : AppCompatActivity() {
     fun deleteDir(dir: File?): Boolean {
         return if (dir != null && dir.isDirectory) {
             val children = dir.list()
-            for (i in children.indices) {
-                val success = deleteDir(File(dir, children[i]))
-                if (!success) {
-                    return false
+            if (children != null) {
+                for (i in children.indices) {
+                    val success = deleteDir(File(dir, children[i]))
+                    if (!success) {
+                        return false
+                    }
                 }
             }
             dir.delete()
@@ -152,4 +130,44 @@ class SplashActivity : AppCompatActivity() {
             false
         }
     }
+
+     @SuppressLint("HardwareIds")
+     private fun guestUserLogin(){
+
+         deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+         if (deviceID!=""){
+
+             val guestRequestModel = GuestLoginRequest(deviceID, sessionManager.getNotificationToken())
+             myApplication.printLogI(guestRequestModel.deviceId.toString(),"guestLoginRequest deviceId:")
+             myApplication.printLogI(guestRequestModel.fcmToken.toString(),"guestLoginRequest appId:")
+
+             mainViewModel.guestLogin(guestRequestModel)
+                 .observe(this){
+                     it.let {resource ->
+                         when(resource.status){
+                             Status.SUCCESS ->{
+                                 val guestToken = resource.data!!.data!!.token.toString()
+                                 val guestUserID = resource.data!!.data!!.id.toString()
+                                 sessionManager.clearLogoutSession()
+                                 myApplication.printLogD(guestToken,ConstValFile.TOKEN)
+                                 myApplication.printLogD(guestUserID,ConstValFile.USER_ID)
+                                 sessionManager.setGuestLogin(true)
+                                 sessionManager.setUserSelfID(guestUserID)
+                                 sessionManager.setToken(guestToken)
+                                 Thread.sleep(500)
+                                 sendToHomeActivity()
+                             }
+                             Status.LOADING->{
+
+                             }
+                             Status.ERROR ->{
+                                 myApplication.showToast("Try Again..")
+                             }
+                         }
+                     }
+                 }
+         }else{
+             myApplication.showToast("Try Again..")
+         }
+     }
 }

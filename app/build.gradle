@@ -45,9 +45,9 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     implementation 'androidx.lifecycle:lifecycle-process:2.6.1'
@@ -102,7 +102,7 @@ dependencies {
 
     //crop image for pan and bank verification
     implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
-    
+
     // image crop
     implementation 'com.github.mike14u:croperino:1.1.8'
     implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
@@ -138,17 +138,14 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-ddb:2.2.13'
 
     //Android Media Player Exo
-    implementation "androidx.media3:media3-exoplayer:1.0.1"
-    implementation "androidx.media3:media3-exoplayer-dash:1.0.1"
-    implementation "androidx.media3:media3-ui:1.0.1"
+    implementation "androidx.media3:media3-exoplayer:1.0.2"
+    implementation "androidx.media3:media3-ui:1.0.2"
+
 
     //textview color picker
     implementation 'com.github.QuadFlask:colorpicker:0.0.15'
 
-
     implementation 'de.hdodenhof:circleimageview:3.1.0'
-
-
 
     //snapChat cameraKit
     implementation "com.snap.camerakit:camerakit:1.21.1"
@@ -156,11 +153,24 @@ dependencies {
     implementation "com.snap.camerakit:support-camera-layout:1.21.1"
     implementation "com.snap.camerakit:lenses-bundle:1.21.1"
     implementation "com.snap.camerakit:support-camerax:1.21.1"
-    implementation "com.snap.camerakit:camerakit-extension-lens-push-to-device:1.21.1"
+//    implementation "com.snap.camerakit:camerakit-extension-lens-push-to-device:1.21.1"
     implementation "com.snap.camerakit:support-lenses-carousel:1.21.1"
-    implementation "com.snap.camerakit:camerakit-extension-auth-token-provider-loginkit:1.21.1"
+//    implementation "com.snap.camerakit:camerakit-extension-auth-token-provider-loginkit:1.21.1"
 
     //facebook Login
     implementation 'com.facebook.android:facebook-android-sdk:13.0.0'
+
+    //Architecture Component
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    //leakcanary
+    //debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.11'
+
+
+
+
 
 }

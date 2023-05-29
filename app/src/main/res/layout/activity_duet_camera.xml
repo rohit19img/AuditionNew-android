@@ -187,6 +187,19 @@
             app:trackColor="#FF9800"
             app:trackThickness="10dp"
             android:id="@+id/progressLoading"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Processing, wait..."
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/progressLoading"
+            android:id="@+id/progressText"
+            android:textColor="@color/textColorWhite"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
     </RelativeLayout>
 
 

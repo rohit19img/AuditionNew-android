@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -40,6 +41,7 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.ExoPlaybackException.TYPE_SOURCE
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -116,32 +118,40 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         val caption = itemView.videoCaption
         val audioName = itemView.audioName
         val audioImage = itemView.audioImage
-        val shareCount = itemView.shareCount
         val shareBtn = itemView.shareButton
         val moreBtn = itemView.moreButton
         val commentBtn = itemView.commentButton
-        val showCommentView = itemView.showComment
         val postLocation = itemView.postLocation
         val commentCount = itemView.commentCount
-        val playPauseVolumeBtn = itemView.playPauseVolume
         val playPauseIc = itemView.videoPlayPause
-        val volumeOnOffIc = itemView.volumeOnOff
-
-        val videoLayout = itemView.videoLayout
-        val shimmerLayout = itemView.shimmerLayout
+        val playPauseVideoBtn = itemView.playPauseVideoBtn
 
 
         //Video Cache
-        val mediaSource = ProgressiveMediaSource.Factory(
-            CacheDataSource.Factory()
-                .setCache(VideoCacheWork.simpleCache)
+
+        val mediaSource = ProgressiveMediaSource.Factory(CacheDataSource.Factory().setCache(VideoCacheWork.simpleCache)
                 .setUpstreamDataSourceFactory(
-                    DefaultHttpDataSource.Factory()
-                        .setUserAgent("ExoPlayer")
+                    DefaultHttpDataSource.Factory().setUserAgent("ExoPlayer")
                 )
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
         )
-        var exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext).build()
+
+
+
+        val trackSelector = DefaultTrackSelector(contextFromActivity).apply {
+            setParameters(buildUponParameters()
+                .setRendererDisabled(C.TRACK_TYPE_VIDEO,true)
+                .setAllowVideoMixedDecoderSupportAdaptiveness(true)
+                .setAllowAudioMixedDecoderSupportAdaptiveness(true)
+                .setPreferredVideoMimeType("video/avc")
+                .setAllowAudioMixedChannelCountAdaptiveness(true)
+                .setAllowMultipleAdaptiveSelections(true)
+            )
+        }
+
+        val exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext)
+            .setTrackSelector(trackSelector)
+            .build()
         //
 
     }
@@ -152,7 +162,10 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         return VideoViewHolder(itemBinding)
     }
 
-    override fun onBindViewHolder(holder: VideoViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: VideoViewHolder,
+        @SuppressLint("RecyclerView") position: Int
+    ) {
 
         val list = videoList[position]
         holder.apply {
@@ -169,9 +182,11 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             if (list.allowComment == false) {
-                showCommentView.visibility = View.GONE
+                commentCount.visibility = View.GONE
+                commentBtn.visibility = View.GONE
             } else {
-                showCommentView.visibility = View.VISIBLE
+                commentCount.visibility = View.VISIBLE
+                commentBtn.visibility = View.VISIBLE
             }
 
             if (list.allowSharing == false) {
@@ -187,26 +202,35 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             //vote
+            myApplication.printLogD(list.voteStatus!!.toString(),"voteStatus")
 
             if (list.userId.equals(sessionManager.getUserSelfID())) {
                 followBtn.visibility = View.GONE
             } else {
                 followBtn.visibility = View.VISIBLE
             }
-            if (!(list.userId.equals(sessionManager.getUserSelfID()))) {
-                if (list.voteStatus != null) {
-                    if (list.voteStatus!!) {
-                        voteBtn.visibility = View.VISIBLE
-                    } else {
-                        voteBtn.visibility = View.GONE
-                    }
-                }
-                voteBtn.setOnClickListener {
+
+
+            if (list.status!!.equals("contest",true)) {
+                voteBtn.visibility = View.VISIBLE
+            } else {
+                voteBtn.visibility = View.GONE
+            }
+
+            voteBtn.setOnClickListener {
+                if (list.contestStatus.equals("started",true)){
                     if (!(sessionManager.isUserLoggedIn())) {
                         sendToLoginScreen()
                     } else {
-                        showVoteDialog(list.Id)
+                        if (list.voteStatus!!){
+                            Toast.makeText(contextFromActivity,"You already vote this video",Toast.LENGTH_SHORT).show()
+                        }else{
+                            showVoteDialog(list.Id,position)
+                        }
                     }
+                }else{
+                    Toast.makeText(contextFromActivity,"Contest Close",Toast.LENGTH_SHORT).show()
+
                 }
             }
 
@@ -320,9 +344,9 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                         override fun updateDrawState(textPaint: TextPaint) {
                             super.updateDrawState(textPaint)
                             // Customize the appearance of the clickable text
-                            textPaint.color = Color.argb(128, 0, 0, 255)
+                            textPaint.color = Color.WHITE
                             textPaint.isUnderlineText = false
-
+                            textPaint.typeface = Typeface.SANS_SERIF
                         }
 
                     }
@@ -440,15 +464,20 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             likeCount.text = list.likeCount.toString()
-            shareCount.text = list.shares.toString()
+
             Glide.with(contextFromActivity).load(list.image).placeholder(R.drawable.person_ic)
                 .into(userProfile)
             userName.text = list.auditionId
-            audioName.text =
-                list.song?.title + "  by ${list.song?.userDetails?.auditionId}  " + list.song?.subtitle
+            if (list.songId != null && list.songId!!.isNotEmpty()) {
+                audioName.text =
+                    list.song?.title + "  by ${list.song?.userDetails?.auditionId}  " + list.song?.subtitle
+            } else {
+                audioName.text = "Audio Not Available"
+            }
+
 
             audioName.setOnClickListener {
-                if (list.songLink != null && list.songLink!!.isNotEmpty()) {
+                if (list.songId != null && list.songId!!.isNotEmpty()) {
                     myApplication.printLogD(list.song!!.Id!! + ": id", "audioUrl")
                     myApplication.printLogD(list.songLink.toString(), "audioUrl")
                     sendSongVideoActivity(list.song!!.Id!!, list.songLink.toString())
@@ -487,17 +516,19 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
 
         holder.apply {
 
-            val mediaItem = MediaItem.fromUri(list.file.toString())
+            val mediaItem =  MediaItem.Builder().setMimeType("video/avc").setUri(list.file.toString()).build()
             val videoMediaSource = mediaSource.createMediaSource(mediaItem)
             playerViewExo.player = exoPlayer
             exoPlayer.setMediaSource(videoMediaSource)
             exoPlayer.prepare()
 
+
+
             if (cPos >= 0) {
 
                 if (cPos == position) {
                     myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}", "check 100")
-                    myApplication.printLogD("onViewAttachedToWindow: Url ${videoList[cPos].file}","check 100")
+                    myApplication.printLogD("onViewAttachedToWindow: Url ${videoList[cPos].file}", "check 100")
 
                     exoPlayer.seekTo(0)
                     exoPlayer.playWhenReady = true
@@ -508,14 +539,17 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
 
-
-
-            playPauseVolumeBtn.setOnClickListener {
+            playPauseVideoBtn.setOnClickListener {
                 playPauseIc.visibility = View.GONE
                 if (exoPlayer.isPlaying) {
                     exoPlayer.pause()
                     playPauseIc.visibility = View.VISIBLE
-                    playPauseIc.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.play_ic))
+                    playPauseIc.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            contextFromActivity,
+                            R.drawable.play_ic
+                        )
+                    )
 
                 } else {
                     exoPlayer.play()
@@ -576,9 +610,10 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             exoPlayer.setMediaSource(videoMediaSource)
                             exoPlayer.prepare()
                             exoPlayer.play()
-                        }else ->{
-                        myApplication.printLogE("TYPE_SOURCE", "currentState")
-                        myApplication.printLogE(list.file.toString(), "currentState")
+                        }
+                        else -> {
+                            myApplication.printLogE(error.message.toString(), "currentState")
+                            myApplication.printLogE(list.file.toString(), "currentState")
                         }
 
                     }
@@ -641,17 +676,28 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                            exoPlayer.release()
+                            playerViewExo.player!!.release()
 
                         } else {
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                            exoPlayer.release()
+                            playerViewExo.player!!.release()
+
 
                         }
                     }
                     exoPlayer.playWhenReady = false
                     exoPlayer.seekTo(0)
                     exoPlayer.stop()
+                    exoPlayer.clearMediaItems()
+                    exoPlayer.release()
+                    playerViewExo.player!!.release()
+
                 }
             }
         }
@@ -664,7 +710,7 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             playerViewExo.player!!.seekTo(0)
             playerViewExo.player!!.pause()
             playerViewExo.player!!.stop()
-
+            playerViewExo.player = null
         }
         super.onViewDetachedFromWindow(holder)
     }
@@ -782,8 +828,8 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     }
 
     private fun sendToDuetCameraActivity(bundle: Bundle) {
-        val intent = Intent(contextFromActivity.applicationContext,DuetCameraActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
+        val intent = Intent(contextFromActivity.applicationContext, DuetCameraActivity::class.java)
+        intent.putExtra(ConstValFile.Bundle, bundle)
         contextFromActivity.startActivity(intent)
     }
 
@@ -792,15 +838,26 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         dialog1.setContentView(R.layout.more_dialog)
         val tv_watch_later = dialog1.findViewById<TextView>(R.id.tv_watch_later)
         val iv_share_not_intersested =
-            dialog1.findViewById<ImageView>(R.id.iv_share_not_intersested)
-        val iv_share_report = dialog1.findViewById<ImageView>(R.id.iv_share_report)
+            dialog1.findViewById<LinearLayout>(R.id.iv_share_not_intersested)
+        val iv_share_report = dialog1.findViewById<LinearLayout>(R.id.iv_share_report)
         val iv_share_duet = dialog1.findViewById<LinearLayout>(R.id.iv_share_duet)
         val iv_share_download = dialog1.findViewById<LinearLayout>(R.id.iv_share_download)
         val iv_share_watch_later = dialog1.findViewById<LinearLayout>(R.id.iv_share_watch_later)
 
-        if (!(videoList[i].allowDuet!!)){
+        if ((videoList[i].userId.equals(sessionManager.getUserSelfID()))) {
+            iv_share_report!!.visibility = View.GONE
+            iv_share_not_intersested!!.visibility = View.GONE
+
+        } else {
+            iv_share_report!!.visibility = View.VISIBLE
+            iv_share_not_intersested!!.visibility = View.VISIBLE
+        }
+
+
+
+        if (!(videoList[i].allowDuet!!)) {
             iv_share_duet!!.visibility = View.GONE
-        }else{
+        } else {
             iv_share_duet!!.visibility = View.VISIBLE
         }
 
@@ -879,8 +936,8 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                 contextFromActivity.startActivity(intent)
             } else {
                 val bundle = Bundle()
-                bundle.putString(ConstValFile.DuetVideoUrl,videoList[i].file)
-                bundle.putString(ConstValFile.AuditionID,videoList[i].auditionId)
+                bundle.putString(ConstValFile.DuetVideoUrl, videoList[i].file)
+                bundle.putString(ConstValFile.AuditionID, videoList[i].auditionId)
                 sendToDuetCameraActivity(bundle)
             }
         }
@@ -1169,7 +1226,7 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         )
     }
 
-    private fun showVoteDialog(id: String?) {
+    private fun showVoteDialog(id: String?, position: Int) {
         val voteDialog = Dialog(contextFromActivity)
         voteDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         voteDialog.setContentView(R.layout.vote_dialog_sheet)
@@ -1180,7 +1237,7 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
         voteDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        voteDialog.window!!.setGravity(Gravity.RIGHT)
+        voteDialog.window!!.setGravity(Gravity.END)
 
 
         val voteCatReq = apiInterface.getVoteCategory(sessionManager.getToken())
@@ -1193,7 +1250,13 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                 if (response.isSuccessful && response.body()!!.success!!) {
                     val data = response.body()!!.data
                     voteCycle.adapter = VoteAdapter(contextFromActivity, data, id!!, voteDialog)
-
+                    if (!(videoList[position].voteStatus!!)) {
+                        for (uList in videoList) {
+                            if (uList.userId.equals(videoList[position].userId)) {
+                                uList.voteStatus = true
+                            }
+                        }
+                    }
                 } else {
                     myApplication.printLogE(response.toString(), TAG)
 

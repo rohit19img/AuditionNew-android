@@ -2,6 +2,7 @@ package com.img.audition.screens
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -23,6 +24,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.lang.Exception
+import java.text.SimpleDateFormat
 
 @UnstableApi class ContestDetailsActivity : AppCompatActivity() {
 
@@ -55,6 +57,7 @@ import java.lang.Exception
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
+        viewBinding.showShimmer.startShimmer()
         viewBinding.tabLayout.setupWithViewPager(viewBinding.viewpager)
         viewBinding.viewpager.adapter = SectionPagerAdapter(supportFragmentManager)
     }
@@ -67,17 +70,42 @@ import java.lang.Exception
                if (response.isSuccessful && response.body()?.success!!){
                    try {
                        val data = response.body()!!.data
-
+                       viewBinding.showShimmer.stopShimmer()
+                       viewBinding.showShimmer.hideShimmer()
+                       viewBinding.showShimmer.visibility = View.GONE
                        viewBinding.winner.text = data!!.totalwinners.toString()
-                       viewBinding.maxuser.text = "Max.Join " + data.maximumUser
-                       viewBinding.joinuser.text = "Joined " + data.joinedusers
+                       viewBinding.maxuser.text =  "Max ${data.maximumUser.toString()} Users"
+                       viewBinding.joinuser.text ="${data.joinedusers.toString()} User Joined"
                        viewBinding.winamount.text = "₹ " + data.winAmount
                        viewBinding.btnJoin.text = "₹ " + data.entryfee
-
                        viewBinding.progress.max = data.maximumUser!!
                        viewBinding.progress.progress = data.joinedusers!!
-
                        prizecard = data.priceCard
+
+
+                       if(data.isBonus == 1) {
+                           viewBinding.bonusLL.visibility = View.VISIBLE
+                           viewBinding.contestBonus.text = "${data.bonusPercentage}%"
+                       } else
+                           viewBinding.bonusLL.visibility = View.GONE
+
+                       var dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                       var dateFormat1 =  SimpleDateFormat("MMM dd  hh:mm a")
+
+                       viewBinding.contestStartDate.text = "Start Date : "+data.startDate.toString()
+                       viewBinding.contestEndDate.text = "End Date : "+data.endDate.toString()
+
+                       try{
+                           viewBinding.contestStartDate.text = "Start Date : ${dateFormat1.format(dateFormat.parse(data.startDate))}"
+                       } catch (e : java.lang.Exception){
+                           Log.i("Exception"," ${ e.message}")
+                       }
+                       try{
+                           viewBinding.contestEndDate.text = "End Date : ${dateFormat1.format(dateFormat.parse(data.endDate))}"
+                       } catch (e : java.lang.Exception){
+                           Log.i("Exception"," ${ e.message}")
+                       }
+
 
                    }catch (e: Exception){
                        myApplication.printLogE(e.toString(),TAG)

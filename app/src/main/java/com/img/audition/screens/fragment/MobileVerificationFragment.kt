@@ -1,19 +1,16 @@
 package com.img.audition.screens.fragment
 
 import android.app.Dialog
-import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.text.TextUtils
+import android.util.Log
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.JsonObject
 import com.img.audition.R
 import com.img.audition.dataModel.*
@@ -36,6 +33,8 @@ class MobileVerificationFragment : Fragment() {
         SessionManager(requireContext())
     }
 
+    var emailPattern  = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+
     private val myApplication by lazy {
         MyApplication(requireContext())
     }
@@ -53,11 +52,23 @@ class MobileVerificationFragment : Fragment() {
         _viewBinding = FragmentMobileVarificationBinding.inflate(inflater,container,false)
 
         view.verifyMobile.setOnClickListener {
-            verifymobile(view.mobileNumber.text.toString())
+            val mobileN = view.mobileNumber.text.toString()
+            if (mobileN.isNotEmpty() && mobileN.length==10){
+                verifymobile(view.mobileNumber.text.toString())
+            }else{
+                view.mobileNumber.error = "Enter valid number"
+            }
+
+
         }
 
         view.verifyEmail.setOnClickListener {
-            verifyEmail(view.email.text.toString())
+            val emailA =  view.email.text.toString().trim()
+            if (isValidEmail(emailA)){
+                verifyEmail(view.email.text.toString())
+            }else{
+                view.email.error = "Enter valid Email"
+            }
         }
         return view.root
     }
@@ -250,6 +261,16 @@ class MobileVerificationFragment : Fragment() {
             }
 
         })
+    }
+
+    private fun isValidEmail(target: CharSequence?): Boolean {
+        return !TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target!!).matches()
+    }
+
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
     }
 
 }

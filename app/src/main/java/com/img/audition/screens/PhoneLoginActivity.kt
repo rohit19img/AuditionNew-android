@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 
 import com.google.android.gms.tasks.OnCompleteListener
@@ -19,6 +20,9 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -41,7 +45,10 @@ import retrofit2.Response
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
+
+     private lateinit var mainViewModel: MainViewModel
+
+     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
@@ -52,7 +59,10 @@ import retrofit2.Response
             otp = it
         }
 
-        viewBinding.getOtpBtn.setOnClickListener {
+         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+
+
+         viewBinding.getOtpBtn.setOnClickListener {
             val ccp = "+"+viewBinding.countyCodePicker.selectedCountryCode
             number = viewBinding.phoneNumberET.text.toString().trim()
             if (number.isNotEmpty() && number.length==10){
@@ -76,66 +86,91 @@ import retrofit2.Response
 
     }
 
-    private fun loginWithOTP(number: String, otp: String, fcmToken: String?) {
-//        myApplication.showToast(otp)
-        val  otpRequest = OTPRequest(number,otp.toInt(),fcmToken)
-        myApplication.printLogD(otpRequest.toString(),"phone login")
-        val apiOTPRequest = apiInterface.OTP_Login(otpRequest)
-        apiOTPRequest.enqueue(object : Callback<LoginResponse>{
-            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    sessionManager.clearLogoutSession()
-                    val userToken = response.body()!!.data!!.token.toString()
-                    val userID = response.body()!!.data!!.id.toString()
-                    myApplication.printLogD(userToken, ConstValFile.TOKEN)
-                    myApplication.printLogD(userID, ConstValFile.USER_ID)
-                    sessionManager.setGuestLogin(false)
-                    sessionManager.setMobileVerified(true)
-                    sessionManager.createUserLoginSession(true,userToken,userID)
-                    sessionManager.setUserSelfID(userID)
-                    sessionManager.setUserName(number)
-                    sessionManager.setToken(userToken)
-                    Thread.sleep(500)
-                    myApplication.showToast("Login Successfully..")
+     fun loginWithOTP(number: String, otp: String, fcmToken: String?){
+         val  otpRequest = OTPRequest(number,otp.toInt(),fcmToken)
+         myApplication.printLogD(number,TAG)
+         mainViewModel.userOtpVerify(otpRequest)
+             .observe(this){
+                 it.let {response->
+                     myApplication.printLogD(response.message.toString(),"apiCall 1")
+                     when(response.status){
+                         Status.SUCCESS ->{
+                             sessionManager.clearLogoutSession()
+                             myApplication.printLogI("${response.data!!.data!!.id}","login userID")
+                             val userToken = response.data.data!!.token.toString()
+                             val userID = response.data.data!!.id.toString()
+                             myApplication.printLogD(userToken, ConstValFile.TOKEN)
+                             myApplication.printLogD(userID, ConstValFile.USER_ID)
+                             sessionManager.setGuestLogin(false)
+                             sessionManager.setMobileVerified(true)
+                             sessionManager.createUserLoginSession(true,userToken,userID)
+                             sessionManager.setUserSelfID(userID)
+                             sessionManager.setUserName(number)
+                             sessionManager.setToken(userToken)
+                             Thread.sleep(500)
+                             myApplication.showToast("Login Successfully..")
 
-                    sendToHomeActivity()
-                }else{
-                    myApplication.showToast("Wrong OTP")
-                    myApplication.printLogE("User OTP Login Failed ${response.code()}",TAG)
-                }
-            }
+                             sendToHomeActivity()
+                         }
+                         Status.LOADING ->{
+                             myApplication.printLogD(response.status.toString(),"apiCall 3")
+                         }
+                         else->{
+                             if (response.message!!.contains("401")){
+                                 myApplication.printLogD(response.message.toString(),"apiCall 4")
+                                 sessionManager.clearLogoutSession()
+                                 startActivity(Intent(this, SplashActivity::class.java))
+                                 finishAffinity()
+                             }
+                             myApplication.printLogD(response.status.toString(),"apiCall 5")
 
-            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                myApplication.printLogE(t.message.toString(),TAG)
-            }
+                         }
+                     }
+                 }
+             }
+     }
 
-        })
-    }
 
-    private fun getOTP(number: String) {
-        val numLoginRequest = NumLoginRequest(number)
-        myApplication.printLogD(number,TAG)
 
-        val loginReq = apiInterface.Login(numLoginRequest)
-        loginReq.enqueue(object:Callback<CommanResponse>{
-            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
-                if (response.isSuccessful){
-                    viewBinding.phoneNumberET.isEnabled = false
-                    viewBinding.otpLayout.visibility = View.VISIBLE
-                    viewBinding.getOtpBtn.visibility = View.GONE
-                    myApplication.showToast("OTP Sent..")
-                }else{
-                    myApplication.showToast("Something went wrong..")
-                    viewBinding.otpLayout.visibility = View.GONE
-                    viewBinding.getOtpBtn.visibility = View.VISIBLE
-                }
-            }
 
-            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
-            }
-        })
-    }
+     fun getOTP(number: String){
+         val numLoginRequest = NumLoginRequest(number)
+         myApplication.printLogD(number,TAG)
+         mainViewModel.userLogin(numLoginRequest)
+             .observe(this){
+                 it.let {response->
+                     myApplication.printLogD(response.message.toString(),"apiCall 1")
+                     when(response.status){
+                         Status.SUCCESS ->{
+                             myApplication.printLogD(response.data!!.message.toString(),"apiCall 2")
+                             if (response.data.success!!){
+                                 viewBinding.phoneNumberET.isEnabled = false
+                                 viewBinding.otpLayout.visibility = View.VISIBLE
+                                 viewBinding.getOtpBtn.visibility = View.GONE
+                                 myApplication.showToast("OTP Sent..")
+                             }else {
+                                 myApplication.showToast("Something went wrong..")
+                                 viewBinding.otpLayout.visibility = View.GONE
+                                 viewBinding.getOtpBtn.visibility = View.VISIBLE
+                             }
+                         }
+                         Status.LOADING ->{
+                             myApplication.printLogD(response.status.toString(),"apiCall 3")
+                         }
+                         else->{
+                             if (response.message!!.contains("401")){
+                                 myApplication.printLogD(response.message.toString(),"apiCall 4")
+                                 sessionManager.clearLogoutSession()
+                                 startActivity(Intent(this, SplashActivity::class.java))
+                                 finishAffinity()
+                             }
+                             myApplication.printLogD(response.status.toString(),"apiCall 5")
+
+                         }
+                     }
+                 }
+             }
+     }
 
     fun sendToHomeActivity(){
         val homeIntent = Intent(this@PhoneLoginActivity,HomeActivity::class.java)

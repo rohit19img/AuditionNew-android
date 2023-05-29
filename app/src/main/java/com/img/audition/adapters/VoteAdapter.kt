@@ -40,7 +40,6 @@ class VoteAdapter(val contextFromActivity: Context,val voteList: ArrayList<VoteD
 
 
                 itemView.setOnClickListener {
-
                     vote(id, data.likeCategory)
                 }
             }catch (e:java.lang.Exception){
@@ -57,16 +56,23 @@ class VoteAdapter(val contextFromActivity: Context,val voteList: ArrayList<VoteD
 
         voteReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
-               if (response.isSuccessful && response.body()!!.success!!){
-                  showToast(response.body()!!.message.toString())
-                   voteDialog.dismiss()
+               if (response.isSuccessful){
+                   if (response.body()!!.success!!){
+                       showToast(response.body()!!.message.toString())
+                       voteDialog.dismiss()
+                   }else{
+                       showToast(response.body()!!.message.toString())
+                       voteDialog.dismiss()
+                   }
                }else{
                    Log.e("Vote Adapter", "onResponse: $response")
+                   voteDialog.dismiss()
                }
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 Log.e("Vote Adapter", "onFailure: $t")
+                voteDialog.dismiss()
             }
 
         })

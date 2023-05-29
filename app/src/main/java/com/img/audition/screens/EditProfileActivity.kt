@@ -11,11 +11,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 
 import com.android.volley.*
 import com.android.volley.toolbox.Volley
@@ -31,6 +34,9 @@ import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.*
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -40,8 +46,8 @@ import retrofit2.Response
 import java.io.File
 import java.util.*
 
- class EditProfileActivity : AppCompatActivity() {
-    val TAG = "EditProfileActivity"
+ @UnstableApi class EditProfileActivity : AppCompatActivity() {
+    private val TAG = "EditProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityEditProfileBinding.inflate(layoutInflater)
     }
@@ -57,15 +63,17 @@ import java.util.*
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
-    var gender = ""
-    var imagePath = ""
+    private var gender = ""
+    private var imagePath = ""
 
-    lateinit var progressDialog:ProgressDialog
-    var requestQueue: RequestQueue? = null
+    private lateinit var progressDialog:ProgressDialog
+    private var requestQueue: RequestQueue? = null
 
-    lateinit var appPermission : AppPermission
+    private lateinit var appPermission : AppPermission
 
-    lateinit var gender_botSheetBtn:TextView
+    private lateinit var gender_botSheetBtn:TextView
+
+     private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -74,6 +82,8 @@ import java.util.*
         progressDialog.setCancelable(false)
         progressDialog.setTitle("Uploading.")
         progressDialog.setMessage("please wait...")
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         requestQueue = Volley.newRequestQueue(this@EditProfileActivity)
 
@@ -155,38 +165,53 @@ import java.util.*
         getUserSelfDetails()
     }
 
-    private fun getUserSelfDetails() {
-        val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
+     fun getUserSelfDetails(){
+         mainViewModel.getUserSelfDetails()
+             .observe(this){
+                 it.let {resources->
+                     when(resources.status){
+                         Status.SUCCESS ->{
+                             if (resources.data!!.success!!){
+                                 val userData = resources.data.data
+                                 if (userData != null) {
 
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
-            override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body() != null) {
-                    myApplication.printLogD(response.toString(), TAG)
-                    val userData = response.body()!!.data
-                    if (userData != null) {
+                                     Glide.with(this@EditProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into( viewBinding.userImage)
+                                     viewBinding.name.setText(userData.name.toString())
+                                     viewBinding.auditionid.setText(userData.auditionId.toString())
+                                     viewBinding.mobilenumber.setText(userData.mobile.toString())
+                                     viewBinding.bio.setText(userData.bio.toString())
+                                     viewBinding.gender.text = userData.gender.toString()
+                                     viewBinding.dob.text = userData.dob.toString()
+                                     gender = userData.gender.toString()
+                                 } else {
+                                     myApplication.printLogE(
+                                         "Get Other User Self Data Response Failed",
+                                         TAG
+                                     )
+                                 }
+                             }else{
+                                 myApplication.showToast("Something went wrong..")
+                             }
+                         }
+                         Status.LOADING ->{
+                             myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                         }
+                         else->{
+                             if (resources.message!!.contains("401")){
+                                 myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                 sessionManager.clearLogoutSession()
+                                 startActivity(Intent(this@EditProfileActivity, SplashActivity::class.java))
+                                 finishAffinity()
+                             }
+                             myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                         }
+                     }
+                 }
+             }
 
-                        Glide.with(this@EditProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into( viewBinding.userImage)
-                        viewBinding.name.setText(userData.name.toString())
-                        viewBinding.auditionid.setText(userData.auditionId.toString())
-                        viewBinding.mobilenumber.setText(userData.mobile.toString())
-                        viewBinding.bio.setText(userData.bio.toString())
-                        viewBinding.gender.text = userData.gender.toString()
-                        viewBinding.dob.text = userData.dob.toString()
-                        gender = userData.gender.toString()
-                    } else {
-                        myApplication.printLogE(
-                            "Get Other User Self Data Response Failed ${response.code()}",
-                            TAG
-                        )
-                    }
-                }
-            }
-            override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Data onFailure ${t.toString()}",TAG)
-            }
 
-        })
-    }
+     }
+
 
     fun pickDate(dialog: TextView) {
         val mcurrentDate = Calendar.getInstance()

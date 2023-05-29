@@ -33,17 +33,22 @@ class FollowFollowingListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+    }
+
+
+    override fun onResume() {
+        super.onResume()
         val bundle = intent.getBundleExtra(ConstValFile.Bundle)
 
+        val userID = bundle!!.getString(ConstValFile.USER_ID)
         viewBinding.userName.text = bundle!!.getString(ConstValFile.UserName).toString()
         viewBinding.tabLayout.setupWithViewPager(viewBinding.viewPager)
-        viewBinding.viewPager.adapter = SectionFollowFollowingListPager(supportFragmentManager)
+        viewBinding.viewPager.adapter = SectionFollowFollowingListPager(supportFragmentManager,userID!!)
         viewBinding.viewPager.currentItem = bundle.getInt(ConstValFile.PagePosition)
 
         viewBinding.back.setOnClickListener {
             viewBinding.back.isSelected = false
             onBackPressed()
         }
-
     }
 }

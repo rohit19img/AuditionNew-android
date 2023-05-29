@@ -1,10 +1,13 @@
 package com.img.audition.screens
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -16,6 +19,9 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.videoWork.VideoCacheWork
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import io.socket.client.Socket
 import org.json.JSONException
 import org.json.JSONObject
@@ -26,9 +32,9 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MessageActivity : AppCompatActivity() {
+@UnstableApi class MessageActivity : AppCompatActivity() {
 
-    val TAG = "OtherUserProfileActivity"
+    private val TAG = "MessageActivity"
     private lateinit var viewBinding : ActivityMessageBinding
     private val sessionManager by lazy {
         SessionManager(this@MessageActivity)
@@ -42,25 +48,28 @@ class MessageActivity : AppCompatActivity() {
         MyApplication(this@MessageActivity)
     }
 
-    var chat_list: ArrayList<ChatsGetSet> = ArrayList<ChatsGetSet>()
-    var adapter: ChatsAdapter? = null
-    var page_no = 1
-    var canLoadData = true
+    private var chat_list: ArrayList<ChatsGetSet> = ArrayList<ChatsGetSet>()
+    private var adapter: ChatsAdapter? = null
+    private var page_no = 1
+    private var canLoadData = true
 
-    lateinit var mSocket : Socket
-    lateinit var userid : String
+    private lateinit var mSocket : Socket
+    private lateinit var userid : String
 
+    private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMessageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         viewBinding.backPressIC.setOnClickListener {
             finish()
         }
 
         mSocket = VideoCacheWork.mSocket!!
-//        viewBinding.chatsRV.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
 
         viewBinding.sendMessage.setOnClickListener(View.OnClickListener {
             Log.i("ChatSizeCheck","Before : ${chat_list.size}")
@@ -186,41 +195,46 @@ class MessageActivity : AppCompatActivity() {
         mSocket.emit("seen", job1)
     }
 
-    fun getChatData() {
-Log.i("canLoadData","Page_no $page_no")
-        val responseCall: Call<ChatsGetSet> =
-            apiInterface.getChatHistory(sessionManager.getToken(), userid, page_no)
-        responseCall.enqueue(object : Callback<ChatsGetSet> {
-            override fun onResponse(call: Call<ChatsGetSet>, response: Response<ChatsGetSet>) {
-                Log.d("check", response.toString())
-                if (response.isSuccessful()) {
-                    Log.d("check", response.toString())
-                   val chat_list1 = response.body()!!.data!!
-                    chat_list.addAll(chat_list1)
-                    if (chat_list1.size > 0) {
-                        canLoadData = true
-                        if (page_no == 1) {
-                            adapter = ChatsAdapter(this@MessageActivity, chat_list)
-                            viewBinding.chatsRV.adapter = adapter
-                        } else
-                            adapter!!.notifyDataSetChanged()
-                    } else {
-                        canLoadData = false
-                        if (page_no == 1) {
-                            adapter = ChatsAdapter(this@MessageActivity, chat_list)
-                            viewBinding.chatsRV.adapter = adapter
-                        }
+    private fun getChatData() {
+        Log.i("canLoadData","Page_no $page_no")
+        mainViewModel.getChatHistory(userid,page_no).observe(this){
+            it.let {resources ->
+                when (resources.status){
+                    Status.SUCCESS->{
+                            Log.d("check", resources.data!!.message)
+                            val chatList = resources.data.data
+                            chat_list.addAll(chatList)
+                            if (chatList.size > 0) {
+                                canLoadData = true
+                                if (page_no == 1) {
+                                    adapter = ChatsAdapter(this@MessageActivity, chat_list)
+                                    viewBinding.chatsRV.adapter = adapter
+                                } else
+                                    adapter!!.notifyDataSetChanged()
+                            } else {
+                                canLoadData = false
+                                if (page_no == 1) {
+                                    adapter = ChatsAdapter(this@MessageActivity, chat_list)
+                                    viewBinding.chatsRV.adapter = adapter
+                                }
+                            }
                     }
-                } else {
-                    myApplication.showToast("Something went wrong!!")
-                    finish()
+                    Status.LOADING ->{
+                        myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                    }
+                    else->{
+                        if (resources.message!!.contains("401")){
+                            myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                            sessionManager.clearLogoutSession()
+                            startActivity(Intent(this@MessageActivity, SplashActivity::class.java))
+                            finishAffinity()
+                        }
+                        myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                    }
+
                 }
             }
-
-            override fun onFailure(call: Call<ChatsGetSet>, t: Throwable) {
-                myApplication.printLogD("text", t.message!!)
-            }
-        })
+        }
     }
 
     override fun onStart() {

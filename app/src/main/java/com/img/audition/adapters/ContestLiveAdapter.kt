@@ -9,13 +9,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -36,31 +40,29 @@ import java.util.concurrent.TimeUnit
 
 
 @UnstableApi
-class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
-    val TAG = "ContestLiveAdapter"
-
-    lateinit var context: Context
-    lateinit var contestList: ArrayList<LiveContestData>
-
+class ContestLiveAdapter(private val context: Context,private val contestList: ArrayList<LiveContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
+    private val TAG = "ContestLiveAdapter"
     private var cPos = 0
-    private lateinit var myApplication: MyApplication
-    private lateinit var sessionManager: SessionManager
-    lateinit var exoPlayer: ExoPlayer
-    var sDate = ""
-    var eDate = ""
-    var startDate: Date? = null
-    var endDate:Date? = null
-    constructor(context: Context, contestList: ArrayList<LiveContestData>) : this() {
-        this.context = context
-        this.contestList = contestList
 
-        myApplication = MyApplication(context.applicationContext)
-        sessionManager = SessionManager(context.applicationContext)
-        exoPlayer = ExoPlayer.Builder(context.applicationContext).build()
+    private var sDate = ""
+    private var eDate = ""
+    private var startDate: Date? = null
+    private var endDate:Date? = null
+
+    private val myApplication by lazy {
+        MyApplication(context.applicationContext)
     }
+
+    private val sessionManager by lazy {
+        SessionManager(context.applicationContext)
+    }
+
+
+
 
     inner class MyViewHolder(itemView: LiveContestItemLayoutBinding) :
         RecyclerView.ViewHolder(itemView.root) {
+
         val contestImage = itemView.contestImage
         val playerViewExo = itemView.contestVideo
         val contestWinPrize = itemView.contestWiningPrize
@@ -68,20 +70,40 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
         val contestProgressBar = itemView.contestPorgress
         val contestJoinedUser = itemView.contestJoinUser
         val contestMaxJoinUser = itemView.contestMaxJoinUser
+        val contestStartDate = itemView.contestStartDate
+        val contestEndDate = itemView.contestEndDate
+        val contestBonus = itemView.contestBonus
         val contestTimer = itemView.contestTimer
+        val bonusLL = itemView.bonusLL
+
+        lateinit var cT:CountDownTimer
+
 
 
         //Video Cache
-        val mediaSource = ProgressiveMediaSource.Factory(
-            CacheDataSource.Factory()
-                .setCache(VideoCacheWork.simpleCache)
+        val mediaSource = ProgressiveMediaSource.Factory(CacheDataSource.Factory().setCache(VideoCacheWork.simpleCache)
                 .setUpstreamDataSourceFactory(
-                    DefaultHttpDataSource.Factory()
-                        .setUserAgent("ExoPlayer")
+                    DefaultHttpDataSource.Factory().setUserAgent("ExoPlayer")
                 )
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
         )
+        private val trackSelector = DefaultTrackSelector(context).apply {
+            setParameters(buildUponParameters()
+                .setRendererDisabled(C.TRACK_TYPE_VIDEO,true)
+                .setAllowVideoMixedDecoderSupportAdaptiveness(true)
+                .setAllowAudioMixedDecoderSupportAdaptiveness(true)
+                .setPreferredVideoMimeType("video/avc")
+                .setAllowAudioMixedChannelCountAdaptiveness(true)
+                .setAllowMultipleAdaptiveSelections(true)
+            )
+        }
+
+
+        val exoPlayer = ExoPlayer.Builder(context.applicationContext)
+            .setTrackSelector(trackSelector)
+            .build()
         //
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -90,11 +112,22 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
         return MyViewHolder(itemBinding)
     }
 
+    @SuppressLint("SetTextI18n", "SimpleDateFormat")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.apply {
             val contest = contestList[position]
             //
+            if (VideoCacheWork.simpleCache.cacheSpace >= (20 * 1024 * 1024)){
+                Log.d("checkCache", "cache Full ${VideoCacheWork.simpleCache.cacheSpace}")
+            }else{
+                Log.d("checkCache", "cache have space ${VideoCacheWork.simpleCache.cacheSpace}")
+            }
 
+            if(contest.isBonus == 1) {
+                bonusLL.visibility = View.VISIBLE
+                contestBonus.text = "${contest.bonusPercentage}%"
+            } else
+                bonusLL.visibility = View.GONE
 
             val c: Calendar = Calendar.getInstance()
             c.timeZone = TimeZone.getTimeZone("Asia/Calcutta")
@@ -106,13 +139,14 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
             val mDay1: Int = c.get(Calendar.DAY_OF_MONTH)
 
             sDate = mYear1.toString() + "-" + (mMonth1 + 1) + "-" + mDay1 + " " + hour + ":" + minute + ":" + sec
-            eDate = contest.startDate.toString()
-            Log.i("matchtime", contest.startDate.toString())
+            eDate = contest.startDate
+            Log.i("matchtime", contest.startDate)
 
-            var dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            val dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            val dateFormat1 =  SimpleDateFormat("MMM dd  hh:mm a")
             try {
-                 startDate = dateFormat.parse(sDate);
-                 endDate = dateFormat.parse(eDate);
+                 startDate = dateFormat.parse(sDate)
+                 endDate = dateFormat.parse(eDate)
 
             } catch (e: ParseException) {
                 e.printStackTrace()
@@ -125,7 +159,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
             val hours48 =(48*60*60 * 1000).toLong()
 
 
-            val cT: CountDownTimer = object : CountDownTimer(diffInMs, 1000) {
+            cT = object : CountDownTimer(diffInMs, 1000) {
                 @SuppressLint("DefaultLocale", "SetTextI18n")
                 override fun onTick(millisUntilFinished: Long) {
                     if (diffInMs < hours1) {
@@ -179,19 +213,33 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                         contestTimer.text = "Contest Completed"
                     }
 
+                    cT.cancel()
+
                 }
             }
             cT.start()
 
+            contestStartDate.text = contest.startDate
+            contestEndDate.text = contest.endDate
+
+            try{
+                contestStartDate.text = "Start Date : ${dateFormat1.format(dateFormat.parse(contest.startDate)!!)}"
+            } catch (e : java.lang.Exception){
+               Log.i("Exception"," ${ e.message}")
+            }
+            try{
+                contestEndDate.text = "End Date : ${dateFormat1.format(dateFormat.parse(contest.endDate)!!)}"
+            } catch (e : java.lang.Exception){
+               Log.i("Exception"," ${ e.message}")
+            }
 
 
-            //
             contestWinPrize.text = "₹ " + contest.winAmount.toString()
             contestJoinBtn.text = "₹ " + contest.entryfee.toString()
             contestProgressBar.max = contest.maximumUser!!
             contestProgressBar.progress = contest.joinedusers!!
-            contestMaxJoinUser.text = "Max.Join " + contest.maximumUser.toString()
-            contestJoinedUser.text = "Joined " + contest.joinedusers.toString()
+            contestMaxJoinUser.text = "Max ${contest.maximumUser.toString()} Users"
+            contestJoinedUser.text = "${contest.joinedusers.toString()} User Joined"
 
             contestJoinBtn.setOnClickListener {
                 if (!(sessionManager.isUserLoggedIn())) {
@@ -246,20 +294,16 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
             } else {
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
-                myApplication.printLogD(
-                    "http://139.59.30.125:12345/" + contest.file,
-                    "contest Url Video"
-                )
-                val mediaItem =
-                    MediaItem.fromUri("http://139.59.30.125:12345/" + contest.file.toString())
+                myApplication.printLogD("http://139.59.30.125:12345/" + contest.file, "contest Url Video")
+                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
                 exoPlayer.prepare()
-                exoPlayer.playWhenReady = true
+                exoPlayer.play()
 
                  if (cPos>=0){
-                     myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}",TAG)
+                     myApplication.printLogD("onViewAttachedToWindow: Posotion $cPos",TAG)
                      if (cPos == position){
                          exoPlayer.seekTo(0)
                          exoPlayer.playWhenReady = true
@@ -270,6 +314,7 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                  }
 
                 exoPlayer.addListener(object : Player.Listener {
+                    @Deprecated("Deprecated in Java")
                     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                         when (playbackState) {
                             ExoPlayer.STATE_ENDED -> {
@@ -285,6 +330,26 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                             }
                         }
                     }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        super.onPlayerError(error)
+                        when (error.errorCode) {
+                            ExoPlaybackException.TYPE_SOURCE -> {
+                                myApplication.printLogE("TYPE_SOURCE", "currentState")
+                                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
+                                val videoMediaSource = mediaSource.createMediaSource(mediaItem)
+                                playerViewExo.player = exoPlayer
+                                exoPlayer.setMediaSource(videoMediaSource)
+                                exoPlayer.prepare()
+                                exoPlayer.play()
+                            }
+                            else -> {
+                                myApplication.printLogE(error.message.toString(), "currentState")
+                                myApplication.printLogE("http://139.59.30.125:12345/" + contest.file.toString(), "currentState")
+                            }
+
+                        }
+                    }
                 })
             }
 
@@ -297,12 +362,17 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
             override fun onPause(holder: MyViewHolder, cPos: Int) {
                 holder.apply {
                     Log.d("check 400", "onPause: Inside Adapter")
-                    if (cPos == position){
-                        if (exoPlayer.isPlaying){
+                    if (cPos >= 0) {
+                        if (cPos == position) {
                             exoPlayer.pause()
-                            exoPlayer.stop()
+                            exoPlayer.playWhenReady = false
+                        } else {
+                            exoPlayer.pause()
+                            exoPlayer.playWhenReady = false
                         }
                     }
+                    exoPlayer.playWhenReady = false
+                    exoPlayer.pause()
 
                 }
             }
@@ -311,6 +381,39 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
                 Log.d("check 400", "onResume: Inside Adapter")
             }
 
+            override fun onStop(holder: MyViewHolder, cPos: Int) {
+                myApplication.printLogD("onStop: Position $cPos", TAG)
+
+                holder.apply {
+                    if (cPos >= 0) {
+                        if (cPos == position) {
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.seekTo(0)
+                            exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                            exoPlayer.release()
+                            playerViewExo.player!!.release()
+
+                        } else {
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.seekTo(0)
+                            exoPlayer.stop()
+                            exoPlayer.clearMediaItems()
+                            exoPlayer.release()
+                            playerViewExo.player!!.release()
+
+
+                        }
+                    }
+                    exoPlayer.playWhenReady = false
+                    exoPlayer.seekTo(0)
+                    exoPlayer.stop()
+                    exoPlayer.clearMediaItems()
+                    exoPlayer.release()
+                    playerViewExo.player!!.release()
+
+                }
+            }
         }
 
 
@@ -319,12 +422,14 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
     override fun onViewDetachedFromWindow(holder: MyViewHolder) {
         holder.apply {
             val contest = contestList[position]
+            cT.cancel()
             if (!(contest.fileType.equals(ConstValFile.TYPE_IMAGE))) {
                 if (exoPlayer.isPlaying) {
                     playerViewExo.player!!.playWhenReady = false
                     playerViewExo.player!!.seekTo(0)
                     playerViewExo.player!!.pause()
                     playerViewExo.player!!.stop()
+                    playerViewExo.player = null
                 }
             }
         }
@@ -335,7 +440,14 @@ class ContestLiveAdapter() : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolde
         return contestList.size
     }
 
-    fun sendToLoginScreen() {
+    override fun onViewRecycled(holder: MyViewHolder) {
+        super.onViewRecycled(holder)
+        holder.cT.cancel()
+
+    }
+
+
+    private fun sendToLoginScreen() {
         val intent = Intent(context, LoginActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         context.startActivity(intent)

@@ -3,6 +3,8 @@ package com.img.audition.screens
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.img.audition.R
@@ -13,6 +15,9 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.fragment.TransactionReportFragment
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -22,12 +27,11 @@ import kotlin.getValue
 import kotlin.lazy
 import kotlin.toString
 
-class WalletActivity : AppCompatActivity() {
+@UnstableApi class WalletActivity : AppCompatActivity() {
 
-    companion object{
-        const val TRANS_TAG = "tarns_tag"
-    }
-    val TAG = "WalletActivity"
+
+    private val TAG = "WalletActivity"
+    private val TRANS_TAG = "tarns_tag"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityWalletBinding.inflate(layoutInflater)
     }
@@ -38,10 +42,13 @@ class WalletActivity : AppCompatActivity() {
     private val myApplication by lazy {
         MyApplication(this@WalletActivity)
     }
+
+    private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         viewBinding.btnAddCash.setOnClickListener {
             sendToAddCashActivity()
@@ -75,55 +82,66 @@ class WalletActivity : AppCompatActivity() {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
-    private fun getUserSelfDetails() {
-        val userDetilsReq = apiInterface.getUserSelfDetails(sessionManager.getToken())
+    private fun getUserWalletBalance(){
+        mainViewModel.getUserSelfDetails()
+            .observe(this){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if (resources.data!!.success!!){
+                                val userData = resources.data.data
+                                if(userData!=null){
+                                    if (userData.image.toString().isNotEmpty()){
+                                        Glide.with(this@WalletActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into(viewBinding.userImage)
+                                    }else{
+                                        viewBinding.userImage.setImageResource(R.drawable.person_ic)
+                                    }
+                                    if (userData.team.toString().isNotEmpty()){
+                                        viewBinding.teamName.text = userData.team.toString()
+                                    }else{
+                                        viewBinding.teamName.text = userData.auditionId.toString()
+                                    }
+                                    if (userData.totalbonus.toString().isNotEmpty()){
+                                        viewBinding.bonus.text = "₹ " + userData.totalbonus.toString()
+                                    }else{
+                                        viewBinding.bonus.text = "₹ 0"
+                                    }
 
-        userDetilsReq.enqueue(object : Callback<UserSelfProfileResponse> {
-            override fun onResponse(call: Call<UserSelfProfileResponse>, response: Response<UserSelfProfileResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    myApplication.printLogD(response.toString(),TAG)
-                    val userData = response.body()!!.data
-                    if(userData!=null){
-                        if (userData.image.toString().isNotEmpty()){
-                            Glide.with(this@WalletActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into(viewBinding.userImage)
-                        }else{
-                            viewBinding.userImage.setImageResource(R.drawable.person_ic)
-                        }
-                        if (userData.team.toString().isNotEmpty()){
-                            viewBinding.teamName.text = userData.team.toString()
-                        }else{
-                            viewBinding.teamName.text = userData.auditionId.toString()
-                        }
-                        if (userData.totalbonus.toString().isNotEmpty()){
-                            viewBinding.bonus.text = "₹ " + userData.totalbonus.toString()
-                        }else{
-                            viewBinding.bonus.text = "₹ 0"
-                        }
+                                    if (userData.walletamaount.toString().isNotEmpty()){
+                                        viewBinding.depsoitCash.text = "₹ " + userData.walletamaount.toString()
+                                    }else{
+                                        viewBinding.depsoitCash.text = "₹ 0"
+                                    }
 
-                        if (userData.walletamaount.toString().isNotEmpty()){
-                            viewBinding.depsoitCash.text = "₹ " + userData.walletamaount.toString()
-                        }else{
-                            viewBinding.depsoitCash.text = "₹ 0"
+                                    if ( userData.totalwon.toString().isNotEmpty()){
+                                        viewBinding.winning.text = "₹ " + userData.totalwon.toString()
+                                    }else{
+                                        viewBinding.winning.text = "₹ 0"
+                                    }
+                                }else{
+                                    myApplication.printLogE("User Data Null",TAG)
+                                }
+                            }else{
+                                myApplication.showToast("Something went wrong..")
+                            }
                         }
-
-                        if ( userData.totalwon.toString().isNotEmpty()){
-                            viewBinding.winning.text = "₹ " + userData.totalwon.toString()
-                        }else{
-                            viewBinding.winning.text = "₹ 0"
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
                         }
-                    }else{
-                        myApplication.printLogE("User Data Null",TAG)
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this@WalletActivity, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                }else{
-                    myApplication.printLogE("Get Other User Self Data Response Failed ${response.code()}",TAG)
                 }
             }
 
-            override fun onFailure(call: Call<UserSelfProfileResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Data onFailure ${t.toString()}",TAG)
-            }
 
-        })
     }
 
     private fun showTransactionReportSheet() {
@@ -151,6 +169,6 @@ class WalletActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        getUserSelfDetails()
+        getUserWalletBalance()
     }
 }

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -20,6 +21,9 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.snapCameraKit.SnapCameraActivity
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -27,7 +31,7 @@ import retrofit2.Response
 @UnstableApi
 class TryAudioActivity : AppCompatActivity() {
 
-    val TAG = "TryAudioActivity"
+    private val TAG = "TryAudioActivity"
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivitySongsVideoBinding.inflate(layoutInflater)
@@ -49,8 +53,10 @@ class TryAudioActivity : AppCompatActivity() {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
 
-    val mediaPlayer = MediaPlayer()
-    val songHandler = Handler()
+    private val mediaPlayer = MediaPlayer()
+    private val songHandler = Handler()
+    private lateinit var mainViewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -58,6 +64,10 @@ class TryAudioActivity : AppCompatActivity() {
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+
+
     }
 
     override fun onStart() {
@@ -144,43 +154,54 @@ class TryAudioActivity : AppCompatActivity() {
         return buf.toString()
     }
 
-    private fun getMusicVideo(musicId:String) {
-        val userVideoReq = apiInterface.getMusicVideo(sessionManager.getToken(),musicId)
-        userVideoReq.enqueue( object : Callback<SongVideoResponse> {
-            @SuppressLint("SetTextI18n")
-            override fun onResponse(call: Call<SongVideoResponse>, response: Response<SongVideoResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val videoData = response.body()!!.data!!.videos
-                    val musicDetails = response.body()!!.data!!
-                    if (videoData.size>0) {
-                        val videoItemAdapter = VideoItemAdapter(this@TryAudioActivity, videoData)
-                        viewBinding.userVideoRecycle.adapter = videoItemAdapter
-                        viewBinding.shimmerVideoView.stopShimmer()
-                        viewBinding.shimmerVideoView.hideShimmer()
-                        viewBinding.shimmerVideoView.visibility = View.GONE
-                        viewBinding.userVideoRecycle.visibility = View.VISIBLE
+    private fun getMusicVideo(hashTag:String){
+        mainViewModel.getMusicVideo(hashTag)
+            .observe(this){
+                it.let {videoResponse->
+                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
+                    when(videoResponse.status){
+                        Status.SUCCESS ->{
+                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
+                            if (videoResponse.data.success!!){
+                                val videoData = videoResponse.data.data!!.videos
+                                val musicDetails = videoResponse.data.data
+                                if (videoData.size>0) {
+                                    val videoItemAdapter = VideoItemAdapter(this@TryAudioActivity, videoData)
+                                    viewBinding.userVideoRecycle.adapter = videoItemAdapter
+                                    viewBinding.shimmerVideoView.stopShimmer()
+                                    viewBinding.shimmerVideoView.hideShimmer()
+                                    viewBinding.shimmerVideoView.visibility = View.GONE
+                                    viewBinding.userVideoRecycle.visibility = View.VISIBLE
 
-                        val audioImage = ConstValFile.BASEURL+musicDetails.Image.toString()
-                        val title = musicDetails.title.toString()
-                        val subTitle = musicDetails.subtitle.toString()
-                        Glide.with(this@TryAudioActivity).load(audioImage).placeholder(R.drawable.music_ic).into(viewBinding.audiImage)
-                        viewBinding.title.text = title
-                        viewBinding.subTitle.text = subTitle
-                    }else{
-                        myApplication.printLogD("No Video Data",TAG)
-                        viewBinding.shimmerVideoView.stopShimmer()
-                        viewBinding.shimmerVideoView.hideShimmer()
-                        viewBinding.noVideo.visibility = View.VISIBLE
+                                    val audioImage = ConstValFile.BASEURL+musicDetails!!.Image.toString()
+                                    val title = musicDetails.title.toString()
+                                    val subTitle = musicDetails.subtitle.toString()
+                                    Glide.with(this@TryAudioActivity).load(audioImage).placeholder(R.drawable.music_ic).into(viewBinding.audiImage)
+                                    viewBinding.title.text = title
+                                    viewBinding.subTitle.text = subTitle
+                                }else{
+                                    myApplication.printLogD("No Video Data",TAG)
+                                    viewBinding.shimmerVideoView.stopShimmer()
+                                    viewBinding.shimmerVideoView.hideShimmer()
+                                    viewBinding.noVideo.visibility = View.VISIBLE
+                                }
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (videoResponse.message!!.contains("401")){
+                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                        }
                     }
-                }else{
-                    myApplication.printLogE("Get Music Video Response Failed ${response.code()}",TAG)
                 }
             }
-
-            override fun onFailure(call: Call<SongVideoResponse>, t: Throwable) {
-                myApplication.printLogE("Get Music Video onFailure ${t.toString()}",TAG)
-            }
-        })
     }
 
     override fun onPause() {

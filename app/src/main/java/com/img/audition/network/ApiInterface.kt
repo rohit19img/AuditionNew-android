@@ -8,79 +8,66 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface ApiInterface {
+
     @POST(APITags.GuestLogin)
-    fun guestLogin(@Body guestRequest: GuestLoginRequest): Call<LoginResponse>
-
-    suspend fun getReels(
-        @Header(APITags.AUTHORIZATION) Auth: String,
-        @Query("language") language: String?,
-        @Query("lat") lat: Double?,
-        @Query("long") lang: Double?
-    ):VideoResponse
-
-    @GET(APITags.GetVideo)
-    fun getVideo(
-        @Header(APITags.AUTHORIZATION) Auth: String,
-        @Query("language") language: String?,
-        @Query("lat") lat: Double?,
-        @Query("long") lang: Double?
-    ): Call<VideoResponse>
+    suspend fun guestLogin(@Body guestRequest: GuestLoginRequest): LoginResponse
 
     @POST(APITags.Login)
-    fun Login(@Body loginRequest:NumLoginRequest): Call<CommanResponse>
+    suspend fun userLogin(@Body loginRequest: NumLoginRequest):CommanResponse
 
     @POST(APITags.OTPLogin)
-    fun OTP_Login(@Body otpRequest: OTPRequest): Call<LoginResponse>
+    suspend fun userOtpVerify(@Body otpRequest: OTPRequest):LoginResponse
 
-    @GET(APITags.likeUnlike)
-    fun viedolike(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("videoId") videoId: String?,
-        @Query("status") status: String?
-    ): Call<LikeResponse>
-
-    @GET(APITags.FollowUnfollow)
-    fun followFollowing(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("followingId") userID: String?,
-        @Query("status") status: String?
-    ): Call<FollowFollowingResponse>
-
-    @GET(APITags.GetUserList)
-    fun getOtherUser(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("userId") userID: String?
-    ): Call<GetOtherUserResponse>
-
-    @GET(APITags.GetUserByAuditionId)
-    fun getUserByAuditionId(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("audition_id") auditionID: String?
-    ): Call<GetOtherUserResponse>
+    @GET(APITags.GetVideo)
+    suspend fun getReels(@Header(APITags.AUTHORIZATION) Auth: String, @Query("language") language: String?, @Query("lat") lat: Double?, @Query("long") lang: Double?):VideoResponse
 
     @GET(APITags.GetUserVideo)
-    fun getOtherUserVideo(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("id") userID: String?
-    ): Call<VideoResponse>
+    suspend fun getUserVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("id") userID: String?):VideoResponse
+
+    @GET(APITags.GetHashTagVideo)
+    suspend fun getHashTagVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") hashTag :String):VideoResponse
+
+    @GET(APITags.GetMusicVideo)
+    suspend fun getMusicVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") musicId :String): SongVideoResponse
+
+    @GET(APITags.TrendingVideo)
+    suspend fun getTrendingVideo(@Header("Authorization") Auth: String?): TrendingVideoResponse
+
+    @GET(APITags.ContestVideo)
+    suspend fun getContestVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("userid") userID: String?, @Query("challengeid") challengeId: String?): VideoResponse
+
+    @GET(APITags.GetUserSelfFullDetails)
+    suspend fun getUserSelfDetails(@Header(APITags.AUTHORIZATION) Auth: String?): UserSelfProfileResponse
+
+    @GET(APITags.GetChatHistory)
+    suspend fun getChatHistory(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("receiverId") receiverId: String?, @Query("page") page_no: Int): ChatsGetSet
+
+    @GET(APITags.GetMusicList)
+    suspend fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : MusicDataResponse
+
+    @GET(APITags.GetFavMusicList)
+    suspend fun getFavMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : MusicDataResponse
+
+    @Multipart
+    @POST(APITags.UploadMusic)
+    fun uploadVideoMusic(@Header(APITags.AUTHORIZATION) Auth: String?,@Part typename: MultipartBody.Part, @Part audioFile: MultipartBody.Part) : Call<UploadMusicResponse>
+
+
+    @GET(APITags.likeUnlike)
+    fun viedolike(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("videoId") videoId: String?, @Query("status") status: String?): Call<LikeResponse>
+
+    @GET(APITags.FollowUnfollow)
+    fun followFollowing(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("followingId") userID: String?, @Query("status") status: String?): Call<FollowFollowingResponse>
+
+    @GET(APITags.GetUserList)
+    fun getOtherUser(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("userId") userID: String?): Call<GetOtherUserResponse>
+
+    @GET(APITags.GetUserByAuditionId)
+    fun getUserByAuditionId(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("audition_id") auditionID: String?): Call<GetOtherUserResponse>
 
     @GET(APITags.GetLanguages)
     fun getLanguages(@Header(APITags.AUTHORIZATION) Auth: String?): Call<LanguageResponse?>
 
-    @GET(APITags.GetUserSelfFullDetails)
-    fun getUserSelfDetails(@Header(APITags.AUTHORIZATION) Auth: String?): Call<UserSelfProfileResponse>
-
-    @GET(APITags.GetUserVideo)
-    fun getUserSelfVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
-
-    @GET(APITags.GetHashTagVideo)
-    fun getHashTagVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") hashTag :String): Call<VideoResponse>
-
-    @GET(APITags.GetMusicVideo)
-    fun getMusicVideo(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("id") musicId :String): Call<SongVideoResponse>
-    @Multipart
-    @POST(APITags.UploadMusic)
-    fun uploadVideoMusic(@Header(APITags.AUTHORIZATION) Auth: String?,@Part typename: MultipartBody.Part, @Part audioFile: MultipartBody.Part) : Call<UploadMusicResponse>
 
     @GET(APITags.LogoutUser)
     fun logoutUser(@Header(APITags.AUTHORIZATION) Auth: String?): Call<CommanResponse>
@@ -110,13 +97,9 @@ interface ApiInterface {
     fun remove_watch_later(@Header(APITags.AUTHORIZATION) Auth: String?, @Path("id") id: String?): Call<CommanResponse>
 
     @GET(APITags.FollowFollowingList)
-    fun getFollowFollowingList(@Header(APITags.AUTHORIZATION) Auth: String?): Call<FollowerFollowingListResponse>
+    fun getFollowFollowingList(@Header(APITags.AUTHORIZATION) Auth: String? ,@Query("id") id:String?): Call<FollowerFollowingListResponse>
 
-    @GET(APITags.GetMusicList)
-    fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
 
-    @GET(APITags.GetFavMusicList)
-    fun getFavMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : Call<MusicDataResponse>
 
     @GET(APITags.GetReportCategory)
     fun getReportCategory(@Header(APITags.AUTHORIZATION) Auth: String?): Call<ReportCategoryResponse>
@@ -129,13 +112,6 @@ interface ApiInterface {
 
     @GET(APITags.addIntoNotInterested)
     fun addIntoNotInterestedVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("catId") contestId: String?, @Query("videoId") videoID: String?): Call<CommanResponse>
-
-    @GET(APITags.GetChatHistory)
-    fun getChatHistory(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("receiverId") contestId: String?,
-        @Query("page") page_no: Int
-    ): Call<ChatsGetSet>
 
     @GET(APITags.GetSavedVideos)
     fun getSavedVideo(@Header(APITags.AUTHORIZATION) Auth: String?): Call<VideoResponse>
@@ -192,7 +168,7 @@ interface ApiInterface {
     ): Call<CommanResponse>
 
     @POST("search")
-    fun search(@Header("Authorization") Auth: String?, @Body searchObj: JsonObject?): Call<SearchResponse>
+    suspend fun search(@Header("Authorization") Auth: String?, @Body searchObj: JsonObject?): SearchResponse
 
     @GET("leagueDetails")
     fun getSingleContestDetails(
@@ -235,9 +211,6 @@ interface ApiInterface {
     @POST("socialauthentication")
     fun socialLogin(@Body socialLoginObj: JsonObject?): Call<LoginResponse>
 
-    @GET("trending")
-    fun getTrendingVideo(@Header("Authorization") Auth: String?): Call<TrendingVideoResponse>
-
     @POST("requestwithdraw")
     fun withdrawRequest(@Header("Authorization") Auth: String?,@Body jsonObject: JsonObject): Call<CommanResponse>
     @GET("getBlockedUser")
@@ -261,6 +234,7 @@ interface ApiInterface {
     @GET("get-web-slider")
     fun getWebSliderBanner(@Header(APITags.AUTHORIZATION) Auth: String?): Call<WebSliderResponse>
 
-    @GET(APITags.ContestVideo)
-    fun getContestVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("userid") userID: String?, @Query("challengeid") challengeId: String?): Call<VideoResponse>
+    @GET("user-votes")
+    fun getVoterList(@Header("Authorization") Auth: String?, @Query("videoid") videoId: String?): Call<LeaderboardDataResponse>
+
 }

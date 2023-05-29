@@ -20,8 +20,8 @@ data class LiveContestData(
     @SerializedName("maximum_user"         ) var maximumUser        : Int?              = null,
     @SerializedName("minimum_user"         ) var minimumUser        : Int?              = null,
     @SerializedName("contest_type"         ) var contestType        : String?           = null,
-    @SerializedName("start_date"           ) var startDate          : String?           = null,
-    @SerializedName("end_date"             ) var endDate            : String?           = null,
+    @SerializedName("start_date"           ) var startDate          : String          = "",
+    @SerializedName("end_date"             ) var endDate            : String           = "",
     @SerializedName("confirmed_challenge"  ) var confirmedChallenge : Int?              = null,
     @SerializedName("is_bonus"             ) var isBonus            : Int?              = null,
     @SerializedName("is_running"           ) var isRunning          : Int?              = null,
@@ -102,6 +102,8 @@ data class SingleContestDetailsData(
     @SerializedName("confirmed_challenge" ) var confirmedChallenge : Int?                 = null,
     @SerializedName("is_running"          ) var isRunning          : Int?                 = null,
     @SerializedName("is_bonus"            ) var isBonus            : Int?                 = null,
+    @SerializedName("start_date"          ) var startDate          : String?              = null,
+    @SerializedName("end_date"            ) var endDate            : String?              = null,
     @SerializedName("bonus_percentage"    ) var bonusPercentage    : Int?                 = null,
     @SerializedName("pricecard_type"      ) var pricecardType      : String?              = null,
     @SerializedName("isselected"          ) var isselected         : Boolean?             = null,
@@ -114,7 +116,7 @@ data class SingleContestDetailsData(
 )
 
 data class SingleContestPriceCard(
-    @SerializedName("id"                ) var id               : Int?    = null,
+    @SerializedName("id"                ) var id               : String?    = null,
     @SerializedName("winners"           ) var winners          : String? = null,
     @SerializedName("price"             ) var price            : String? = null,
     @SerializedName("total"             ) var total            : String? = null,
@@ -132,11 +134,13 @@ data class LeaderboardData(
     @SerializedName("usernumber"   ) var usernumber   : Int?    = null,
     @SerializedName("joinleaugeid" ) var joinleaugeid : String? = null,
     @SerializedName("joinVideosId" ) var joinVideosId : String? = null,
+    @SerializedName("videoid" ) var videoID : String? = null,
     @SerializedName("userid"       ) var userid       : String? = null,
     @SerializedName("name"         ) var name         : String? = null,
     @SerializedName("auditionId"   ) var auditionId   : String? = null,
     @SerializedName("image"        ) var image        : String? = null,
-    @SerializedName("status"       ) var status        : String? = null
+    @SerializedName("status"       ) var status        : String? = null,
+    @SerializedName("votes"       ) var voteCount        : Int? = null
 )
 
 data class LiveContestPriceCard (

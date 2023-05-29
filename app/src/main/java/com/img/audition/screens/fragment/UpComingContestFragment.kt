@@ -1,50 +1,37 @@
 package com.img.audition.screens.fragment
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.img.audition.R
 import com.img.audition.adapters.ContestLiveAdapter
-import com.img.audition.dataModel.GetLiveContestDataResponse
 import com.img.audition.dataModel.LiveContestData
-import com.img.audition.databinding.FragmentLiveContestBinding
 import com.img.audition.databinding.FragmentUpCommingContestBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.videoWork.PlayPauseContestVideo
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 @UnstableApi
 class UpComingContestFragment : Fragment() {
 
-    val TAG = "UpComingContestFragment"
-    private var contestAdapter: ContestLiveAdapter = ContestLiveAdapter()
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
+    private val TAG = "UpComingContestFragment"
+    private lateinit var contestAdapter: ContestLiveAdapter
+    private lateinit var contestViewpager2: ViewPager2
+    private lateinit var noLiveContest: TextView
 
-    lateinit var contestViewpager2: ViewPager2
-    lateinit var noLiveContest: TextView
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
 
-    var list : ArrayList<LiveContestData> = ArrayList()
+    private var list : ArrayList<LiveContestData> = ArrayList()
 
-    private var videoItemPlayPause: PlayPauseContestVideo = contestAdapter.onActivityStateChanged()
+    private lateinit var videoItemPlayPause: PlayPauseContestVideo
 
     private val bundle by lazy {
         arguments
@@ -55,7 +42,7 @@ class UpComingContestFragment : Fragment() {
 
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = FragmentUpCommingContestBinding.inflate(inflater,container,false)
         val pager by lazy {
             view.contestViewpager2
@@ -117,6 +104,7 @@ class UpComingContestFragment : Fragment() {
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
+        view?.destroyDrawingCache()
         super.onDestroyView()
     }
 
@@ -127,6 +115,14 @@ class UpComingContestFragment : Fragment() {
 
     override fun onStop() {
         Log.d("check 400", "onStop: $TAG")
+        try {
+            val cPos = contestViewpager2.currentItem
+            val holder: ContestLiveAdapter.MyViewHolder = (contestViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as ContestLiveAdapter.MyViewHolder
+            Log.d("check 400", " onPause cPos: $cPos")
+            videoItemPlayPause.onStop(holder,cPos)
+        }catch (e:java.lang.Exception){
+            Log.e("check 400", "1 $e")
+        }
         super.onStop()
     }
 
@@ -155,5 +151,6 @@ class UpComingContestFragment : Fragment() {
         }
         super.onResume()
     }
+
 
 }

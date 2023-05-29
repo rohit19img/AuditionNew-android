@@ -28,6 +28,7 @@ class APITags {
         const val ContestVideo = "contest-video"
         const val GetHashTagVideo = "get_hashtag_video"
         const val GetMusicVideo = "get_music_videos"
+        const val TrendingVideo = "trending"
         const val UploadMusic = "upload_music"
         const val GetLanguages = "languages"
         const val GetUserSelfFullDetails = "userFullDetails"

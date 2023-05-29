@@ -13,6 +13,7 @@ class ConstValFile {
         const val SongUrl = "SongUrl"
         const val PostLocation = "PostLocation"
         const val SongID = "SongID"
+        const val AppAudio = "AppAudio"
         const val AppSongID = "AppSongID"
         const val AudioDuration = "audioDuration"
         const val isFromTryAudio = "isFromTryAudio"
@@ -35,7 +36,7 @@ class ConstValFile {
         const val UpContestComingList = "UpContestList"
         const val LiveContestList = "LiveContestList"
         const val CompletedContestList = "CompletedContestList"
-
+        const val FromCamera = "FromCamera"
         const val CompileTask = "compileTask"
         const val TaskMuxing = "TaskMuxing"
         const val UploadSuccess = "Uploaded Successfully."

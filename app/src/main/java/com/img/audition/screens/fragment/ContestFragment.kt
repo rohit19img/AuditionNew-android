@@ -147,4 +147,10 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
 
         })
     }
+
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        view?.destroyDrawingCache()
+        super.onDestroyView()
+    }
 }

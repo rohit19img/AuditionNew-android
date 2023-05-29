@@ -3,7 +3,9 @@ package com.img.audition.adapters
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.media3.common.util.UnstableApi
@@ -14,14 +16,19 @@ import com.img.audition.dataModel.LeaderboardData
 import com.img.audition.databinding.LeaderboardrecycledesignBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
+import com.img.audition.screens.VoterListActivity
 
-@UnstableApi class LeaderboardAdapter(val context: Context, val list: ArrayList<LeaderboardData>) :
+@UnstableApi class LeaderboardAdapter(val context: Context, val list: ArrayList<LeaderboardData>,val contestID:String) :
     RecyclerView.Adapter<LeaderboardAdapter.MyViewHolder>() {
 
     class MyViewHolder(itemView: LeaderboardrecycledesignBinding) :
         RecyclerView.ViewHolder(itemView.root) {
         val img = itemView.img
-        val name = itemView.name
+        val userName = itemView.userName
+        val auditionID = itemView.auditionID
+        val voteCountBtn = itemView.voteCountBtn
+        val voteCountly = itemView.voteCountly
+        val voteCount = itemView.voteCount
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -35,27 +42,56 @@ import com.img.audition.screens.CommanVideoPlayActivity
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.apply {
+
+            if (list[position].voteCount==0){
+                voteCountly.visibility = View.GONE
+            }else{
+                voteCount.text = list[position].voteCount.toString()
+            }
+            auditionID.setText(list[position].auditionId)
+
+            if (list[position].name!!.isNotEmpty()){
+                userName.setText(list[position].name)
+            }else{
+                userName.text = "Biggee User"
+            }
             try {
-                name.setText(list[position].auditionId)
                 Glide.with(context).load(list[position].image).placeholder(R.drawable.person_ic)
                     .into(img)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
+
+            voteCountBtn.setOnClickListener {
+                if (list[position].status == "notstarted"){
+                    Toast.makeText(it.context,"Click 2",Toast.LENGTH_SHORT).show()
+                }else{
+                    val videoID = list[position].videoID.toString()
+                Log.d("videoId", "onBindViewHolder: ${list[position].videoID.toString()}")
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.VideoID,videoID)
+                    val intent = Intent(context,VoterListActivity::class.java)
+                    intent.putExtra(ConstValFile.Bundle,bundle)
+                    context.startActivity(intent)
+                }
+
+            }
+
             itemView.setOnClickListener {
                 if (list[position].status == "notstarted"){
-                    Toast.makeText(context,"Contest Not Started Yet.",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(it.context,"Contest Not Started Yet.",Toast.LENGTH_SHORT).show()
                 }else{
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.USER_ID, list[position].userid)
-                    bundle.putString(ConstValFile.ContestID, list[position].joinleaugeid)
+                    bundle.putString(ConstValFile.ContestID, contestID)
+                    Log.d("contestVideo", "userID : "+list[position].userid.toString())
+                    Log.d("contestVideo", "contestID : "+list[position].joinleaugeid.toString())
                     bundle.putBoolean(ConstValFile.IsFromContest, true)
                     val intent = Intent(context, CommanVideoPlayActivity::class.java)
                     intent.putExtra(ConstValFile.Bundle, bundle)
                     context.startActivity(intent)
                 }
-
             }
         }
     }

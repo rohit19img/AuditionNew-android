@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -23,7 +24,7 @@ import com.img.audition.screens.fragment.ProfileFragment
 import java.lang.String
 import kotlin.Int
 
-class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Context, val replacedText : kotlin.String) : RecyclerView.Adapter<UserSearch_Adapter.ViewHolder>(){
+@UnstableApi class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Context, val replacedText : kotlin.String) : RecyclerView.Adapter<UserSearch_Adapter.ViewHolder>(){
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var username: TextView
@@ -97,13 +98,12 @@ class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Conte
                     }
                 }
             }
-
         }
 
     private fun sendToUserSelfProfile() {
         val activity = context as HomeActivity
         val myFragment: Fragment = ProfileFragment(context)
-            activity.supportFragmentManager.beginTransaction()
+        activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
     }
 }

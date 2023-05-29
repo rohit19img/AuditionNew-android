@@ -28,9 +28,7 @@ class DetailsPrizecardFragment(val contestID: String) : Fragment() {
         SessionManager(requireContext())
     }
 
-    private val myApplication by lazy {
-        MyApplication(requireContext())
-    }
+
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
@@ -63,23 +61,28 @@ class DetailsPrizecardFragment(val contestID: String) : Fragment() {
 
 
                     }catch (e:java.lang.Exception){
-                        myApplication.printLogE(e.toString(),TAG)
+                        Log.e(TAG, "onResponse: ", e)
                     }
 
 
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                }else{ Log.e(TAG, "onResponse: $response")
                 }
             }
 
             override fun onFailure(call: Call<SingleContestDetailsResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                Log.e(TAG, "onResponse: ", t)
 
             }
 
         })
 
 
+    }
+
+    override fun onDestroyView() {
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
     }
 
 }

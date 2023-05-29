@@ -2,6 +2,7 @@ package com.img.audition.screens.fragment
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,33 +12,41 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.GridLayoutManager
+import com.bumptech.glide.Glide
 import com.google.gson.JsonObject
 import com.img.audition.R
 import com.img.audition.adapters.*
 import com.img.audition.dataModel.*
 import com.img.audition.databinding.FragmentTrendingSearchBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.SplashActivity
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
+@UnstableApi class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
-    val bannerList = arrayListOf(
+    private val bannerList = arrayListOf(
         R.drawable.banner3,
         R.drawable.banner1,
         R.drawable.banner2,
         R.drawable.banner4
     )
-    val timer = Timer()
+    private val timer = Timer()
 
-    val TAG = "TrendingSearchFragment"
+    private val TAG = "TrendingSearchFragment"
     private val sessionManager by lazy {
         SessionManager(contextFromHome)
     }
@@ -49,20 +58,22 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
-    var userlist: ArrayList<SearchUserData>? = null
-    var hashtaglist: ArrayList<SearchHashtagsData>? = null
-    var videolist: ArrayList<VideoData>? = null
+    private var userlist: ArrayList<SearchUserData>? = null
+    private var hashtaglist: ArrayList<SearchHashtagsData>? = null
+    private var videolist: ArrayList<VideoData>? = null
 
     private lateinit var _viewBinding : FragmentTrendingSearchBinding
-    private val view get() = _viewBinding!!
+    private val view get() = _viewBinding
 
     private var trendHashVideoList = ArrayList<TrendingVideoData>()
+    private lateinit var mainViewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentTrendingSearchBinding.inflate(inflater,container,false)
 
         _viewBinding.apply {
@@ -96,14 +107,19 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
             }
         }
 
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         return _viewBinding.root
     }
 
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view1, savedInstanceState)
+
+        view.shimmerVideoView.startShimmer()
+
         getTrendingVideo()
         searchlist("")
+
 
         val imagSlider = ImageSlider(view1.context,bannerList)
         view.bannerSlider.adapter = imagSlider
@@ -116,75 +132,103 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
         obj.addProperty("search", searchData)
         Log.i("request",obj.toString())
 
-        val responseCall: Call<SearchResponse> = apiInterface.search(sessionManager.getToken(), obj)
-        responseCall.enqueue( object : Callback<SearchResponse> {
-            override fun onResponse(call: Call<SearchResponse>, response: Response<SearchResponse>) {
-                if (response.isSuccessful) {
-                    response.body()!!.message
+        mainViewModel.getSearchData(obj)
+            .observe(viewLifecycleOwner){
+                it.let {resources->
+                    when(resources.status){
+                        Status.SUCCESS ->{
+                            if(resources.data!!.success!!){
+                                userlist = ArrayList()
+                                hashtaglist = ArrayList()
+                                videolist = ArrayList()
+                                userlist = resources.data.data!!.users
+                                hashtaglist = resources.data.data!!.hashtags
+                                videolist = resources.data.data!!.data
 
-                    userlist = ArrayList()
-                    hashtaglist = ArrayList()
-                    videolist = ArrayList()
+                                Log.i("list_size", "Users : " + userlist!!.size)
+                                Log.i("list_size", "hashtag : " + hashtaglist!!.size)
+                                Log.i("list_size", "Video : " + videolist!!.size)
 
-                    if(response.body()!!.success!!){
-                        userlist = response.body()!!.data!!.users
-                        hashtaglist = response.body()!!.data!!.hashtags
-                        videolist = response.body()!!.data!!.data
-
-                        Log.i("list_size", "Users : " + userlist!!.size)
-                        Log.i("list_size", "hashtag : " + hashtaglist!!.size)
-                        Log.i("list_size", "Video : " + videolist!!.size)
-
+                                view.userRecycle.adapter = UserSearch_Adapter(userlist!!,contextFromHome,"")
+                                view.hashtagRecycle.adapter = HashtagSearch_Adapter(contextFromHome, hashtaglist!!)
+                                view.videoRecycle.adapter = VideoSearch_Adapter(contextFromHome, videolist!!)
+                            }else{
+                                myApplication.showToast("Something went wrong!!")
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
+                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(contextFromHome, SplashActivity::class.java))
+                                requireActivity().finishAffinity()
+                            }
+                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        }
                     }
-                } else {
-                    myApplication.showToast("Something went wrong!!")
                 }
-
-                view.userRecycle.adapter = UserSearch_Adapter(userlist!!,contextFromHome,"")
-                view.hashtagRecycle.adapter = HashtagSearch_Adapter(contextFromHome, hashtaglist!!)
-                view.videoRecycle.adapter = VideoSearch_Adapter(contextFromHome, videolist!!)
-
             }
-
-            override fun onFailure(call: Call<SearchResponse>, t: Throwable) {
-                myApplication.printLogE(t.message!!, TAG)
-            }
-        })
-
     }
 
-    private fun getTrendingVideo() {
-        val trendingVideoReq  = apiInterface.getTrendingVideo(sessionManager.getToken())
-        trendingVideoReq.enqueue(object : Callback<TrendingVideoResponse> {
-            override fun onResponse(call: Call<TrendingVideoResponse>, response: Response<TrendingVideoResponse>) {
-
-                if (response.isSuccessful && response.body()!!.success!!) {
-
-                    val data = response.body()!!.data
-                    trendHashVideoList.add(data!!)
-                    myApplication.printLogD(trendHashVideoList.size.toString(),"trending 1")
-                    val adapter = TrendingHashtag(contextFromHome,trendHashVideoList)
-                    view.trendingHashtagCycle.adapter = adapter
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
+    private fun getTrendingVideo(){
+        mainViewModel.getTrendingVideo()
+            .observe(viewLifecycleOwner){
+                it.let {videoResponse->
+                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
+                    when(videoResponse.status){
+                        Status.SUCCESS ->{
+                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
+                            if (videoResponse.data.success!!){
+                                val data = videoResponse.data.data!!
+                                trendHashVideoList.add(data)
+                                myApplication.printLogD(trendHashVideoList.size.toString(),"trending 1")
+                                val adapter = TrendingHashtag(contextFromHome,trendHashVideoList)
+                                view.shimmerVideoView.stopShimmer()
+                                view.shimmerVideoView.hideShimmer()
+                                view.shimmerVideoView.visibility = View.GONE
+                                view.trendingHashtagCycle.visibility = View.VISIBLE
+                                view.trendingHashtagCycle.adapter = adapter
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            if (videoResponse.message!!.contains("401")){
+                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(contextFromHome, SplashActivity::class.java))
+                                requireActivity().finishAffinity()
+                            }
+                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                        }
+                    }
                 }
-
             }
-
-            override fun onFailure(call: Call<TrendingVideoResponse>, t: Throwable) {
-               myApplication.printLogE(t.message.toString(),TAG)
-            }
-        })
     }
 
     inner class BannerSlider : TimerTask(){
         override fun run() {
-            (contextFromHome as Activity).runOnUiThread(Runnable {
+            (contextFromHome as Activity).runOnUiThread {
                 if (view.bannerSlider.currentItem < bannerList.size - 1) {
-                    view.bannerSlider.currentItem =view.bannerSlider.currentItem + 1
+                    view.bannerSlider.currentItem = view.bannerSlider.currentItem + 1
                 } else view.bannerSlider.currentItem = 0
-            })
+            }
         }
 
+    }
+
+    override fun onDestroyView() {
+        videolist?.clear()
+        userlist?.clear()
+        hashtaglist?.clear()
+        bannerList.clear()
+        timer.cancel()
+        Log.d("check 400", "onDestroyView: $TAG")
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
     }
 }

@@ -8,36 +8,58 @@
     android:orientation="vertical"
     tools:context=".screens.fragment.DetailsPrizecardFragment">
 
-    <LinearLayout
+    <RelativeLayout
+        android:visibility="gone"
+        android:id="@+id/dataView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:orientation="horizontal">
-        <TextView
+        android:layout_height="match_parent"
+        >
+        <LinearLayout
+            android:id="@+id/l1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="winners"
-            android:layout_weight="1"
-            android:layout_marginLeft="10dp"
-            android:textSize="15dp"
-            android:textColor="@color/commanBackground"/>
+            android:padding="8dp"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="winners"
+                android:layout_weight="1"
+                android:layout_marginLeft="10dp"
+                android:textSize="15dp"
+                android:textColor="@color/commanBackground"/>
 
-        <TextView
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="price"
+                android:gravity="right"
+                android:textSize="15dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="1"
+                android:textColor="@color/commanBackground"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_below="@id/l1"
+            android:id="@+id/pricecardrecycle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="price"
-            android:gravity="right"
-            android:textSize="15dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:textColor="@color/commanBackground"/>
-    </LinearLayout>
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="vertical"
+            android:layout_height="wrap_content"/>
+    </RelativeLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/pricecardrecycle"
+
+    <TextView
+        android:id="@+id/noDataView"
         android:layout_width="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:orientation="vertical"
-        android:layout_height="wrap_content"/>
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:text="Prizecard Empty"
+        android:textColor="@color/textColorRed"
+        android:background="@color/bgColorWhite"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
 
 </LinearLayout>

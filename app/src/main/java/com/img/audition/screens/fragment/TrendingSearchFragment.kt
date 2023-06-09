@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
@@ -36,8 +37,10 @@ import retrofit2.Response
 import java.util.*
 import kotlin.collections.ArrayList
 
-@UnstableApi class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
+@UnstableApi
+class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
 
+    private var adapterTrending: TrendingHashtag? = null
     private val bannerList = arrayListOf(
         R.drawable.banner3,
         R.drawable.banner1,
@@ -50,14 +53,6 @@ import kotlin.collections.ArrayList
     private val sessionManager by lazy {
         SessionManager(contextFromHome)
     }
-    private val myApplication by lazy {
-        MyApplication(contextFromHome)
-    }
-
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     private var userlist: ArrayList<SearchUserData>? = null
     private var hashtaglist: ArrayList<SearchHashtagsData>? = null
     private var videolist: ArrayList<VideoData>? = null
@@ -107,6 +102,7 @@ import kotlin.collections.ArrayList
             }
         }
 
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         return _viewBinding.root
@@ -153,20 +149,20 @@ import kotlin.collections.ArrayList
                                 view.hashtagRecycle.adapter = HashtagSearch_Adapter(contextFromHome, hashtaglist!!)
                                 view.videoRecycle.adapter = VideoSearch_Adapter(contextFromHome, videolist!!)
                             }else{
-                                myApplication.showToast("Something went wrong!!")
+                                Toast.makeText(contextFromHome,"Something went wrong..", Toast.LENGTH_SHORT).show()
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                            Log.d(TAG, resources.status.toString())
                         }
                         else->{
                             if (resources.message!!.contains("401")){
-                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
                                 sessionManager.clearLogoutSession()
                                 startActivity(Intent(contextFromHome, SplashActivity::class.java))
                                 requireActivity().finishAffinity()
                             }
-                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                            Log.e(TAG, resources.status.toString())
+
                         }
                     }
                 }
@@ -177,33 +173,29 @@ import kotlin.collections.ArrayList
         mainViewModel.getTrendingVideo()
             .observe(viewLifecycleOwner){
                 it.let {videoResponse->
-                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
                     when(videoResponse.status){
                         Status.SUCCESS ->{
-                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
-                            if (videoResponse.data.success!!){
+                            if (videoResponse.data?.success!!){
                                 val data = videoResponse.data.data!!
                                 trendHashVideoList.add(data)
-                                myApplication.printLogD(trendHashVideoList.size.toString(),"trending 1")
-                                val adapter = TrendingHashtag(contextFromHome,trendHashVideoList)
+                                 adapterTrending = TrendingHashtag(contextFromHome,trendHashVideoList)
                                 view.shimmerVideoView.stopShimmer()
                                 view.shimmerVideoView.hideShimmer()
                                 view.shimmerVideoView.visibility = View.GONE
                                 view.trendingHashtagCycle.visibility = View.VISIBLE
-                                view.trendingHashtagCycle.adapter = adapter
+                                view.trendingHashtagCycle.adapter = adapterTrending
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                            Log.d(TAG, videoResponse.status.toString())
                         }
                         else->{
                             if (videoResponse.message!!.contains("401")){
-                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
                                 sessionManager.clearLogoutSession()
                                 startActivity(Intent(contextFromHome, SplashActivity::class.java))
                                 requireActivity().finishAffinity()
                             }
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                            Log.e(TAG, videoResponse.status.toString())
                         }
                     }
                 }
@@ -222,11 +214,23 @@ import kotlin.collections.ArrayList
     }
 
     override fun onDestroyView() {
-        videolist?.clear()
-        userlist?.clear()
-        hashtaglist?.clear()
-        bannerList.clear()
-        timer.cancel()
+
+        try {
+            videolist?.clear()
+            userlist?.clear()
+            hashtaglist?.clear()
+            trendHashVideoList.clear()
+            view.userRecycle.adapter = null
+            view.hashtagRecycle.adapter = null
+            view.trendingHashtagCycle.adapter = null
+            view.videoRecycle.adapter = null
+            adapterTrending = null
+            bannerList.clear()
+            timer.cancel()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
         Log.d("check 400", "onDestroyView: $TAG")
         getView()?.destroyDrawingCache()
         super.onDestroyView()

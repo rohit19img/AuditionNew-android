@@ -1,9 +1,11 @@
 package com.img.audition.adapters
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
@@ -20,18 +22,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class BlockedUserAdapter(val context: Context, val blockedUserData : ArrayList<BlockedUserData>) : RecyclerView.Adapter<BlockedUserAdapter.MyViewHolder>() {
-
-    val TAG = "BlockedUserAdapter"
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-    private val sessionManager by lazy {
-        SessionManager(context)
-    }
-    private val myApplication by lazy {
-        MyApplication(context)
-    }
+class BlockedUserAdapter(val context: Context, private val blockedUserData : ArrayList<BlockedUserData>) : RecyclerView.Adapter<BlockedUserAdapter.MyViewHolder>() {
     inner class MyViewHolder(itemView: FollowerfollowingdesignBinding) : RecyclerView.ViewHolder(itemView.root) {
         val userImage = itemView.userImage
         val followerCount = itemView.followerCount
@@ -67,9 +58,13 @@ class BlockedUserAdapter(val context: Context, val blockedUserData : ArrayList<B
                 sweetAlertDialog.contentText = "Do you want unblock this user"
                 sweetAlertDialog.confirmText = "Yes"
                 sweetAlertDialog.setConfirmClickListener {
-                    blockUnblockUser(ConstValFile.Unblock,data.Id.toString())
-                    blockedUserData.removeAt(position)
-                    notifyDataSetChanged()
+                    if  (MyApplication(context).isNetworkConnected()){
+                        blockUnblockUser(ConstValFile.Unblock,data.Id.toString())
+                        blockedUserData.removeAt(position)
+                        notifyDataSetChanged()
+                    }else{
+                        Toast.makeText(context,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
+                    }
                     sweetAlertDialog.dismiss()
                 }
                 sweetAlertDialog.cancelText = "No"
@@ -82,18 +77,18 @@ class BlockedUserAdapter(val context: Context, val blockedUserData : ArrayList<B
     }
 
     private fun blockUnblockUser(status: String,userID:String) {
-        val blockUnblockReq = apiInterface.blockUnblockUser(sessionManager.getToken(), userID,status)
-
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val blockUnblockReq = apiInterface.blockUnblockUser(SessionManager(context).getToken(), userID,status)
         blockUnblockReq.enqueue(object :Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()?.success!!){
-                    myApplication.showToast("Successfully Unblock..")
+                    Toast.makeText(context,"Successfully Unblock..",Toast.LENGTH_SHORT).show()
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.e("BlockedUserAdapter", "onResponse: ${response.message()}")
                 }
             }
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                Log.e("BlockedUserAdapter", "onFailure: $t")
             }
 
         })

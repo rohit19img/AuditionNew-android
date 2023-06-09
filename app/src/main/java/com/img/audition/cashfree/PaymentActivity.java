@@ -46,6 +46,7 @@ import static com.cashfree.pg.CFPaymentService.PARAM_PAYMENT_MODES;
 
 public class PaymentActivity extends AppCompatActivity {
 
+
     RequestQueue requestQueue;
     String appid,secret,orderid,paymentOption,amount,id,phone,email,name,checksum;
     boolean UPI = false;

@@ -14,6 +14,7 @@ class ChatsGetSet {
 }
 
 class CommentData{
+    var comment_id : String? = ""
     var auditionID : String = ""
     var comment : String? = ""
     var commentBy : String? = ""

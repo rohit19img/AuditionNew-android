@@ -34,9 +34,9 @@ import kotlin.math.sqrt
 class PreviewActivity : AppCompatActivity() {
 
     //For Movable text
-    var lastEvent: FloatArray? = null
-    var d = 0f
-    var newRot = 0f
+    private var lastEvent: FloatArray? = null
+    private var d = 0f
+    private var newRot = 0f
     private var isZoomAndRotate = false
     private var isOutSide = false
     private val NONE = 0
@@ -45,18 +45,18 @@ class PreviewActivity : AppCompatActivity() {
     private var mode = NONE
     private val start = PointF()
     private val mid = PointF()
-    var oldDist = 1f
+    private var oldDist = 1f
     private var xCoOrdinate = 0f
     private  var yCoOrdinate = 0f
 
     private var textColor = -16777216
     private var hexColor = "#000000"
-    var x_Pos = 10
-    var y_Pos = 10
-    var textAlignCmd = "x=(w-text_w)/2:y=(h-text_h)/2"
+    private var x_Pos = 10
+    private var y_Pos = 10
+    private var textAlignCmd = "x=(w-text_w)/2:y=(h-text_h)/2"
     //end of Movable text
 
-    val TAG = "PreviewActivity"
+    private val TAG = "PreviewActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPreviewBinding.inflate(layoutInflater)
     }
@@ -64,11 +64,7 @@ class PreviewActivity : AppCompatActivity() {
         SessionManager(this@PreviewActivity)
     }
 
-    private val myApplication by lazy {
-        MyApplication(this@PreviewActivity)
-    }
-
-    lateinit var videoPlayer : ExoPlayer
+    private lateinit var videoPlayer : ExoPlayer
 
     private var isFromContest = false
 
@@ -136,10 +132,20 @@ class PreviewActivity : AppCompatActivity() {
         sweetAlertDialog.confirmText = "Yes"
         sweetAlertDialog.setConfirmClickListener {
             sweetAlertDialog.dismiss()
-            if (File(sessionManager.getCreateVideoPath()!!).exists()){
-                File(sessionManager.getCreateVideoPath()!!).delete()
-                sessionManager.clearVideoSession()
+            try {
+                if (File(sessionManager.getCreateVideoPath().toString()).exists()){
+                    File(sessionManager.getCreateVideoPath().toString()).delete()
+                }
+                if (File(sessionManager.getCreateDuetVideoUrl().toString()).exists()){
+                    File(sessionManager.getCreateDuetVideoUrl().toString()).delete()
+                }
+                if (File(sessionManager.getTrimAudioPath().toString()).exists()){
+                    File(sessionManager.getTrimAudioPath().toString()).delete()
+                }
+            }catch (e :java.lang.Exception){
+                e.printStackTrace()
             }
+            sessionManager.clearVideoSession()
             sendToMain()
         }
         sweetAlertDialog.cancelText = "No"
@@ -157,6 +163,7 @@ class PreviewActivity : AppCompatActivity() {
         finish()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onResume() {
 
         when(sessionManager.getCreateVideoSpeedState()!!){
@@ -342,11 +349,7 @@ class PreviewActivity : AppCompatActivity() {
         movableText.visibility  = View.GONE
         viewBinding.videoExoView.player = videoPlayer
         val videoUri = sessionManager.getCreateVideoPath()
-        val videoSpeedState = sessionManager.getCreateVideoSpeedState()
-        val videoDuration = sessionManager.getCreateVideoDuration()
-        myApplication.printLogD("videoUri : $videoUri videoState: $videoSpeedState videoDuration: $videoDuration",TAG)
-        isFromContest = sessionManager.getIsFromContest()
-        myApplication.printLogD("$isFromContest onCreate", " isFromContest $TAG")
+       isFromContest = sessionManager.getIsFromContest()
         val mediaItem = MediaItem.fromUri(videoUri!!)
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
@@ -361,15 +364,9 @@ class PreviewActivity : AppCompatActivity() {
                         videoPlayer.prepare()
                         videoPlayer.play()
                     }
-                    ExoPlayer.STATE_BUFFERING -> {
-                        myApplication.printLogD("STATE_BUFFERING", TAG)
-                    }
-                    ExoPlayer.STATE_READY -> {
-                        myApplication.printLogD("STATE_READY", TAG)
-                    }
-                    else -> {
-                        myApplication.printLogD(playbackState.toString(), "currentState")
-                    }
+                    ExoPlayer.STATE_BUFFERING -> { }
+                    ExoPlayer.STATE_READY -> {  }
+                    else -> {}
                 }
             }
         })
@@ -540,15 +537,13 @@ class PreviewActivity : AppCompatActivity() {
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.png"
         val appData = getExternalFilesDir(null)
-        myApplication.printLogD(appData!!.absolutePath, TAG)
 
         val createFile = File(appData,filename)
         if (!(createFile.exists())){
             try {
                 createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath, TAG)
             }catch (i: IOException){
-                myApplication.printLogE(i.toString(), TAG)
+                i.printStackTrace()
             }
         }
 

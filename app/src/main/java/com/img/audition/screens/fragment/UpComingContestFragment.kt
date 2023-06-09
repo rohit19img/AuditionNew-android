@@ -70,38 +70,6 @@ class UpComingContestFragment : Fragment() {
         }
     }
 
-   /* private fun showUpComingContest(context: Context) {
-        val liveContestReq = apiInterface.getAllLiveContest(sessionManager.getToken())
-
-        liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse> {
-            override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val contestData = response.body()!!.data
-                    if (contestData.size>0){
-                        noLiveContest.visibility = View.GONE
-                        contestAdapter = ContestLiveAdapter(context,contestData)
-                        contestViewpager2.adapter = contestAdapter
-                        videoItemPlayPause = contestAdapter.onActivityStateChanged()
-
-                        Log.d("check 400" ,"onResponse: videoItemPlayPause")
-                    }else{
-                        Log.d(TAG, " No Live Contest")
-                        noLiveContest.visibility = View.VISIBLE
-                    }
-                }else{
-                    Log.e(TAG,response.toString())
-                    noLiveContest.visibility = View.VISIBLE
-                }
-            }
-
-            override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
-                Log.e(TAG,t.toString())
-                noLiveContest.visibility = View.VISIBLE
-            }
-
-        })
-    }*/
-
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
         view?.destroyDrawingCache()

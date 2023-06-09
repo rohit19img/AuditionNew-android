@@ -2,12 +2,15 @@ package com.img.audition.adapters
 
 import android.content.Context
 import android.content.Intent
+import android.media.ThumbnailUtils
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
@@ -25,14 +28,11 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
- class VideoItemAdapter(val context: Context, val videoData : ArrayList<VideoData>) : RecyclerView.Adapter<VideoItemAdapter.VideoItemHolder>() {
-    val TAG = "VideoItemAdapter"
+ @UnstableApi
+ class VideoItemAdapter(val context: Context,private val videoData : ArrayList<VideoData>) : RecyclerView.Adapter<VideoItemAdapter.VideoItemHolder>() {
+    private val TAG = "VideoItemAdapter"
     private val sessionManager by lazy {
         SessionManager(context)
-    }
-
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
     inner class VideoItemHolder(itemView: VideoItemViewBinding) : RecyclerView.ViewHolder(itemView.root) {
         val videoThumbnail = itemView.videoThumbnail
@@ -53,6 +53,7 @@ import retrofit2.Response
         holder.apply {
             val list = videoData[position]
 
+
             Glide.with(context).load(list.file).placeholder(R.drawable.splash_icon).into(videoThumbnail)
 
             videoViewCount.text = list.views.toString()
@@ -71,14 +72,11 @@ import retrofit2.Response
             Log.d("video userID", "onBindViewHolder: self ${sessionManager.getUserSelfID()}")
             if (list.userId.equals(sessionManager.getUserSelfID())){
                 videoItemDelete.visibility = View.VISIBLE
-
             }
             videoItemDelete.setOnClickListener {
-
-
                 val sweetAlertDialog =
                     SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
-                sweetAlertDialog.titleText = "Are you Sure to delete this Video ?"
+                sweetAlertDialog.titleText = "Remove Video"
                 sweetAlertDialog.show()
                 sweetAlertDialog.confirmText = "Yes"
                 sweetAlertDialog.cancelText = "No"
@@ -88,7 +86,7 @@ import retrofit2.Response
                     notifyDataSetChanged()
                     sweetAlertDialog.dismissWithAnimation()
                 }
-                sweetAlertDialog.setCancelClickListener { sweetAlertDialog1: SweetAlertDialog? ->
+                sweetAlertDialog.setCancelClickListener {
                     sweetAlertDialog.dismissWithAnimation()
                 }
 
@@ -98,6 +96,7 @@ import retrofit2.Response
     }
 
     private fun deleteUserSelfVideo(id: String) {
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
         val deleteVideoReg = apiInterface.deleteUserSelfVideo(sessionManager.getToken(),id)
         deleteVideoReg.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(call: retrofit2.Call<CommanResponse>, response: Response<CommanResponse>) {
@@ -112,7 +111,6 @@ import retrofit2.Response
             override fun onFailure(call: retrofit2.Call<CommanResponse>, t: Throwable) {
                 Log.d(TAG, "onFailure: ${t.toString()}")
             }
-
         })
     }
 

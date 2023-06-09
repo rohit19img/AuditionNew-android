@@ -13,7 +13,6 @@ import com.img.audition.dataModel.SingleContestDetailsResponse
 import com.img.audition.dataModel.SingleContestPriceCard
 import com.img.audition.databinding.ActivityContestDetailsBinding
 import com.img.audition.globalAccess.ConstValFile
-import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
@@ -28,8 +27,7 @@ import java.text.SimpleDateFormat
 
 @UnstableApi class ContestDetailsActivity : AppCompatActivity() {
 
-    val TAG = "ContestDetailsActivity"
-    var ifOfferApplied = false
+    private val TAG = "ContestDetailsActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityContestDetailsBinding.inflate(layoutInflater)
     }
@@ -37,19 +35,13 @@ import java.text.SimpleDateFormat
         SessionManager(this@ContestDetailsActivity)
     }
 
-    private val myApplication by lazy {
-        MyApplication(this@ContestDetailsActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
-    var contestID = ""
-    var isContestJoin = false
-    var prizecard: ArrayList<SingleContestPriceCard>? = null
+    private var contestID = ""
+    private var contestStatus = ""
+    private var isContestJoin = false
+    private var prizecard: ArrayList<SingleContestPriceCard>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -63,6 +55,7 @@ import java.text.SimpleDateFormat
     }
 
     private fun contestDetails(contestID: String?) {
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
         val contestDetailsReq =  apiInterface.getSingleContestDetails(sessionManager.getToken(),contestID)
 
         contestDetailsReq.enqueue(object : Callback<SingleContestDetailsResponse>{
@@ -97,7 +90,7 @@ import java.text.SimpleDateFormat
 
                        try{
                            viewBinding.contestStartDate.text = "Start Date : ${dateFormat1.format(dateFormat.parse(data.startDate))}"
-                       } catch (e : java.lang.Exception){
+                       } catch (e : Exception){
                            Log.i("Exception"," ${ e.message}")
                        }
                        try{
@@ -108,17 +101,18 @@ import java.text.SimpleDateFormat
 
 
                    }catch (e: Exception){
-                       myApplication.printLogE(e.toString(),TAG)
+                       e.printStackTrace()
                    }
 
 
                }else{
-                   myApplication.printLogE(response.toString(),TAG)
+                   Log.e(TAG, "onResponse: ${response.toString()}")
+
                }
             }
 
             override fun onFailure(call: Call<SingleContestDetailsResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                t.printStackTrace()
 
             }
 
@@ -133,8 +127,8 @@ import java.text.SimpleDateFormat
         override fun getItem(position: Int): Fragment {
             return when (position) {
                 0 -> DetailsPrizecardFragment(contestID)
-                1 -> LeaderboardFragment(contestID)
-                else -> LeaderboardFragment(contestID)
+                1 -> LeaderboardFragment(contestID,contestStatus)
+                else -> LeaderboardFragment(contestID,contestStatus)
             }
         }
 
@@ -155,9 +149,10 @@ import java.text.SimpleDateFormat
         super.onResume()
 
         contestID = bundle!!.getString(ConstValFile.ContestID).toString()
+        contestStatus = bundle!!.getString(ConstValFile.ContestStatus).toString()
         isContestJoin = bundle!!.getBoolean(ConstValFile.IsContestJoin,false)
-        myApplication.printLogD(contestID,"contestID")
-        myApplication.printLogD(isContestJoin.toString(), "IsContestJoin")
+
+
         contestDetails(contestID)
 
         if (!isContestJoin){

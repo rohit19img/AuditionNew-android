@@ -60,14 +60,11 @@ import java.util.*
 class MusicAdapter(val contextFromActivity: Context, private var musicList: ArrayList<MusicData>) :
     RecyclerView.Adapter<MusicAdapter.MyMusicHolder>() {
 
-
     val playerExo = ExoPlayer.Builder(contextFromActivity).build()
-    private val myApplication by lazy { MyApplication(contextFromActivity) }
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
     }
     var startTrimFrom = 0
-    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
     private val mediaSource by lazy {
         ProgressiveMediaSource.Factory(
             CacheDataSource.Factory()
@@ -79,7 +76,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
         )
     }
-    val TAG = "MusicAdapter"
+    private val TAG = "MusicAdapter"
 
     inner class MyMusicHolder(itemView: MusiclistrecycledesignBinding) :
         RecyclerView.ViewHolder(itemView.root) {
@@ -163,7 +160,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
 
             addFavMusic.setOnClickListener {
                 val songID = audioData.Id.toString()
-                myApplication.printLogD(songID, "songID")
                 if (audioData.isFav) {
                     addFavMusic.setImageDrawable(
                         ContextCompat.getDrawable(
@@ -206,10 +202,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 playerExo.playWhenReady = false
                 playBtn.visibility = View.VISIBLE
                 pauseBtn.visibility = View.GONE
-                myApplication.printLogD(
-                    ConstValFile.BASEURL + audioData.trackAacFormat.toString(),
-                    "Audio url"
-                )
                 val songID = audioData.Id.toString()
                 showAudioTrimDialog(
                     audioData.title.toString(),
@@ -226,16 +218,14 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     fun onActivityStateChanged(): PlayPauseAudio {
         return object : PlayPauseAudio {
             override fun stop() {
-                myApplication.printLogD("stop: ", TAG)
                 playerExo.seekTo(0)
                 playerExo.pause()
                 playerExo.playWhenReady = false
                 playerExo.release()
+
             }
 
-            override fun play() {
-                myApplication.printLogD("play: ", TAG)
-            }
+            override fun play() {}
 
         }
     }
@@ -297,12 +287,17 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 audioWaveSeekbar!!.maxProgress = audioPlayer.duration.toFloat()
                 (contextFromActivity as Activity).runOnUiThread(object : Runnable {
                     override fun run() {
-                        audioWaveSeekbar!!.progress = audioPlayer.currentPosition.toFloat()
-                        songTimeHandler.postDelayed(this, 1000)
 
-                        if (trimFrom!!.text.trim() == trimTo!!.text.trim()){
-                            myApplication.printLogD("start Music : $startTrimFrom","TrimAudio")
+                        try {
+                            if (mediaPlayer.isPlaying)
+                                audioWaveSeekbar.progress = mediaPlayer.currentPosition.toFloat()
+                        }catch (e:java.lang.Exception){
+                            Log.e(TAG, "run: ${e.message}")
                         }
+
+
+//                        if (trimFrom!!.text.trim() == trimTo!!.text.trim()){ }
+                        songTimeHandler.postDelayed(this, 1000)
                     }
 
                 })
@@ -319,7 +314,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                     audioPlayer.stop()
                 }
             } catch (e: Exception) {
-                myApplication.printLogE(e.toString(), TAG)
+                    e.printStackTrace()
             }
         }
 
@@ -338,6 +333,8 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                     val fromTrimDuration = getTimeString(audioPlayer.currentPosition.toLong())!!
                     trimFrom!!.text = fromTrimDuration
 
+                    Log.d(TAG, "onProgressChanged: isAppAudio ${sessionManager.getIsAppAudio()}")
+
                     if (sessionManager.getIsAppAudio()){
                         val toTrimDuration = "${getTimeString(25000L)}"
                         trimTo!!.text = toTrimDuration
@@ -345,8 +342,6 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                         val toTrimDuration = "${getTimeString(sessionManager.getCreateVideoDuration())}"
                         trimTo!!.text = toTrimDuration
                     }
-
-
 
                     val map = hashMapOf<Float, String>()
                     map[audioWaveSeekbar.progress] = ""
@@ -363,7 +358,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 }
             }
         } catch (e: java.lang.Exception) {
-            myApplication.printLogD(e.toString(), TAG)
+            e.printStackTrace()
         }
 
         audioPlayer.setOnCompletionListener { m ->
@@ -375,6 +370,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             audioPlayer.release()
             audioSheet.dismiss()
             audioThread.interrupt()
+            songTimeHandler.removeCallbacksAndMessages(null)
             byteThread.interrupt()
         }
 
@@ -394,6 +390,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                 TrimAudio(audioFile, fromTrimDuration.toLong(), toTrimDuration, songID)
                 audioPlayer.pause()
                 audioPlayer.stop()
+                songTimeHandler.removeCallbacksAndMessages(null)
                 audioPlayer.release()
             }
         }
@@ -422,17 +419,13 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         val trimFilePath = createFileAndFolder()
         val trimFrom = audioTrimFromSec / 1000
         val trimTo = toTrimDuration / 1000
-        myApplication.printLogD("VideoLength ${sessionManager.getCreateVideoDuration() / 1000}", "TrimAudio")
-        myApplication.printLogD("firstPosition $trimFrom", "TrimAudio")
-        myApplication.printLogD("endPosition $trimTo", "TrimAudio")
-        myApplication.printLogD("trimFilePath $trimFilePath", "TrimAudio")
+
 
         val cmd =
             "-y -i $audioFile -ss $trimFrom -t $trimTo -acodec copy -preset veryfast -threads 8 $trimFilePath"
 
         EpEditor.execCmd(cmd, 0, object : OnEditorListener {
             override fun onSuccess() {
-                myApplication.printLogD("TrimAudio Complete", "TrimAudio")
                 sessionManager.setCreateAudioSession(trimFilePath)
                 sessionManager.setAppSongID(songID)
 
@@ -441,7 +434,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                     bundle.putString(ConstValFile.AppAudio,trimFilePath)
                     contextFromActivity.startActivity(
                         Intent(contextFromActivity.applicationContext, SnapCameraActivity::class.java)
-                            .putExtra(ConstValFile.Bundle, bundle)
+                            .putExtra(ConstValFile.Bundle, bundle).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     )
                 }else{
                     val bundle = Bundle()
@@ -456,13 +449,9 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
 
             }
 
-            override fun onFailure() {
-                myApplication.printLogD("TrimAudio : onFailure", "TrimAudio")
-            }
+            override fun onFailure() {}
 
-            override fun onProgress(progress: Float) {
-                myApplication.printLogD("TrimAudio onProgress : $progress", "TrimAudio")
-            }
+            override fun onProgress(progress: Float) {}
         })
 
         /*FFmpegKit.executeAsync(cmd,
@@ -494,15 +483,13 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.aac"
         val appData = contextFromActivity.getExternalFilesDir(null)
-        myApplication.printLogD(appData!!.absolutePath, TAG)
 
         val createFile = File(appData, filename)
         if (!(createFile.exists())) {
             try {
                 createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath, TAG)
             } catch (i: IOException) {
-                myApplication.printLogE(i.toString(), TAG)
+                i.printStackTrace()
             }
         }
 
@@ -557,6 +544,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
     fun addFavMusic(songID: String) {
         val favMusicobj = JsonObject()
         favMusicobj.addProperty("favMusic", songID)
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
         val favMusicReq = apiInterface.addFavMusic(sessionManager.getToken(), favMusicobj)
 
         favMusicReq.enqueue(object : Callback<CommanResponse> {
@@ -568,7 +556,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(), TAG)
+                    t.printStackTrace()
             }
 
         })

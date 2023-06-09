@@ -17,36 +17,19 @@ import java.util.concurrent.Future
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicReference
 
-// Audio recording config constants
-private const val AUDIO_SAMPLE_RATE_HZ = 44100
-private const val AUDIO_SAMPLE_SIZE = 2
-private const val AUDIO_CHANNEL_COUNT = 1
-private const val AUDIO_BUFFER_SIZE = 2048
-private const val AUDIO_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-private const val AUDIO_RECORDING_FORMAT = AudioFormat.ENCODING_PCM_16BIT
 
-private const val TAG = "AudioProcessorSource"
-
-/**
- * Custom implementation of a [Source] for an [AudioProcessor]
- * Utilizes [AudioRecord] to record microphone audio as an input source
- * and provides it to [MediaCapture] for encoding and muxing with video.
- * This implementation is customizable in configuration or source.
- *
- * @param executorService Thread pool to run audio recording on
- */
-/**
- * Custom implementation of a [Source] for an [AudioProcessor]
- * Utilizes [AudioRecord] to record microphone audio as an input source
- * and provides it to [MediaCapture] for encoding and muxing with video.
- * This implementation is customizable in configuration or source.
- *
- * @param executorService Thread pool to run audio recording on
- */
 class AudioProcessorSource(
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
 ) : Source<AudioProcessor>, MediaCapture.AudioSource {
 
+    private  val AUDIO_SAMPLE_RATE_HZ = 44100
+    private  val AUDIO_SAMPLE_SIZE = 2
+    private  val AUDIO_CHANNEL_COUNT = 1
+    private  val AUDIO_BUFFER_SIZE = 2048
+    private  val AUDIO_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
+    private  val AUDIO_RECORDING_FORMAT = AudioFormat.ENCODING_PCM_16BIT
+
+    private  val TAG = "AudioProcessorSource"
     private val audioProcessor: AtomicReference<AudioProcessor> = AtomicReference()
     private val recordingTask: AtomicReference<Future<*>> = AtomicReference()
     private var inputConsumer: Consumer<ByteArray> = Consumers.empty()

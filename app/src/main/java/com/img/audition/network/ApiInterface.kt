@@ -110,6 +110,9 @@ interface ApiInterface {
     @GET(APITags.ReportVideo)
     fun reportTheVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?, @Query("reportvideoid") videoID: String?): Call<CommanResponse>
 
+    @GET("addReportUser")
+    fun reportUser(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("reportId") reportID: String?): Call<CommanResponse>
+
     @GET(APITags.addIntoNotInterested)
     fun addIntoNotInterestedVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("catId") contestId: String?, @Query("videoId") videoID: String?): Call<CommanResponse>
 
@@ -181,6 +184,12 @@ interface ApiInterface {
         @Header("Authorization") Auth: String?,
         @Query("contestId") contestId: String?
     ): Call<LeaderboardDataResponse>
+
+    @GET(APITags.LiveRanksLeaderboard)
+    fun getLiveRanksLeaderboardDetails(
+        @Header("Authorization") Auth: String?,
+        @Query("contestId") contestId: String?
+    ): Call<LiveRanksLeaderboardResponse>
 
     @GET("boost-rate")
     fun getBoostRate(@Header("Authorization") Auth: String?): Call<JsonObject>

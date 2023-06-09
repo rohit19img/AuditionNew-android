@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -21,6 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.recyclerview.widget.RecyclerView
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.dataModel.LiveContestData
@@ -49,16 +51,12 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
     private var startDate: Date? = null
     private var endDate:Date? = null
 
-    private val myApplication by lazy {
-        MyApplication(context.applicationContext)
-    }
-
     private val sessionManager by lazy {
         SessionManager(context.applicationContext)
     }
-
-
-
+    private val myApplication by lazy {
+        MyApplication(context.applicationContext)
+    }
 
     inner class MyViewHolder(itemView: LiveContestItemLayoutBinding) :
         RecyclerView.ViewHolder(itemView.root) {
@@ -122,7 +120,6 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             }else{
                 Log.d("checkCache", "cache have space ${VideoCacheWork.simpleCache.cacheSpace}")
             }
-
             if(contest.isBonus == 1) {
                 bonusLL.visibility = View.VISIBLE
                 contestBonus.text = "${contest.bonusPercentage}%"
@@ -142,17 +139,21 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             eDate = contest.startDate
             Log.i("matchtime", contest.startDate)
 
-            val dateFormat =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+            val dateFormat =  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             val dateFormat1 =  SimpleDateFormat("MMM dd  hh:mm a")
             try {
                  startDate = dateFormat.parse(sDate)
                  endDate = dateFormat.parse(eDate)
-
             } catch (e: ParseException) {
                 e.printStackTrace()
             }
 
-            val diffInMs = endDate!!.time - startDate!!.time;
+            var diffInMs : Long = 0
+           try {
+               diffInMs = endDate!!.time - startDate!!.time
+           }catch (e:Exception){
+               e.printStackTrace()
+           }
 
             val hours1 = (1*60*60 * 1000).toLong()
             val hours4 = (4*60*60 * 1000).toLong()
@@ -242,41 +243,43 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             contestJoinedUser.text = "${contest.joinedusers.toString()} User Joined"
 
             contestJoinBtn.setOnClickListener {
-                if (!(sessionManager.isUserLoggedIn())) {
-                    sendToLoginScreen()
-                } else {
-                    if (contest.status == "notstarted"){
-                        if (!(contest.isJoined!!)) {
-                            myApplication.printLogD("User Not Joined", TAG)
-                            sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
-                            myApplication.printLogD("contest.entryfee ${sessionManager.getContestEntryFee()}", "contestCheck")
-                            myApplication.printLogD("contest.Id ${sessionManager.getContestID()}", "contestCheck")
-                            myApplication.printLogD("contest.fileType ${contest.fileType}", "contestCheck")
-                            myApplication.printLogD("contest.file ${contest.file}", "contestCheck")
-
-                            Thread.sleep(300)
-                            sendForCreateVideo()
-                        } else {
-                            myApplication.printLogD("User Joined", TAG)
-                            myApplication.showToast("You Already join this contest")
-
+                if (myApplication.isNetworkConnected()){
+                    if (!(sessionManager.isUserLoggedIn())) {
+                        sendToLoginScreen()
+                    } else {
+                        if (contest.status == "notstarted"){
+                            if (!(contest.isJoined!!)) {
+                                sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                                Thread.sleep(300)
+                                sendForCreateVideo()
+                            } else {
+                                Toast.makeText(context,"You Already join this contest",Toast.LENGTH_SHORT).show()
+                                Log.d(TAG, "You Already join this contest")
+                            }
                         }
                     }
+                }else{
+                    checkInternetDialog()
                 }
+
             }
 
             itemView.setOnClickListener {
-                sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
-                val bundle = Bundle()
-                bundle.putString(ConstValFile.ContestID,contest.Id)
-                if (contest.status == "notstarted"){
-                    bundle.putBoolean(ConstValFile.IsContestJoin,contest.isJoined!!)
+                if (myApplication.isNetworkConnected()){
+                    sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.ContestID,contest.Id)
+                    bundle.putString(ConstValFile.ContestStatus,contest.status)
+                    if (contest.status == "notstarted"){
+                        bundle.putBoolean(ConstValFile.IsContestJoin,contest.isJoined!!)
+                    }else{
+                        bundle.putBoolean(ConstValFile.IsContestJoin,true)
+                    }
+                    sendToContestDetailsActivity(bundle)
                 }else{
-                    bundle.putBoolean(ConstValFile.IsContestJoin,true)
+                    checkInternetDialog()
                 }
 
-                myApplication.printLogD(contest.isJoined!!.toString(), "IsContestJoin")
-                sendToContestDetailsActivity(bundle)
             }
         }
     }
@@ -286,24 +289,23 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
         holder.apply {
             val contest = contestList[position]
             if (contest.fileType.equals(ConstValFile.TYPE_IMAGE)) {
-                myApplication.printLogD(ConstValFile.BASEURL + contest.file, "contest Url Image")
                 val imageUrl = ConstValFile.BASEURL + contest.file.toString()
+                Log.d("url", "contestImage : $imageUrl")
+
                 playerViewExo.visibility = View.GONE
                 contestImage.visibility = View.VISIBLE
                 Glide.with(context).load(imageUrl).placeholder(R.drawable.splash_icon).into(contestImage)
             } else {
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
-                myApplication.printLogD("http://139.59.30.125:12345/" + contest.file, "contest Url Video")
+                Log.d("url", "contestVideo : ${"http://139.59.30.125:12345/" + contest.file.toString()}")
                 val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
                 exoPlayer.prepare()
                 exoPlayer.play()
-
-                 if (cPos>=0){
-                     myApplication.printLogD("onViewAttachedToWindow: Posotion $cPos",TAG)
+                /* if (cPos>=0){
                      if (cPos == position){
                          exoPlayer.seekTo(0)
                          exoPlayer.playWhenReady = true
@@ -311,7 +313,7 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                          exoPlayer.seekTo(0)
                          exoPlayer.playWhenReady = false
                      }
-                 }
+                 }*/
 
                 exoPlayer.addListener(object : Player.Listener {
                     @Deprecated("Deprecated in Java")
@@ -322,12 +324,8 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                                 exoPlayer.prepare()
                                 exoPlayer.play()
                             }
-                            ExoPlayer.STATE_BUFFERING -> {
-                                myApplication.printLogD("STATE_BUFFERING", TAG)
-                            }
-                            else -> {
-                                myApplication.printLogD(playbackState.toString(), TAG)
-                            }
+                            ExoPlayer.STATE_BUFFERING -> {}
+                            else -> {}
                         }
                     }
 
@@ -335,7 +333,6 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                         super.onPlayerError(error)
                         when (error.errorCode) {
                             ExoPlaybackException.TYPE_SOURCE -> {
-                                myApplication.printLogE("TYPE_SOURCE", "currentState")
                                 val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
                                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                                 playerViewExo.player = exoPlayer
@@ -344,8 +341,8 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                                 exoPlayer.play()
                             }
                             else -> {
-                                myApplication.printLogE(error.message.toString(), "currentState")
-                                myApplication.printLogE("http://139.59.30.125:12345/" + contest.file.toString(), "currentState")
+                                Log.e("currentState","http://139.59.30.125:12345/" + contest.file.toString())
+
                             }
 
                         }
@@ -382,7 +379,6 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             }
 
             override fun onStop(holder: MyViewHolder, cPos: Int) {
-                myApplication.printLogD("onStop: Position $cPos", TAG)
 
                 holder.apply {
                     if (cPos >= 0) {
@@ -429,7 +425,6 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                     playerViewExo.player!!.seekTo(0)
                     playerViewExo.player!!.pause()
                     playerViewExo.player!!.stop()
-                    playerViewExo.player = null
                 }
             }
         }
@@ -467,5 +462,16 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
         val intent = Intent(context, ContestDetailsActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         context.startActivity(intent)
+    }
+
+    private fun checkInternetDialog() {
+        val sweetAlertDialog = SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "OK"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+        }
+        sweetAlertDialog.show()
     }
 }

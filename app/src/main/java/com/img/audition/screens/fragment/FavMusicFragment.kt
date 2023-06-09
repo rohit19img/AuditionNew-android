@@ -10,14 +10,17 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.img.audition.adapters.MusicAdapter
 import com.img.audition.dataModel.MusicData
 import com.img.audition.dataModel.MusicDataResponse
 import com.img.audition.databinding.FragmentAllMusicBinding
 import com.img.audition.databinding.FragmentFavMusicBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
@@ -42,27 +45,19 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
     private var musicList = ArrayList<MusicData>()
     private lateinit var musicCycle : RecyclerView
     private lateinit var playPauseAudio: PlayPauseAudio
-
     private lateinit var _viewBinding : FragmentFavMusicBinding
     private val view get() = _viewBinding
     private lateinit var mainViewModel: MainViewModel
-    private lateinit var musicAdapter: MusicAdapter
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
-
+    private  var musicAdapter: MusicAdapter? =null
     private val myApplication by lazy {
-        MyApplication(requireContext())
+        MyApplication(contextFromMusicActivity)
     }
-
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentFavMusicBinding.inflate(inflater,container,false)
 
-        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(SessionManager(contextFromMusicActivity).getToken(),apiInterface))[MainViewModel::class.java]
 
         musicCycle = _viewBinding.musicCycle
         return _viewBinding.root
@@ -72,6 +67,12 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
         super.onViewCreated(view1, savedInstanceState)
 
         view.shimmerVideoView.startShimmer()
+
+        if (myApplication.isNetworkConnected()){
+            showMusicList(view1.context)
+        }else{
+            checkInternetDialog()
+        }
         showMusicList(view1.context)
     }
 
@@ -82,30 +83,41 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
                     when(resources.status){
                         Status.SUCCESS ->{
                             if (resources.data!!.success!!){
-                                myApplication.printLogD(resources.data.toString(),TAG)
                                 musicList = resources.data.data
-                                musicAdapter = MusicAdapter(context,musicList)
-                                playPauseAudio = musicAdapter.onActivityStateChanged()
-                                musicCycle.adapter = musicAdapter
+                                if (musicList.size>0){
+                                    musicAdapter = MusicAdapter(context,musicList)
+                                    playPauseAudio = musicAdapter!!.onActivityStateChanged()
+                                    musicCycle.adapter = musicAdapter
+                                    view.shimmerVideoView.stopShimmer()
+                                    view.shimmerVideoView.hideShimmer()
+                                    view.shimmerVideoView.visibility = View.GONE
+                                    view.noDataView.visibility = View.GONE
+                                    view.musicCycle.visibility = View.VISIBLE
+                                }else{
+                                    view.noDataView.visibility = View.VISIBLE
+                                    view.shimmerVideoView.stopShimmer()
+                                    view.shimmerVideoView.hideShimmer()
+                                    view.shimmerVideoView.visibility = View.GONE
+                                }
+                            }else{
+                                view.noDataView.visibility = View.VISIBLE
+                                view.noDataView.text = "Something went wrong.."
                                 view.shimmerVideoView.stopShimmer()
                                 view.shimmerVideoView.hideShimmer()
                                 view.shimmerVideoView.visibility = View.GONE
-                                view.musicCycle.visibility = View.VISIBLE
-                            }else{
-                                myApplication.showToast("Something went wrong..")
+                                Toast.makeText(contextFromMusicActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                            Log.d(TAG, resources.status.toString())
                         }
                         else->{
-                            if (resources.message!!.contains("401")){
-                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
-                                sessionManager.clearLogoutSession()
-                                startActivity(Intent(contextFromMusicActivity, SplashActivity::class.java))
-                                requireActivity().finishAffinity()
-                            }
-                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                            view.noDataView.visibility = View.VISIBLE
+                            view.noDataView.text = "Something went wrong.."
+                            view.shimmerVideoView.stopShimmer()
+                            view.shimmerVideoView.hideShimmer()
+                            view.shimmerVideoView.visibility = View.GONE
+                            Log.d(TAG, resources.status.toString())
                         }
                     }
                 }
@@ -120,7 +132,7 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
             Log.d(TAG, "onPause: stop")
 
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG+"2")
+            e.printStackTrace()
         }
         super.onPause()
     }
@@ -145,20 +157,39 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
 
     private fun searchMusic(toString: String) {
         val searchList: ArrayList<MusicData> = ArrayList()
-        myApplication.printLogD("size music list  ${musicList.size}",TAG)
         for (ds in musicList) {
-            if (ds.title!!.toLowerCase().contains(toString.lowercase(Locale.getDefault()))) {
+            if (ds.title!!.toLowerCase(Locale.ROOT).contains(toString.lowercase(Locale.getDefault()))) {
                 searchList.add(ds)
             }
         }
-        musicAdapter.filterList(searchList)
+        musicAdapter?.filterList(searchList)
 
     }
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
-        musicList.clear()
+
+        try {
+            musicList.clear()
+            musicCycle.adapter = null
+            musicAdapter =null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
         getView()?.destroyDrawingCache()
         super.onDestroyView()
+    }
+
+    private fun checkInternetDialog() {
+        val sweetAlertDialog = SweetAlertDialog(contextFromMusicActivity, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "Retry"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            showMusicList(contextFromMusicActivity)
+        }
+        sweetAlertDialog.show()
     }
 }

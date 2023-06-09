@@ -23,6 +23,7 @@ class MainViewModel(private val token: String?,private val apiInterface: ApiInte
         }
     }
 
+
     fun guestLogin(guestRequest: GuestLoginRequest) = liveData(Dispatchers.IO) {
         emit(Resource.loading(data = null))
         try {

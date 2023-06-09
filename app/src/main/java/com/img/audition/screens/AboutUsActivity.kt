@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.img.audition.dataModel.TermAboutPrivacyResponse
@@ -18,21 +19,10 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class AboutUsActivity : AppCompatActivity() {
-    val TAG = "AboutUsActivity"
+    private val TAG = "AboutUsActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityAboutUsBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@AboutUsActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@AboutUsActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     lateinit var progressDialog:ProgressDialog
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +60,9 @@ class AboutUsActivity : AppCompatActivity() {
     }
 
     private fun showAboutUsPage() {
-        val req = apiInterface.getAboutUs(sessionManager.getToken())
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        val req = apiInterface.getAboutUs(SessionManager(this@AboutUsActivity).getToken())
 
         req.enqueue(object : Callback<TermAboutPrivacyResponse>{
             override fun onResponse(call: Call<TermAboutPrivacyResponse>, response: Response<TermAboutPrivacyResponse>) {
@@ -91,12 +83,13 @@ class AboutUsActivity : AppCompatActivity() {
                         }
                     }
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.e(TAG, "onResponse: ${response.toString()}")
                 }
             }
 
             override fun onFailure(call: Call<TermAboutPrivacyResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                Log.e(TAG, "onResponse: ${t.toString()}")
+
             }
 
         })

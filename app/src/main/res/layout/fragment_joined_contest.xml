@@ -25,7 +25,7 @@
         android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No Joined Contest"
+        android:text="Joined Contest 0"
         android:textColor="@color/textColorRed"
         android:textStyle="bold"
         android:textSize="18sp"

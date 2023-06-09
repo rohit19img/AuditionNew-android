@@ -13,7 +13,8 @@ import androidx.media3.common.util.UnstableApi
 import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.adapters.VideoItemAdapter
-import com.img.audition.dataModel.SongVideoResponse
+import com.img.audition.dataModel.SongVideoData
+import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.ActivitySongsVideoBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -24,13 +25,13 @@ import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.viewModel.MainViewModel
 import com.img.audition.viewModel.Status
 import com.img.audition.viewModel.ViewModelFactory
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 @UnstableApi
 class TryAudioActivity : AppCompatActivity() {
 
+    private  var videoItemAdapter: VideoItemAdapter?= null
+    private lateinit var videoData: ArrayList<VideoData>
+    private  var musicDetails: SongVideoData? = null
     private val TAG = "TryAudioActivity"
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -163,10 +164,10 @@ class TryAudioActivity : AppCompatActivity() {
                         Status.SUCCESS ->{
                             myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
                             if (videoResponse.data.success!!){
-                                val videoData = videoResponse.data.data!!.videos
-                                val musicDetails = videoResponse.data.data
+                                 videoData = videoResponse.data.data!!.videos
+                                 musicDetails = videoResponse.data.data!!
                                 if (videoData.size>0) {
-                                    val videoItemAdapter = VideoItemAdapter(this@TryAudioActivity, videoData)
+                                     videoItemAdapter = VideoItemAdapter(this@TryAudioActivity, videoData)
                                     viewBinding.userVideoRecycle.adapter = videoItemAdapter
                                     viewBinding.shimmerVideoView.stopShimmer()
                                     viewBinding.shimmerVideoView.hideShimmer()
@@ -174,8 +175,8 @@ class TryAudioActivity : AppCompatActivity() {
                                     viewBinding.userVideoRecycle.visibility = View.VISIBLE
 
                                     val audioImage = ConstValFile.BASEURL+musicDetails!!.Image.toString()
-                                    val title = musicDetails.title.toString()
-                                    val subTitle = musicDetails.subtitle.toString()
+                                    val title = musicDetails?.title.toString()
+                                    val subTitle = musicDetails?.subtitle.toString()
                                     Glide.with(this@TryAudioActivity).load(audioImage).placeholder(R.drawable.music_ic).into(viewBinding.audiImage)
                                     viewBinding.title.text = title
                                     viewBinding.subTitle.text = subTitle
@@ -207,6 +208,20 @@ class TryAudioActivity : AppCompatActivity() {
     override fun onPause() {
         mediaPlayer.pause()
         viewBinding.playPauseButton.setImageResource(R.drawable.play_ic)
+        songHandler.removeCallbacksAndMessages(null)
         super.onPause()
+    }
+
+    override fun onStop() {
+        try {
+            videoItemAdapter = null
+            videoData.clear()
+            musicDetails = null
+            songHandler.removeCallbacksAndMessages(null)
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        super.onStop()
     }
 }

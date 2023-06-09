@@ -39,7 +39,8 @@ import java.io.*
 
 class BankVerificationFragment() : Fragment() {
 
-    val TAG = "BankVerificationFragment"
+    private lateinit var stateAr: Array<String>
+    private val TAG = "BankVerificationFragment"
     lateinit var requestQueue: RequestQueue
     var state = ""
     var image_path = ""
@@ -47,11 +48,6 @@ class BankVerificationFragment() : Fragment() {
     private lateinit var _viewBinding: FragmentBankVerificationBinding
     private val view get() = _viewBinding
     private var sessionManager: SessionManager? = null
-
-    private var myApplication: MyApplication? = null
-    private val apiInterface by lazy {
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +61,6 @@ class BankVerificationFragment() : Fragment() {
         _viewBinding = FragmentBankVerificationBinding.inflate(inflater, container, false)
 
         sessionManager = SessionManager(requireContext())
-        myApplication = MyApplication(requireContext())
 
         return _viewBinding.root
     }
@@ -73,7 +68,7 @@ class BankVerificationFragment() : Fragment() {
     override fun onViewCreated(view1: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view1, savedInstanceState)
 
-        val stateAr = requireActivity().resources.getStringArray(R.array.india_states)
+        stateAr = requireActivity().resources.getStringArray(R.array.india_states)
         view.stateSpinner.adapter = StateListAdapter(requireContext(), stateAr)
 
         AllVerify(view1.context)
@@ -81,7 +76,6 @@ class BankVerificationFragment() : Fragment() {
         try {
             view.stateSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>, view2: View?, position: Int, id: Long) {
-                    myApplication!!.printLogD(stateAr[position], "stateAr")
                     state = stateAr[position]
                     if (view.stateSpinner.selectedView != null)
                         (view.stateSpinner.selectedView as TextView).setTextColor(Color.BLACK)
@@ -89,7 +83,7 @@ class BankVerificationFragment() : Fragment() {
                 override fun onNothingSelected(adapterView: AdapterView<*>?) {}
             }
         } catch (e: java.lang.Exception) {
-            myApplication!!.printLogE(e.toString(), TAG)
+            e.printStackTrace()
         }
 
         view.btnUpload.setOnClickListener {
@@ -148,7 +142,8 @@ class BankVerificationFragment() : Fragment() {
                 valid = false
             } else if (image_path == "") {
                 valid = false
-                myApplication!!.showToast("Please click a image of passbook first")
+                Toast.makeText(context,"Please click a image of passbook first",Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "You Already join this contest")
             }
         }
         return valid
@@ -184,13 +179,14 @@ class BankVerificationFragment() : Fragment() {
                                 )
                             )
                         } else {
-                            myApplication!!.showToast(jsonObject.getString("message"))
+                            Toast.makeText(context,jsonObject.getString("message"),Toast.LENGTH_SHORT).show()
+
                         }
                     } catch (e: UnsupportedEncodingException) {
-                        myApplication!!.printLogE(e.message!!, TAG)
+                       e.printStackTrace()
 
                     } catch (e: JSONException) {
-                        myApplication!!.printLogE(e.message!!, TAG)
+                       e.printStackTrace()
                     }
                 },
                 Response.ErrorListener { error -> Log.i("ErrorResponce", error.toString()) }) {
@@ -204,7 +200,6 @@ class BankVerificationFragment() : Fragment() {
                     map["bankbranch"] = view.branchName.getText().toString()
                     map["state"] = state
                     map["typename"] = "bank"
-                    myApplication!!.printLogI(map.toString(), TAG)
                     return map
                 }
 
@@ -378,12 +373,14 @@ class BankVerificationFragment() : Fragment() {
                 Log.e("Check file", image_path)
                 view.img.setImageURI(Uri.parse(image_path))
             } catch (e: Exception) {
-                myApplication!!.printLogE(e.message.toString(), TAG)
+                e.printStackTrace()
             }
         }
     }
 
     private fun AllVerify(context: Context) {
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
         val allVerifyReq = apiInterface.getAllVerificationsData(sessionManager!!.getToken())
         allVerifyReq.enqueue(object : Callback<UserVerificationResponse> {
             override fun onResponse(
@@ -442,13 +439,11 @@ class BankVerificationFragment() : Fragment() {
                     }
 
                 }else{
-                    myApplication!!.printLogE(response.toString(),TAG)
+                    Log.e(TAG, response.toString())
                 }
             }
 
             override fun onFailure(call: Call<UserVerificationResponse>, t: Throwable) {
-                myApplication!!.printLogE(t.toString(),TAG)
-                Log.i("Exception",t.toString())
                 Log.i("Exception",t.message.toString())
             }
 
@@ -457,6 +452,12 @@ class BankVerificationFragment() : Fragment() {
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
+        try {
+            view.stateSpinner.adapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
         getView()?.destroyDrawingCache()
         super.onDestroyView()
     }

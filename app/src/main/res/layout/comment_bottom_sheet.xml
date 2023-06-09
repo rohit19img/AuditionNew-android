@@ -43,6 +43,7 @@
             android:id="@+id/commentCycle"
             android:background="@color/bgColorWhite"
             android:layout_width="match_parent"
+            android:orientation="vertical"
             tools:listitem="@layout/comment_item_design"
             android:layout_marginTop="5dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"

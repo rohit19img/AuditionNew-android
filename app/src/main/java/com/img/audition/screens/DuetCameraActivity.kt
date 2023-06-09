@@ -61,17 +61,13 @@ import java.util.concurrent.Executors
 @UnstableApi
 class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener{
 
-    val TAG = "DuetCameraActivity"
+    private val TAG = "DuetCameraActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityDuetCameraBinding.inflate(layoutInflater)
     }
 
     private val sessionManager by lazy {
         SessionManager(this@DuetCameraActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@DuetCameraActivity)
     }
 
     private val bundle by lazy {
@@ -120,7 +116,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
     lateinit var  audioSource: AudioProcessorSource
     private val audioProcessorExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private val mediaCaptureExecutor: ExecutorService = Executors.newFixedThreadPool(2)
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -350,14 +345,12 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
                 if (totalTime>=maxVideoDuration){
                     isTimerRunning = false
-                    myApplication.printLogD("Countdown finished 1","check time")
                     onFinish()
                 }
             }
 
             override fun onFinish() {
                 isTimerRunning = false
-                myApplication.printLogD("Countdown finished 2","check time")
             }
         }.start()
 
@@ -395,10 +388,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
         val elapsedSeconds = (totalTime / 1000) % 60
         val timeElapsedFormatted = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds)
         val timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-        myApplication.printLogD("$timeElapsedFormatted / $timeLeftFormatted","check time")
-        myApplication.printLogD("Time remaining: ${minutes}:${seconds}","check time")
-        myApplication.printLogD("Time mills: $timeRemainingInMillis","check time")
-        myApplication.printLogD("Time mills: $totalTime","check time")
 
         findViewById<TextView>(R.id.videoDuration).text = timeElapsedFormatted
 
@@ -411,15 +400,13 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
         val timestamp = System.currentTimeMillis()
         val filename = "$timestamp.mp4"
         val appData = getExternalFilesDir(null)
-        myApplication.printLogD(appData!!.absolutePath, TAG)
 
         val createFile = File(appData, filename)
         if (!(createFile.exists())) {
             try {
                 createFile.createNewFile()
-                myApplication.printLogD(createFile.absolutePath, TAG)
             } catch (i: IOException) {
-                myApplication.printLogE(i.toString(), TAG)
+                i.printStackTrace()
             }
         }
 
@@ -471,7 +458,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                         Log.d("check 200", "STATE_READY: ")
                         viewBinding.progressLoading.visibility = View.GONE
                         viewBinding.progressText.visibility = View.GONE
-                        myApplication.printLogD("Duet videoDuration : ${videoPlayer.contentDuration}","check 200")
                         maxVideoDuration = videoPlayer.contentDuration
                         minVideoDuration = videoPlayer.contentDuration
                         viewBinding.captureButton.progressDuration = maxVideoDuration
@@ -565,15 +551,12 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
     override fun onStart(captureType: SnapButtonView.CaptureType) {
 
-        myApplication.printLogD(captureType.toString(),"CaptureType")
         if (videoFilePath.isNotEmpty()){
             if (File(videoFilePath).exists()){
                 File(videoFilePath).delete()
             }
         }
         if (captureType == SnapButtonView.CaptureType.CONTINUOUS) {
-
-            myApplication.printLogI("onStart Camera",TRACK)
 
             videoPlayer.seekTo(0)
             videoPlayer.prepare()
@@ -589,7 +572,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             if (videoFilePath.isEmpty()){
                 videoFilePath = ""
                 videoFilePath = createFileAndFolder()
-                myApplication.printLogD(videoFilePath,"videoFileCreate")
             }else{
 
             }
@@ -606,6 +588,7 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                     }
                 recordingCloseable = Closeable {
                     outputCloseable.close()
+                    captureCloseable.surface.release()
                     captureCloseable.close()
                 }
             }else{
@@ -637,7 +620,7 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             if (file.exists())
                 file.delete()
             runOnUiThread {
-                myApplication.showToast("Video must be ${minVideoDuration/1000} second and more..")
+                Toast.makeText(this,"Video must be ${minVideoDuration/1000} second and more..",Toast.LENGTH_SHORT).show()
                 stopTimer()
             }
         }else{
@@ -647,17 +630,16 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 retriever.setDataSource(this@DuetCameraActivity, Uri.fromFile(file))
                 val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
                 retriever.release()
-                myApplication.printLogD("selectVideoDuration : $time" , TAG)
+
                 selectVideoDuration = time!!.toLong()
             }catch (e:java.lang.Exception){
-                myApplication.printLogE(e.toString(),TRACK)
-            }
+                e.printStackTrace()            }
             sendToVideoMerge(file.absolutePath,selectVideoDuration)
         }
     }
 
     override fun onError(e: Exception) {
-        myApplication.printLogE(e.toString(),TRACK)
+        e.printStackTrace()
     }
 
 
@@ -717,7 +699,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             if (path != null) {
                 val downloadFilePath = path
                 sessionManager.setDuetVideoUrl(downloadFilePath)
-                myApplication.printLogD("video Download Complete : $path",TAG)
                 /* val outputPath1 =  createFileAndFolder()
                  val inputPath = sessionManager.getCreateDuetVideoUrl()
                  val prepareFirstVideoCmd = "-y -i $inputPath -preset ultrafast -vf scale=480:840 $outputPath1"
@@ -730,7 +711,8 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 funComipler(finalCmd,finalPath)
 
             } else {
-                myApplication.printLogD("video Download Failed : ",TAG)
+                Log.e(TAG, "video Download Failed : ")
+
             }
 
 
@@ -763,12 +745,10 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
         EpEditor.execCmd(cmd,0, object : OnEditorListener {
             override fun onSuccess() {
-                myApplication.printLogD("Compile Complete",TAG)
                 val retriever =  MediaMetadataRetriever()
                 retriever.setDataSource(this@DuetCameraActivity, Uri.parse(outputPath));
                 val  time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
                 retriever.release()
-                myApplication.printLogD("selectVideoDuration : $time" ,TAG)
                 val selectVideoDuration = time!!.toLong()
                 sessionManager.setCreateVideoPath(outputPath)
                 sessionManager.setCreateVideoDuration(selectVideoDuration)
@@ -779,15 +759,12 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
                 startActivity(intent)
             }
             override fun onFailure() {
-                myApplication.printLogD("Compile : onFailure",TAG)
 //                myApplication.showToast("Failed, Try Again..")
 //                Toast.makeText(this@CompilerActivity,"Something went wrong,Try Again..", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this@DuetCameraActivity,SnapPreviewActivity::class.java))
                 finish()
             }
-            override fun onProgress(progress: Float) {
-                myApplication.printLogD("Compile onProgress : $progress",TAG)
-            }
+            override fun onProgress(progress: Float) {}
         })
     }
 }

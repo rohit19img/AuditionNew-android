@@ -54,9 +54,9 @@ import kotlin.Int
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
             Glide.with(context).load(list[position].image).into(imageView1)
-            username.setText(list[position].name)
-            audiid.setText(list[position].auditionId)
-            follcount.setText(String.valueOf(list[position].followersCount) + " Followers")
+            username.text = list[position].name
+            audiid.text = list[position].auditionId
+            follcount.text = String.valueOf(list[position].followersCount) + " Followers"
 
 
                 itemView.setOnClickListener {

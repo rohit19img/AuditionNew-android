@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.img.audition.dataModel.TermAboutPrivacyResponse
@@ -22,17 +23,6 @@ class TermsAndConditionActivity : AppCompatActivity() {
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityTermsAndConditionBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@TermsAndConditionActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@TermsAndConditionActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     lateinit var progressDialog: ProgressDialog
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +60,8 @@ class TermsAndConditionActivity : AppCompatActivity() {
     }
 
     private fun showTermsAndConditionPage() {
-        val req = apiInterface.getTermsAndConditions(sessionManager.getToken())
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val req = apiInterface.getTermsAndConditions(SessionManager(this).getToken())
 
         req.enqueue(object : Callback<TermAboutPrivacyResponse> {
             override fun onResponse(call: Call<TermAboutPrivacyResponse>, response: Response<TermAboutPrivacyResponse>) {
@@ -91,14 +82,12 @@ class TermsAndConditionActivity : AppCompatActivity() {
                         }
                     }
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.d(TAG,response.toString())
                 }
             }
-
             override fun onFailure(call: Call<TermAboutPrivacyResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+               t.printStackTrace()
             }
-
         })
     }
 }

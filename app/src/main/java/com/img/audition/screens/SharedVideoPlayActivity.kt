@@ -14,7 +14,6 @@ import com.img.audition.network.SessionManager
 @UnstableApi
 class SharedVideoPlayActivity : AppCompatActivity() {
 
-    val TAG = "SharedVideoPlayActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivitySharedVideoPlayBinding.inflate(layoutInflater)
     }

@@ -4,17 +4,20 @@ import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.firebase.firestore.FirebaseFirestore
 import com.img.audition.R
 import com.img.audition.dataModel.CommentData
 import com.img.audition.databinding.CommentItemDesignBinding
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CommentAdapter(val context: Context,val commentList:ArrayList<CommentData>) : RecyclerView.Adapter<CommentAdapter.CommentHolder>() {
+@UnstableApi class CommentAdapter(val context: Context, private val commentList: ArrayList<CommentData>,private val videoAdapter: VideoAdapter) : RecyclerView.Adapter<CommentAdapter.CommentHolder>() {
+
+
+
     inner class CommentHolder(itemView: CommentItemDesignBinding) : RecyclerView.ViewHolder(itemView.root) {
         val commentText = itemView.commentText
         val commentTime = itemView.commentTime
@@ -40,6 +43,11 @@ class CommentAdapter(val context: Context,val commentList:ArrayList<CommentData>
 
           Log.d("check date", "onBindViewHolder: ${list.createdAt.toString()}")
           commentTime.text = list.createdAt.toString()
+
+          itemView.setOnLongClickListener {
+              videoAdapter.deleteComment(list.comment_id!!,position)
+              false
+          }
       }
     }
 }

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
+import cn.pedant.SweetAlert.SweetAlertDialog
 
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
@@ -38,8 +39,6 @@ class SplashActivity : AppCompatActivity() {
      companion object{
          var isPopupBannerShow = false
      }
-     private val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-
 
      private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,28 +46,51 @@ class SplashActivity : AppCompatActivity() {
         sessionManager = SessionManager(this@SplashActivity)
         myApplication  = MyApplication(this@SplashActivity)
 
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         if (myApplication.isNetworkConnected()){
-            FirebaseMessaging.getInstance().subscribeToTopic("Audition-All")
-            if (!(sessionManager.isUserLoggedIn())){
-                myApplication.printLogD("Not Login in",TAG)
-                if (!(sessionManager.isGuestLoggedIn())){
-                    onTokenRefresh()
-                }else{
-                    sendToHomeActivity()
-                }
-            }else{
-                myApplication.printLogD("Login in",TAG)
-                sendToHomeActivity()
-            }
+            decideToWhereSend()
+
         }else{
-            myApplication.showToast(ConstValFile.Check_Connection)
+            showRetryDialog()
         }
     }
 
+     private fun showRetryDialog() {
+         val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+         sweetAlertDialog.titleText = "Internet"
+         sweetAlertDialog.contentText = ConstValFile.Check_Connection
+         sweetAlertDialog.confirmText = "Retry"
+         sweetAlertDialog.setConfirmClickListener {
+             sweetAlertDialog.dismiss()
+             decideToWhereSend()
+         }
+         sweetAlertDialog.show()
+     }
 
-    fun onTokenRefresh() {
+     private fun decideToWhereSend() {
+         if (myApplication.isNetworkConnected()){
+             FirebaseMessaging.getInstance().subscribeToTopic("Audition-All")
+             if (!(sessionManager.isUserLoggedIn())){
+                 myApplication.printLogD("Not Login in",TAG)
+                 if (!(sessionManager.isGuestLoggedIn())){
+                     onTokenRefresh()
+                 }else{
+                     sendToHomeActivity()
+                 }
+             }else{
+                 myApplication.printLogD("Login in",TAG)
+                 sendToHomeActivity()
+             }
+         }else{
+             showRetryDialog()
+         }
+
+     }
+
+
+     fun onTokenRefresh() {
         val refreshedToken = arrayOf("")
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(object : OnCompleteListener<String?> {
                 override fun onComplete(task: Task<String?>) {
@@ -89,6 +111,22 @@ class SplashActivity : AppCompatActivity() {
 
 
     fun sendToHomeActivity(){
+        try {
+            if (File(sessionManager.getCreateVideoPath().toString()).exists()){
+                File(sessionManager.getCreateVideoPath().toString()).delete()
+            }
+
+            if (File(sessionManager.getCreateDuetVideoUrl().toString()).exists()){
+                File(sessionManager.getCreateDuetVideoUrl().toString()).delete()
+            }
+
+            if (File(sessionManager.getTrimAudioPath().toString()).exists()){
+                File(sessionManager.getTrimAudioPath().toString()).delete()
+            }
+
+        }catch (e :java.lang.Exception){
+            e.printStackTrace()
+        }
         sessionManager.clearVideoSession()
         sessionManager.clearContestSession()
         sessionManager.clearDuetSession()

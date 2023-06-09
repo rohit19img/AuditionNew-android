@@ -22,10 +22,7 @@ import android.text.method.ScrollingMovementMethod
 import android.text.style.ClickableSpan
 import android.util.Log
 import android.view.*
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -44,6 +41,7 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.firestore.FirebaseFirestore
@@ -56,7 +54,6 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.*
-import com.img.audition.screens.fragment.CommentBottomSheet
 import com.img.audition.screens.fragment.ProfileFragment
 import com.img.audition.screens.fragment.VideoReportDialog
 import com.img.audition.videoWork.FollowFollowingTrack
@@ -69,34 +66,44 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 
-
 @UnstableApi
-class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<VideoData>) :
-    RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), FollowFollowingTrack {
-    val TAG = "VideoAdapter"
+class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), FollowFollowingTrack {
+
+    lateinit var contextFromActivity:Context
+    lateinit var videoList:ArrayList<VideoData>
+    private val TAG = "VideoAdapter"
+    lateinit var sessionManager : SessionManager
+    lateinit var apiInterface :ApiInterface
+    lateinit var firestore :FirebaseFirestore
+    var commentList: ArrayList<CommentData> = arrayListOf()
+    private var commentAdapter: CommentAdapter? = null
+    lateinit var mSocket: Socket
 
     var Ar = arrayOf(-1, 0)
-    val sessionManager = SessionManager(contextFromActivity.applicationContext)
-    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-    var firestore = FirebaseFirestore.getInstance()
-    lateinit var commentList: ArrayList<CommentData>
-
-    private val myApplication by lazy {
-        MyApplication(contextFromActivity.applicationContext)
-
-    }
     var cPos = 0
 
-    var mSocket: Socket = VideoCacheWork.mSocket!!
+    private var videoPosition = 0
+
+    private val myApplication by lazy {
+        MyApplication(contextFromActivity)
+    }
+    constructor(contextFromActivity: Context,videoList: ArrayList<VideoData>):this()
+    {
+        this.videoList = videoList
+        this.contextFromActivity = contextFromActivity
+        sessionManager = SessionManager(contextFromActivity.applicationContext)
+        apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+        firestore = FirebaseFirestore.getInstance()
+        mSocket = VideoCacheWork.mSocket!!
+    }
+
 
     override fun onIntentReceived(followStatus: Boolean, userID: String, position: Int) {
-        myApplication.printLogD("Intent followStatus : $followStatus", "onIntentReceived")
-        myApplication.printLogD("Intent userID : $userID", "onIntentReceived")
-        myApplication.printLogD("Intent position : $position", "onIntentReceived")
-
+        Log.d("onIntentReceived","Intent $TAG : $followStatus")
         for (dd in videoList) {
             if (dd.userId == userID) {
                 dd.followStatus = followStatus
@@ -137,20 +144,20 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         )
 
 
-
         val trackSelector = DefaultTrackSelector(contextFromActivity).apply {
             setParameters(buildUponParameters()
                 .setRendererDisabled(C.TRACK_TYPE_VIDEO,true)
                 .setAllowVideoMixedDecoderSupportAdaptiveness(true)
                 .setAllowAudioMixedDecoderSupportAdaptiveness(true)
                 .setPreferredVideoMimeType("video/avc")
+                .setPreferredAudioMimeType("audio/mp4a-latm")
                 .setAllowAudioMixedChannelCountAdaptiveness(true)
                 .setAllowMultipleAdaptiveSelections(true)
             )
         }
 
         val exoPlayer = ExoPlayer.Builder(contextFromActivity.applicationContext)
-            .setTrackSelector(trackSelector)
+            .setTrackSelector(trackSelector).setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
             .build()
         //
 
@@ -162,10 +169,7 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         return VideoViewHolder(itemBinding)
     }
 
-    override fun onBindViewHolder(
-        holder: VideoViewHolder,
-        @SuppressLint("RecyclerView") position: Int
-    ) {
+    override fun onBindViewHolder(holder: VideoViewHolder, @SuppressLint("RecyclerView") position: Int) {
 
         val list = videoList[position]
         holder.apply {
@@ -202,7 +206,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             //vote
-            myApplication.printLogD(list.voteStatus!!.toString(),"voteStatus")
 
             if (list.userId.equals(sessionManager.getUserSelfID())) {
                 followBtn.visibility = View.GONE
@@ -245,13 +248,14 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             documentSnapshot1.toObject(CommentData::class.java)
                         commentList.add(note)
                     }
-                    myApplication.printLogD("commentCount " + commentList.size.toString(), TAG)
-                    commentCount.text = commentList.size.toString()
+                    videoList[position].commentCount = commentList.size
+                    commentCount.text = list.commentCount.toString()
+                    Log.d("commentCount", "c list size: ${commentList.size.toString()}")
+
                 }
             //
 
-            myApplication.printLogD("onBindViewHolder: ${list.file}", "videoUrl")
-
+            Log.d("commentCount", "c count: ${list.commentCount.toString()}")
             if (list.likeStatus!!) {
                 likeBtn.setImageDrawable(
                     ContextCompat.getDrawable(
@@ -325,20 +329,35 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                     // Create a clickable span for each hashtag
                     val clickableSpan = object : ClickableSpan() {
                         override fun onClick(view: View) {
-                            // Handle hashtag click here
-                            val clickedString = (view as TextView).text.toString()
-                            val clickedHashtag = clickedString.substring(start, end)
 
-                            val bundle = Bundle()
-                            bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
-                            bundle.putString(ConstValFile.AuditionID, clickedHashtag)
-                            bundle.putBoolean(ConstValFile.isSearchAuditionID, true)
-                            bundle.putInt(ConstValFile.UserPositionInList, position)
-                            myApplication.printLogD("videoAdapter $position", "check 900")
-                            bundle.putSerializable("list", videoList)
-                            bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
-                            sendToVideoUserProfile(bundle)
+                            if (list.isBlocked){
+                                val sweetAlertDialog = SweetAlertDialog(contextFromActivity, SweetAlertDialog.WARNING_TYPE)
+                                sweetAlertDialog.titleText = "Blocked User"
+                                sweetAlertDialog.contentText = "Do you want Unblock this user"
+                                sweetAlertDialog.confirmText = "Yes"
+                                sweetAlertDialog.setConfirmClickListener {
+                                    sweetAlertDialog.dismiss()
+                                    blockUnblockUser(ConstValFile.Unblock,list.userId.toString())
+                                }
+                                sweetAlertDialog.cancelText = "No"
+                                sweetAlertDialog.setCancelClickListener {
+                                    sweetAlertDialog.dismiss()
+                                }
+                                sweetAlertDialog.show()
+                            }else{
+                                // Handle hashtag click here
+                                val clickedString = (view as TextView).text.toString()
+                                val clickedHashtag = clickedString.substring(start, end)
 
+                                val bundle = Bundle()
+                                bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
+                                bundle.putString(ConstValFile.AuditionID, clickedHashtag)
+                                bundle.putBoolean(ConstValFile.isSearchAuditionID, true)
+                                bundle.putInt(ConstValFile.UserPositionInList, position)
+                                bundle.putSerializable("list", videoList)
+                                bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
+                                sendToVideoUserProfile(bundle)
+                            }
                         }
 
                         override fun updateDrawState(textPaint: TextPaint) {
@@ -368,74 +387,101 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
 
 
             likeBtn.setOnClickListener {
-
-                if (list.likeStatus!!) {
-                    likeBtn.isSelected = false
-                    likeBtn.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            contextFromActivity,
-                            R.drawable.like_ic
+                if (myApplication.isNetworkConnected()){
+                    if (list.likeStatus!!) {
+                        likeBtn.isSelected = false
+                        likeBtn.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                contextFromActivity,
+                                R.drawable.like_ic
+                            )
                         )
-                    )
-                    likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.bgColorWhite))
-                    list.likeStatus = false
-                    likeVideo(list.Id, "unlike")
-                    val newlikeCount = list.likeCount?.minus(1)
-                    if (newlikeCount != null && newlikeCount > 1) {
-                        list.likeCount = newlikeCount
+                        likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.bgColorWhite))
+                        list.likeStatus = false
+                        likeVideo(list.Id, "unlike")
+                        val newlikeCount = list.likeCount?.minus(1)
+                        if (newlikeCount != null && newlikeCount > 1) {
+                            list.likeCount = newlikeCount
+                        } else {
+                            list.likeCount = 0
+                        }
+                        likeCount.text = newlikeCount.toString()
                     } else {
-                        list.likeCount = 0
-                    }
-                    likeCount.text = newlikeCount.toString()
-                } else {
-                    likeBtn.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            contextFromActivity,
-                            R.drawable.liked_ic
+                        likeBtn.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                contextFromActivity,
+                                R.drawable.liked_ic
+                            )
                         )
-                    )
-                    likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.likeHeartRed))
-                    likeBtn.isSelected = true
-                    likeVideo(list.Id, "liked")
-                    list.likeStatus = true
-                    val newlikeCount = list.likeCount?.plus(1)
-                    list.likeCount = newlikeCount
-                    likeCount.text = newlikeCount.toString()
+                        likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.likeHeartRed))
+                        likeBtn.isSelected = true
+                        likeVideo(list.Id, "liked")
+                        list.likeStatus = true
+                        val newlikeCount = list.likeCount?.plus(1)
+                        list.likeCount = newlikeCount
+                        likeCount.text = newlikeCount.toString()
 
+                    }
+                }else{
+                    showToast(ConstValFile.Check_Connection)
                 }
+
             }
 
             followBtn.setOnClickListener {
-                if (!(sessionManager.isUserLoggedIn())) {
-                    showToast(ConstValFile.LoginMsg)
-                    sendToLoginScreen()
-                } else {
-                    if (!(list.followStatus!!)) {
-                        for (uList in videoList) {
-                            if (uList.userId.equals(videoList[position].userId)) {
-                                uList.followStatus = true
+                if (myApplication.isNetworkConnected()){
+                    if (!(sessionManager.isUserLoggedIn())) {
+                        showToast(ConstValFile.LoginMsg)
+                        sendToLoginScreen()
+                    } else {
+                        if (!(list.followStatus!!)) {
+                            for (uList in videoList) {
+                                if (uList.userId.equals(videoList[position].userId)) {
+                                    uList.followStatus = true
+                                }
                             }
+                            list.followStatus = true
+                            followUserApi(list.userId, "followed")
+                            followBtn.text = ConstValFile.Following
+                            followBtn.setTypeface(followBtn.typeface, Typeface.ITALIC)
                         }
-                        list.followStatus = true
-                        followUserApi(list.userId, "followed")
-                        followBtn.text = ConstValFile.Following
-                        followBtn.setTypeface(followBtn.typeface, Typeface.ITALIC)
                     }
+                }else{
+                    showToast(ConstValFile.Check_Connection)
                 }
+
             }
 
             viewVidUserProBtn.setOnClickListener {
-                if (!(list.isSelf)!!) {
-
-                    val bundle = Bundle()
-                    bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
-                    bundle.putInt(ConstValFile.UserPositionInList, position)
-                    myApplication.printLogD("videoAdapter $position", "check 900")
-                    bundle.putSerializable("list", videoList)
-                    bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
-                    sendToVideoUserProfile(bundle)
-                } else {
-                    sendToUserSelfProfile()
+                if (myApplication.isNetworkConnected()){
+                    if (list.isBlocked){
+                        val sweetAlertDialog = SweetAlertDialog(contextFromActivity, SweetAlertDialog.WARNING_TYPE)
+                        sweetAlertDialog.titleText = "Blocked User"
+                        sweetAlertDialog.contentText = "Do you want Unblock this user"
+                        sweetAlertDialog.confirmText = "Yes"
+                        sweetAlertDialog.setConfirmClickListener {
+                            sweetAlertDialog.dismiss()
+                            blockUnblockUser(ConstValFile.Unblock,list.userId.toString())
+                        }
+                        sweetAlertDialog.cancelText = "No"
+                        sweetAlertDialog.setCancelClickListener {
+                            sweetAlertDialog.dismiss()
+                        }
+                        sweetAlertDialog.show()
+                    }else{
+                        if (!(list.isSelf)!!) {
+                            val bundle = Bundle()
+                            bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
+                            bundle.putInt(ConstValFile.UserPositionInList, position)
+                            bundle.putSerializable("list", videoList)
+                            bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
+                            sendToVideoUserProfile(bundle)
+                        } else {
+                            sendToUserSelfProfile()
+                        }
+                    }
+                }else{
+                    showToast(ConstValFile.Check_Connection)
                 }
             }
 
@@ -450,16 +496,35 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             userName.setOnClickListener {
-                if (!(list.isSelf)!!) {
-
-                    val bundle = Bundle()
-                    bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
-                    bundle.putInt(ConstValFile.UserPositionInList, position)
-                    bundle.putSerializable("list", videoList)
-                    bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
-                    sendToVideoUserProfile(bundle)
-                } else {
-                    sendToUserSelfProfile()
+                if (myApplication.isNetworkConnected()){
+                    if (list.isBlocked){
+                        val sweetAlertDialog = SweetAlertDialog(contextFromActivity, SweetAlertDialog.WARNING_TYPE)
+                        sweetAlertDialog.titleText = "Blocked User"
+                        sweetAlertDialog.contentText = "Do you want Unblock this user"
+                        sweetAlertDialog.confirmText = "Yes"
+                        sweetAlertDialog.setConfirmClickListener {
+                            sweetAlertDialog.dismiss()
+                            blockUnblockUser(ConstValFile.Unblock,list.userId.toString())
+                        }
+                        sweetAlertDialog.cancelText = "No"
+                        sweetAlertDialog.setCancelClickListener {
+                            sweetAlertDialog.dismiss()
+                        }
+                        sweetAlertDialog.show()
+                    }else{
+                        if (!(list.isSelf)!!) {
+                            val bundle = Bundle()
+                            bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
+                            bundle.putInt(ConstValFile.UserPositionInList, position)
+                            bundle.putSerializable("list", videoList)
+                            bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
+                            sendToVideoUserProfile(bundle)
+                        } else {
+                            sendToUserSelfProfile()
+                        }
+                    }
+                }else{
+                    showToast(ConstValFile.Check_Connection)
                 }
             }
 
@@ -478,8 +543,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
 
             audioName.setOnClickListener {
                 if (list.songId != null && list.songId!!.isNotEmpty()) {
-                    myApplication.printLogD(list.song!!.Id!! + ": id", "audioUrl")
-                    myApplication.printLogD(list.songLink.toString(), "audioUrl")
                     sendSongVideoActivity(list.song!!.Id!!, list.songLink.toString())
                 } else {
                     showToast("This Audio Not Available")
@@ -487,23 +550,28 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             commentBtn.setOnClickListener {
-                val bundle = Bundle()
-                bundle.putString(ConstValFile.AuditionID, list.auditionId)
-                myApplication.printLogD(list.Id.toString(), "check 300")
-                bundle.putSerializable(ConstValFile.CommentList, list.comment)
-                bundle.putString(ConstValFile.AllUserID, list.userId)
-                bundle.putString(ConstValFile.VideoID, list.Id)
-                bundle.putString(ConstValFile.PostID, list.postId)
-                if (!(sessionManager.getUserProfileImage().isNullOrEmpty())) {
-                    bundle.putString(ConstValFile.UserImage, sessionManager.getUserProfileImage())
-                } else {
-                    bundle.putString(ConstValFile.UserImage, "")
+                if (myApplication.isNetworkConnected()){
+                    videoPosition = position
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.AuditionID, list.auditionId)
+                    bundle.putSerializable(ConstValFile.CommentList, list.comment)
+                    bundle.putString(ConstValFile.AllUserID, list.userId)
+                    bundle.putString(ConstValFile.VideoID, list.Id)
+                    bundle.putString(ConstValFile.PostID, list.postId)
+                    val userImage = if (!(sessionManager.getUserProfileImage().isNullOrEmpty())) {
+                        sessionManager.getUserProfileImage()
+                    } else {
+                        ""
+                    }
+                    bundle.putInt(ConstValFile.UserPositionInList, position)
+                    bundle.putSerializable("list",videoList)
+//                showCommentDialog(bundle)
+                    showCommentDialog2(list.postId!!,list.auditionId!!,list.userId!!,list.Id,userImage!!,position)
+                }else{
+                    showToast(ConstValFile.Check_Connection)
                 }
-                bundle.putInt(ConstValFile.UserPositionInList, position)
-                bundle.putSerializable("list", videoList)
-                showCommentDialog(bundle)
-            }
 
+            }
             audioName.isSelected = true
             holder.audioName.movementMethod = ScrollingMovementMethod()
 
@@ -522,13 +590,9 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             exoPlayer.setMediaSource(videoMediaSource)
             exoPlayer.prepare()
 
-
-
             if (cPos >= 0) {
 
                 if (cPos == position) {
-                    myApplication.printLogD("onViewAttachedToWindow: Posotion ${cPos}", "check 100")
-                    myApplication.printLogD("onViewAttachedToWindow: Url ${videoList[cPos].file}", "check 100")
 
                     exoPlayer.seekTo(0)
                     exoPlayer.playWhenReady = true
@@ -537,8 +601,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                     exoPlayer.playWhenReady = false
                 }
             }
-
-
             playPauseVideoBtn.setOnClickListener {
                 playPauseIc.visibility = View.GONE
                 if (exoPlayer.isPlaying) {
@@ -580,20 +642,13 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                 override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
                     when (playbackState) {
                         ExoPlayer.STATE_ENDED -> {
-                            myApplication.printLogD("STATE_ENDED", "currentState")
                             exoPlayer.seekTo(0)
                             exoPlayer.prepare()
                             exoPlayer.play()
                         }
-                        ExoPlayer.STATE_BUFFERING -> {
-                            myApplication.printLogD("STATE_BUFFERING", "currentState")
-                        }
-                        ExoPlayer.STATE_READY -> {
-                            myApplication.printLogD("STATE_READY", "currentState")
-                        }
-                        else -> {
-                            myApplication.printLogD(playbackState.toString(), "currentState")
-                        }
+                        ExoPlayer.STATE_BUFFERING -> {}
+                        ExoPlayer.STATE_READY -> {}
+                        else -> {}
                     }
                 }
 
@@ -601,8 +656,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                     super.onPlayerError(error)
                     when (error.errorCode) {
                         TYPE_SOURCE -> {
-                            myApplication.printLogE("TYPE_SOURCE", "currentState")
-                            myApplication.printLogE(list.file.toString(), "currentState")
                             val list = videoList[position]
                             val mediaItem = MediaItem.fromUri(list.file.toString())
                             val videoMediaSource = mediaSource.createMediaSource(mediaItem)
@@ -611,10 +664,7 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             exoPlayer.prepare()
                             exoPlayer.play()
                         }
-                        else -> {
-                            myApplication.printLogE(error.message.toString(), "currentState")
-                            myApplication.printLogE(list.file.toString(), "currentState")
-                        }
+                        else -> {}
 
                     }
                 }
@@ -630,7 +680,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     fun onActivityStateChanged(): VideoItemPlayPause {
         return object : VideoItemPlayPause {
             override fun onPause(holder: VideoAdapter.VideoViewHolder, cPos: Int) {
-                myApplication.printLogD("onPause: Position ${cPos}", TAG)
 
                 holder.apply {
                     if (cPos >= 0) {
@@ -648,7 +697,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             }
 
             override fun onResume(holder: VideoViewHolder, cPos: Int) {
-                myApplication.printLogD("onResume: Position ${cPos}", TAG)
 
                 holder.apply {
                     if (cPos >= 0) {
@@ -668,7 +716,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
             override fun onRestart(holder: VideoViewHolder, cPos: Int) {}
 
             override fun onStop(holder: VideoViewHolder, cPos: Int) {
-                myApplication.printLogD("onStop: Position ${cPos}", TAG)
 
                 holder.apply {
                     if (cPos >= 0) {
@@ -729,7 +776,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                     val visiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
 //                    var lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
-
                     var lastPosition = Ar[0]
                     Ar[0] = Ar[1]
                     Ar[1] = visiblePosition
@@ -747,12 +793,10 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
 
                         if (holder_current.playPauseIc.isVisible) {
                             holder_current.exoPlayer.playWhenReady = false
-                            myApplication.printLogD("video pause", "isPlaying")
                         } else {
+                            Log.d("videoUrl ", "onScrolled: ${videoList[visiblePosition].file}")
                             holder_current.playerViewExo.player!!.prepare()
                             holder_current.playerViewExo.player!!.play()
-                            myApplication.printLogD("video play", "isPlaying")
-
                             val jsonObject = JSONObject()
                             try {
                                 jsonObject.put("userId", sessionManager.getUserSelfID())
@@ -762,8 +806,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             }
 
                             mSocket.emit("view", jsonObject)
-                            myApplication.printLogI("socket View", "socket")
-                            myApplication.printLogD(jsonObject.toString(), "socket data")
                         }
                     }
 
@@ -790,10 +832,8 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                             Log.i("SocketCheck", "Scroll : $jsonObject")
 
                             mSocket.emit("scroll", jsonObject)
-                            myApplication.printLogI("socket Scroll", "socket")
-                            myApplication.printLogD(jsonObject.toString(), "socket data")
                         } catch (e: Exception) {
-                            myApplication.printLogE(e.toString(), TAG)
+                           e.printStackTrace()
                         }
 
                     }
@@ -808,13 +848,13 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     }
 
     override fun getItemCount(): Int {
-        myApplication.printLogD(videoList.size.toString(), "Video List Size")
+        Log.d("videoListSize:", "getItemCount: ${videoList.size}")
         return videoList.size
     }
 
     private fun sendToUserSelfProfile() {
         if (contextFromActivity is CommanVideoPlayActivity) {
-            val activity = contextFromActivity
+            val activity = contextFromActivity as CommanVideoPlayActivity
             val myFragment: Fragment = ProfileFragment(contextFromActivity)
             activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
@@ -854,7 +894,6 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         }
 
 
-
         if (!(videoList[i].allowDuet!!)) {
             iv_share_duet!!.visibility = View.GONE
         } else {
@@ -876,24 +915,26 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         }
 
         boostPost.setOnClickListener(View.OnClickListener {
-            if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
-                contextFromActivity.startActivity(intent)
-                dialog1.dismiss()
-            } else {
-                if (videoList[i].isBoosted!!) {
-                    showToast("You Already Boost This Video..")
-                } else {
-                    val intent = Intent(
-                        contextFromActivity.applicationContext,
-                        BoostPostActivity::class.java
-                    )
-                    intent.putExtra("videoID", videoList[i].Id)
-                    dialog1.dismiss()
+            if (myApplication.isNetworkConnected()){
+                if (!sessionManager.isUserLoggedIn()) {
+                    val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
                     contextFromActivity.startActivity(intent)
+                    dialog1.dismiss()
+                } else {
+                    if (videoList[i].isBoosted!!) {
+                        showToast("You Already Boost This Video..")
+                    } else {
+                        val intent = Intent(
+                            contextFromActivity.applicationContext,
+                            BoostPostActivity::class.java
+                        )
+                        intent.putExtra("videoID", videoList[i].Id)
+                        dialog1.dismiss()
+                        contextFromActivity.startActivity(intent)
+                    }
                 }
-
+            }else{
+                showToast(ConstValFile.Check_Connection)
             }
         })
 
@@ -905,80 +946,99 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         }
 
         iv_share_not_intersested!!.setOnClickListener { view: View? ->
-            if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
-                contextFromActivity.startActivity(intent)
-            } else {
-                val manager: FragmentManager =
-                    (contextFromActivity as AppCompatActivity).supportFragmentManager
-                val showReportDialog = VideoReportDialog(
-                    contextFromActivity,
-                    videoList[i].Id.toString(),
-                    ConstValFile.NotInterestedDialogView
-                )
-                showReportDialog.show(manager, showReportDialog.tag)
-                dialog1.dismiss()
+
+            if (myApplication.isNetworkConnected()){
+                if (!sessionManager.isUserLoggedIn()) {
+                    val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                    contextFromActivity.startActivity(intent)
+                } else {
+
+                    val manager: FragmentManager = (contextFromActivity as AppCompatActivity).supportFragmentManager
+                    val showReportDialog = VideoReportDialog(contextFromActivity, videoList[i].Id.toString(), ConstValFile.NotInterestedDialogView,this@VideoAdapter,i)
+                    showReportDialog.show(manager, showReportDialog.tag)
+                    dialog1.dismiss()
+                }
+            }else{
+                showToast(ConstValFile.Check_Connection)
             }
+
         }
 
         iv_share_download!!.setOnClickListener {
-            val shareBody: String = videoList[i].file.toString()
-            Log.e("check1452", " $shareBody")
-            savevideotointernalmemory(shareBody)
-            dialog1.dismiss()
+            if (myApplication.isNetworkConnected()){
+                val shareBody: String = videoList[i].file.toString()
+                Log.e("check1452", " $shareBody")
+                savevideotointernalmemory(shareBody)
+                dialog1.dismiss()
+            }else{
+                showToast(ConstValFile.Check_Connection)
+            }
         }
 
         iv_share_duet.setOnClickListener {
-            if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
-                contextFromActivity.startActivity(intent)
-            } else {
-                val bundle = Bundle()
-                bundle.putString(ConstValFile.DuetVideoUrl, videoList[i].file)
-                bundle.putString(ConstValFile.AuditionID, videoList[i].auditionId)
-                sendToDuetCameraActivity(bundle)
+            if (myApplication.isNetworkConnected()){
+                if (!sessionManager.isUserLoggedIn()) {
+                    dialog1.dismiss()
+                    val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                    contextFromActivity.startActivity(intent)
+                } else {
+                    val bundle = Bundle()
+                    bundle.putString(ConstValFile.DuetVideoUrl, videoList[i].file)
+                    bundle.putString(ConstValFile.AuditionID, videoList[i].auditionId)
+                    sendToDuetCameraActivity(bundle)
+                    dialog1.dismiss()
+                }
+            }else{
+                showToast(ConstValFile.Check_Connection)
             }
         }
 
         iv_share_watch_later!!.setOnClickListener {
-            if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
-                contextFromActivity.startActivity(intent)
-            } else {
-                if (!(videoList[i].isSaved)!!) {
-                    tv_watch_later.text = ConstValFile.RemoveFromWatch
-                    videoList[i].isSaved = true
-                    notifyDataSetChanged()
-                    watchLater(videoList[i].Id.toString())
+            if (myApplication.isNetworkConnected()){
+                if (!sessionManager.isUserLoggedIn()) {
+                    val intent =
+                        Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                    contextFromActivity.startActivity(intent)
                 } else {
-                    tv_watch_later.text = ConstValFile.WatchLater
-                    videoList[i].isSaved = false
-                    notifyDataSetChanged()
-                    RemoveWatchLater(videoList[i].Id.toString())
+                    if (!(videoList[i].isSaved)!!) {
+                        tv_watch_later.text = ConstValFile.RemoveFromWatch
+                        videoList[i].isSaved = true
+                        notifyDataSetChanged()
+                        watchLater(videoList[i].Id.toString())
+                    } else {
+                        tv_watch_later.text = ConstValFile.WatchLater
+                        videoList[i].isSaved = false
+                        notifyDataSetChanged()
+                        RemoveWatchLater(videoList[i].Id.toString())
+                    }
                 }
+                dialog1.dismiss()
+            }else{
+                showToast(ConstValFile.Check_Connection)
             }
+
         }
 
-        iv_share_report!!.setOnClickListener {
-            if (!sessionManager.isUserLoggedIn()) {
-                val intent =
-                    Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
-                contextFromActivity.startActivity(intent)
-            } else {
-                val manager: FragmentManager =
-                    (contextFromActivity as AppCompatActivity).supportFragmentManager
+        iv_share_report.setOnClickListener {
+            if (myApplication.isNetworkConnected()){
+                if (!sessionManager.isUserLoggedIn()) {
+                    val intent =
+                        Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
+                    contextFromActivity.startActivity(intent)
+                } else {
+//                videoReportDialog2(videoList[i].Id.toString(),ConstValFile.ReportDialogView)
 
-                val showReportDialog = VideoReportDialog(
-                    contextFromActivity,
-                    videoList[i].Id.toString(),
-                    ConstValFile.ReportDialogView
-                )
-                showReportDialog.show(manager, showReportDialog.tag)
+                    val manager: FragmentManager =
+                        (contextFromActivity as AppCompatActivity).supportFragmentManager
+
+                    val showReportDialog = VideoReportDialog(contextFromActivity, videoList[i].Id.toString(), ConstValFile.ReportDialogView,this@VideoAdapter,i)
+                    showReportDialog.show(manager, showReportDialog.tag)
+                }
+                dialog1.dismiss()
+            }else{
+                showToast(ConstValFile.Check_Connection)
             }
-            dialog1.dismiss()
+
         }
 
         dialog1.show()
@@ -994,14 +1054,15 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                 response: Response<CommanResponse>
             ) {
                 if (response.isSuccessful && response.body()!!.success!!) {
-                    myApplication.printLogD(response.toString(), TAG)
+                    Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
-                    myApplication.printLogE(response.toString(), TAG)
+                    Log.d(TAG, "onResponse: ${response.message()}")
+
                 }
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(), TAG)
+                t.printStackTrace()
             }
 
         })
@@ -1016,14 +1077,15 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                 response: Response<CommanResponse>
             ) {
                 if (response.isSuccessful && response.body()!!.success!!) {
-                    myApplication.printLogD(response.toString(), TAG)
+                    Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
-                    myApplication.printLogE(response.toString(), TAG)
+                    Log.d(TAG, "onResponse: ${response.message()}")
+
                 }
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(), TAG)
+                t.printStackTrace()
             }
         })
 
@@ -1151,20 +1213,19 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     }
 
     private fun likeVideo(id: String?, status: String) {
-        myApplication.printLogD("likeVideo: $id $status", TAG)
         val liekeReq = apiInterface.viedolike(sessionManager.getToken(), id, status)
         liekeReq.enqueue(object : Callback<LikeResponse> {
             override fun onResponse(call: Call<LikeResponse>, response: Response<LikeResponse>) {
-                if (response.isSuccessful) {
-                    myApplication.printLogD("onResponse: Video Like ${response.toString()}", TAG)
+                if (response.isSuccessful && response.body()!!.success!!) {
+                    Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
-                    myApplication.printLogE("onResponse: Video Like ${response.toString()}", TAG)
+                    Log.d(TAG, "onResponse: ${response.message()}")
 
                 }
             }
 
             override fun onFailure(call: Call<LikeResponse>, t: Throwable) {
-                myApplication.printLogE("onFailure: Video Like ${t.toString()}", TAG)
+                t.printStackTrace()
 
             }
 
@@ -1172,30 +1233,22 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     }
 
     private fun followUserApi(userId: String?, status: String) {
-        myApplication.printLogD("followUserApi: $userId $status", TAG)
         val ffReq = apiInterface.followFollowing(sessionManager.getToken(), userId, status)
         ffReq.enqueue(object : Callback<FollowFollowingResponse> {
             override fun onResponse(
                 call: Call<FollowFollowingResponse>,
                 response: Response<FollowFollowingResponse>
             ) {
-                if (response.isSuccessful) {
-                    myApplication.printLogD(
-                        "onResponse: FollowFollowing ${response.toString()}",
-                        TAG
-                    )
-
+                if (response.isSuccessful && response.body()!!.success!!) {
+                    Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
-                    myApplication.printLogE(
-                        "onResponse: FollowFollowing ${response.toString()}",
-                        TAG
-                    )
+                    Log.d(TAG, "onResponse: ${response.message()}")
 
                 }
             }
 
             override fun onFailure(call: Call<FollowFollowingResponse>, t: Throwable) {
-                myApplication.printLogE("onFailure: FollowFollowing ${t.toString()}", TAG)
+                t.printStackTrace()
 
             }
         })
@@ -1218,13 +1271,12 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
     }
 
     private fun showCommentDialog(bundle: Bundle) {
-        val showCommentDialog = CommentBottomSheet()
+      /*  val showCommentDialog = CommentBottomSheet()
         showCommentDialog.arguments = bundle
-        showCommentDialog.show(
-            (contextFromActivity as AppCompatActivity).supportFragmentManager,
-            showCommentDialog.getTag()
-        )
+        showCommentDialog.show((contextFromActivity as AppCompatActivity).supportFragmentManager, showCommentDialog.tag)*/
     }
+
+
 
     private fun showVoteDialog(id: String?, position: Int) {
         val voteDialog = Dialog(contextFromActivity)
@@ -1258,15 +1310,13 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
                         }
                     }
                 } else {
-                    myApplication.printLogE(response.toString(), TAG)
-
+                    Log.e(TAG, "onResponse: ${response.message()}")
                 }
             }
 
             override fun onFailure(call: Call<VoteDataResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(), TAG)
+                t.printStackTrace()
             }
-
         })
 
         voteDialog.show()
@@ -1276,13 +1326,12 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         val bundle = Bundle()
         bundle.putString(ConstValFile.SongID, songId)
         bundle.putString(ConstValFile.SongUrl, songUrl)
-        myApplication.printLogD("sendSong ID $songId", "songID")
         val intent = Intent(contextFromActivity, TryAudioActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)
         contextFromActivity.startActivity(intent)
     }
 
-    fun sendPostLocationVideoActivity(postLocation: String) {
+    private fun sendPostLocationVideoActivity(postLocation: String) {
         val bundle = Bundle()
         bundle.putString(ConstValFile.PostLocation, postLocation)
         val intent = Intent(contextFromActivity, PostLocationVideoActivity::class.java)
@@ -1290,6 +1339,188 @@ class VideoAdapter(val contextFromActivity: Context, val videoList: ArrayList<Vi
         contextFromActivity.startActivity(intent)
     }
 
+    private fun blockUnblockUser(status: String,userID:String) {
+        val blockUnblockReq = apiInterface.blockUnblockUser(sessionManager.getToken(), userID, status)
+        blockUnblockReq.enqueue(object : Callback<CommanResponse> {
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
+                if (response.isSuccessful && response.body()?.success!!) {
+                    showToast("Successfully Unblock..")
+                } else {
+                    Log.e("BlockedUser", "onResponse: ${response.message()}")
+                }
+            }
+            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
+                Log.e("BlockedUser", "onFailure: $t")
+            }
+        })
+    }
+
+
+
+    private fun showCommentDialog2(
+        postId: String?,
+        auditionId: String,
+        userId: String,
+        videoID: String?,
+        userImage: String,
+        position: Int
+    ) {
+        val dialog = BottomSheetDialog(contextFromActivity, R.style.CustomBottomSheetDialogTheme)
+        dialog.setContentView(R.layout.comment_bottom_sheet)
+
+        val sendCommentBtn = dialog.findViewById<ImageView>(R.id.sendCommentBtn)
+        val commentET = dialog.findViewById<EditText>(R.id.commentET)
+        val userImageView = dialog.findViewById<ImageView>(R.id.userImage)
+        val commentCycle = dialog.findViewById<RecyclerView>(R.id.commentCycle)
+        val noCommentView = dialog.findViewById<TextView>(R.id.noCommentView)
+
+        Glide.with(contextFromActivity).load(userImage).placeholder(R.drawable.person_ic).into(userImageView!!)
+
+        sendCommentBtn!!.setOnClickListener {
+            if (myApplication.isNetworkConnected())
+            {
+                if ((!sessionManager.isUserLoggedIn())){
+                    sendToLoginScreen()
+                }else{
+                    val commentText = commentET!!.text.toString().trim()
+                    if (commentText.isNotEmpty()){
+                        commentET.text.clear()
+                        videoList[position].commentCount = videoList[position].commentCount?.plus(1)
+                        notifyItemChanged(position)
+                        writeNewComment(auditionId, userId,postId,videoID,userImage,commentText,noCommentView!!,commentCycle!!)
+                    }else{
+                        showToast("Please write something..")
+                    }
+                }
+            }else{
+                showToast(ConstValFile.Check_Connection)
+            }
+
+        }
+
+        getAllComments(postID = postId,noCommentView!!,commentCycle!!)
+
+        dialog.show()
+    }
+
+    private fun getAllComments(postID: String?,noCommentView:TextView,commentCycle:RecyclerView) {
+        commentList.clear()
+        firestore.collection(ConstValFile.FirebaseCommentDB).whereEqualTo("post_id",postID)
+            .get().addOnSuccessListener {
+                for (snap in it){
+                    val cData = CommentData()
+
+                    cData.comment_id = snap.get("comment_id").toString()
+                    Log.i("DocumentId","Snap_values : ${snap.get("auto-id").toString()}")
+                    cData.auditionID = snap.get("auditionid").toString()
+                    cData.commentBy = snap.get("comment_by").toString()
+                    cData.comment = snap.get("comment").toString()
+                    cData.createdAt = snap.get("created_at").toString()
+                    cData.userImage = snap.get("userimage").toString()
+                    cData.postID = snap.get("post_id").toString()
+                    commentList.add(cData)
+                }
+
+                if (commentList.size>0){
+                    noCommentView.visibility = View.GONE
+                    commentCycle.visibility = View.VISIBLE
+                    commentAdapter = CommentAdapter(contextFromActivity, commentList, this)
+                    commentCycle.adapter = commentAdapter
+                }else{
+                    noCommentView.visibility = View.VISIBLE
+                    commentCycle.visibility = View.GONE
+                }
+            }
+    }
+
+    private fun writeNewComment(auditionID: String?, userID: String?,postID: String?,videoID: String?,
+                                userImage: String?,commentText: String?,noCommentView:TextView,commentCycle:RecyclerView)
+    {
+
+        noCommentView.visibility = View.GONE
+        commentCycle.visibility = View.VISIBLE
+        val commentData =  JSONObject()
+        commentData.put("video_id",videoID)
+        commentData.put("user_id",userID)
+        commentData.put("comment",commentText)
+        mSocket.emit("post-comment",commentData)
+
+
+        val mapData = HashMap<String, Any>()
+        mapData.put("comment_by",sessionManager.getUserName()!!)
+        mapData.put("auditionid", auditionID!!)
+        mapData.put("comment",commentText!!)
+        val calendar = Calendar.getInstance()
+        val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
+        val date = dateFormat.format(calendar.time)
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val time = timeFormat.format(calendar.time)
+        val now = "$date $time"
+
+        val comment_id = UUID.randomUUID().toString()
+        mapData.put("created_at", now.toString())
+        mapData.put("user_id", userID.toString())
+        mapData.put("userimage",userImage.toString())
+        mapData.put("post_id",postID.toString())
+        mapData.put("comment_id",comment_id)
+
+        val cData = CommentData()
+        cData.auditionID = auditionID.toString()
+        cData.comment_id = comment_id
+        cData.commentBy = sessionManager.getUserName()!!
+        cData.comment = commentText.toString()
+        cData.createdAt = now.toString()
+        cData.userImage = userImage.toString()
+        cData.postID = postID.toString()
+
+        commentList.add(cData)
+        commentAdapter = CommentAdapter(contextFromActivity,commentList,this)
+        commentCycle.adapter = commentAdapter
+        commentCycle.scrollToPosition(commentList.lastIndex)
+
+        firestore.collection(ConstValFile.FirebaseCommentDB)
+            .add(mapData)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "writeNewComment: ${documentReference.id}")
+            }.addOnFailureListener { e ->
+                e.printStackTrace()
+            }
+    }
+
+    fun deleteComment(commentID : String,commentPosition:Int){
+
+        val sweetAlertDialog = SweetAlertDialog(contextFromActivity, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Delete Comment"
+        sweetAlertDialog.contentText = "Do you want Delete this Comment"
+        sweetAlertDialog.confirmText = "Yes"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            Log.i("DocumentId", "Document id : ${commentID}")
+            val query = firestore.collection(ConstValFile.FirebaseCommentDB)
+                .whereEqualTo("comment_id", commentID)
+            query.get().addOnSuccessListener {
+                for (document in it.documents) {
+                    document.reference.delete()
+                        .addOnSuccessListener {
+                            videoList[videoPosition].commentCount = videoList[videoPosition].commentCount?.minus(1)
+                            notifyItemChanged(videoPosition)
+                            commentList.removeAt(commentPosition)
+                            commentAdapter?.notifyDataSetChanged()
+                        }
+                        .addOnFailureListener {
+                            Log.e("deleteCom", "onBindViewHolder: $it")
+                        }
+                }
+            }
+        }
+        sweetAlertDialog.cancelText = "No"
+        sweetAlertDialog.setCancelClickListener {
+            sweetAlertDialog.dismiss()
+        }
+        sweetAlertDialog.show()
+    }
+
 }
+
 
 

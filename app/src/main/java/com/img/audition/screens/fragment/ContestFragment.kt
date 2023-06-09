@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.google.android.material.tabs.TabLayout
 import com.img.audition.adapters.ContestLiveAdapter
 import com.img.audition.dataModel.GetLiveContestDataResponse
@@ -24,27 +25,20 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
 @UnstableApi
 class ContestFragment(val contextFromHome : Context) : Fragment() {
-    val TAG = "ContestFragment"
-    private val sessionManager by lazy {
-        SessionManager(requireContext())
-    }
-    private val myApplication by lazy {
-        MyApplication(contextFromHome)
-    }
+    private val TAG = "ContestFragment"
 
     var list_upcoming = ArrayList<LiveContestData>()
     var list_live  = ArrayList<LiveContestData>()
     var list_completed = ArrayList<LiveContestData>()
 
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     lateinit var tabLayout: TabLayout
     lateinit var viewContainer: FrameLayout
+
+    private val myApplication by lazy {
+        MyApplication(contextFromHome)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -54,14 +48,17 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
         val view= FragmentContestBinding.inflate(inflater,container,false)
         tabLayout = view.tabLayout
         viewContainer = view.viewContainer
-
-
         return view.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getAllContest()
+
+        if (myApplication.isNetworkConnected()){
+            getAllContest()
+        }else{
+            checkInternetDialog()
+        }
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -105,52 +102,76 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
     }
 
     private fun getAllContest() {
-        val liveContestReq = apiInterface.getAllLiveContest(sessionManager.getToken())
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val liveContestReq = apiInterface.getAllLiveContest(SessionManager(contextFromHome).getToken())
 
-        liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse> {
-            override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    val contestData = response.body()!!.data
-                    if (contestData.size>0){
+        if (myApplication.isNetworkConnected()){
+            liveContestReq.enqueue(  object : Callback<GetLiveContestDataResponse> {
+                override fun onResponse(call: Call<GetLiveContestDataResponse>, response: Response<GetLiveContestDataResponse>) {
+                    if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                        val contestData = response.body()!!.data
+                        if (contestData.size>0){
 
-                        list_upcoming = ArrayList()
-                        list_live = ArrayList()
-                        list_completed = ArrayList()
+                            list_upcoming = ArrayList()
+                            list_live = ArrayList()
+                            list_completed = ArrayList()
 
-                        for(zz in contestData){
-                            when (zz.status) {
-                                "started" -> list_live.add(zz)
-                                "completed" -> list_completed.add(zz)
-                                "notstarted" -> list_upcoming.add(zz)
+                            for(zz in contestData){
+                                when (zz.status) {
+                                    "started" -> list_live.add(zz)
+                                    "completed" -> list_completed.add(zz)
+                                    "notstarted" -> list_upcoming.add(zz)
+                                }
                             }
+
+                            val upcoming = UpComingContestFragment()
+                            val bundle = Bundle()
+                            bundle.putSerializable(ConstValFile.UpContestComingList,list_upcoming)
+                            upcoming.arguments = bundle
+                            loadFragment(upcoming)
+
+
+                            Log.d("check 400" ,"onResponse: videoItemPlayPause")
+                        }else{
+                            Log.d(TAG, " No Live Contest")
                         }
-
-                        val upcoming = UpComingContestFragment()
-                        val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.UpContestComingList,list_upcoming)
-                        upcoming.arguments = bundle
-                        loadFragment(upcoming)
-
-
-                        Log.d("check 400" ,"onResponse: videoItemPlayPause")
                     }else{
-                        Log.d(TAG, " No Live Contest")
+                        Log.e(TAG,response.toString())
                     }
-                }else{
-                    Log.e(TAG,response.toString())
                 }
-            }
 
-            override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
-                Log.e(TAG,t.toString())
-            }
+                override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
+                    Log.e(TAG,t.toString())
+                }
 
-        })
+            })
+        }else{
+            checkInternetDialog()
+        }
     }
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
+        try {
+            list_upcoming.clear()
+            list_completed.clear()
+            list_live.clear()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
         view?.destroyDrawingCache()
         super.onDestroyView()
+    }
+
+    private fun checkInternetDialog() {
+        val sweetAlertDialog = SweetAlertDialog(contextFromHome, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "Retry"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            getAllContest()
+        }
+        sweetAlertDialog.show()
     }
 }

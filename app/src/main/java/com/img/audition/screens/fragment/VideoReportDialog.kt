@@ -7,11 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.media3.common.util.UnstableApi
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.img.audition.R
 import com.img.audition.adapters.ReportCategoryAdapter
-import com.img.audition.dataModel.CommanResponse
+import com.img.audition.adapters.VideoAdapter
 import com.img.audition.dataModel.ReportCategoryData
 import com.img.audition.dataModel.ReportCategoryResponse
 import com.img.audition.databinding.VideoReportDialogBinding
@@ -22,10 +23,30 @@ import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+@UnstableApi
+class VideoReportDialog() : BottomSheetDialogFragment() {
+     lateinit var contextFromActivity:Context
+     lateinit var vID:String
+     lateinit var viewType :String
+     lateinit var videoAdapter: VideoAdapter
+     var videoPosition: Int = 0
 
- class VideoReportDialog(val contextFromActivity:Context ,val vID:String, val viewType :String) : BottomSheetDialogFragment() {
+    constructor(contextFromActivity: Context,vID: String,viewType: String) : this() {
+        this.contextFromActivity = contextFromActivity
+        this.vID = vID
+        this.viewType = viewType
+    }
+     constructor(contextFromActivity:Context , vID:String, viewType :String,videoAdapter: VideoAdapter,videoPosition:Int) : this()
+     {
+         this.viewType = viewType
+         this.vID = vID
+         this.contextFromActivity = contextFromActivity
+         this.videoAdapter = videoAdapter
+         this.videoPosition = videoPosition
+     }
 
-    val TAG = "VideoReportDialog"
+     private  var adapter: ReportCategoryAdapter? = null
+     private val TAG = "VideoReportDialog"
     private val sessionManager by lazy {
         SessionManager(requireActivity().applicationContext)
     }
@@ -54,44 +75,36 @@ import retrofit2.Response
 
         if (viewType == ConstValFile.ReportDialogView){
             reportCategory()
-            view.reportSubmitBtn.text =  "Report Video"
             view.title.text =  "Report Video"
         }else if(viewType == ConstValFile.NotInterestedDialogView){
             getNotInterestedCategory()
-            view.reportSubmitBtn.text =  "Not Interested"
             view.title.text =  "Not Interested"
         }else{
-            reportCategory()
-            view.reportSubmitBtn.text =  "Report User"
+            userReportCategory()
             view.title.text =  "Report User"
-        }
-
-
-        view.reportSubmitBtn.setOnClickListener {
-            var reportCat = ""
-            for (zz in listReport) {
-                Log.i("report_test","${zz.name} : ${zz.isSelected}")
-                if (zz.isSelected){
-                    reportCat = zz.name!!
-                    categoryID = zz.Id!!
-                }
-            }
-            if (reportCat == ""){
-                showToast("Please select one of these options..")
-            }
-            else{
-                if (viewType == ConstValFile.ReportDialogView){
-                    reportVideo(categoryID)
-                }else if(viewType == ConstValFile.NotInterestedDialogView){
-                    addIntoNoInterestedVideo(categoryID)
-                }else{
-                    reportVideo(categoryID)
-                }
-                dismiss()
-            }
         }
     }
 
+
+    private fun userReportCategory() {
+        val reportCatReq = apiInterface.getReportCategory(sessionManager.getToken())
+
+        reportCatReq.enqueue(object : Callback<ReportCategoryResponse>{
+            override fun onResponse(call: Call<ReportCategoryResponse>, response: Response<ReportCategoryResponse>) {
+                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
+                    listReport = response.body()!!.data
+                    val adapter = ReportCategoryAdapter(contextFromActivity,listReport,vID,viewType,this@VideoReportDialog)
+                    view.reportCycle.adapter = adapter
+                }else{
+                    printLogE("No Data ${response.code()}")
+                }
+            }
+            override fun onFailure(call: Call<ReportCategoryResponse>, t: Throwable) {
+                printLogE(t.toString())
+            }
+
+        })
+    }
 
     private fun reportCategory() {
         val reportCatReq = apiInterface.getReportCategory(sessionManager.getToken())
@@ -100,13 +113,12 @@ import retrofit2.Response
             override fun onResponse(call: Call<ReportCategoryResponse>, response: Response<ReportCategoryResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     listReport = response.body()!!.data
-                    val adapter = ReportCategoryAdapter(requireContext(),listReport,vID)
+                    val adapter = ReportCategoryAdapter(requireContext(),listReport,vID,viewType,videoAdapter,videoPosition,this@VideoReportDialog)
                     view.reportCycle.adapter = adapter
                 }else{
                     printLogE("No Data ${response.code()}")
                 }
             }
-
             override fun onFailure(call: Call<ReportCategoryResponse>, t: Throwable) {
                 printLogE(t.toString())
             }
@@ -121,7 +133,7 @@ import retrofit2.Response
             override fun onResponse(call: Call<ReportCategoryResponse>, response: Response<ReportCategoryResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     listReport = response.body()!!.data
-                    val adapter = ReportCategoryAdapter(requireContext(),listReport,vID)
+                    adapter = ReportCategoryAdapter(requireContext(), listReport, vID, viewType, videoAdapter, videoPosition, this@VideoReportDialog)
                     view.reportCycle.adapter = adapter
                 }else{
                     printLogE("No Data ${response.code()}")
@@ -135,42 +147,6 @@ import retrofit2.Response
         })
     }
 
-    private fun reportVideo(categoryID: String) {
-        val reportVideoReq = apiInterface.reportTheVideo(sessionManager.getToken(),categoryID,vID)
-
-        reportVideoReq.enqueue(object :Callback<CommanResponse>{
-            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    showToast("Report Successfully..")
-                }else{
-                  printLogE("No Data ${response.code()}")
-                }
-            }
-            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                printLogE(t.message.toString())
-            }
-
-        })
-    }
-
-    private fun addIntoNoInterestedVideo(categoryID: String) {
-        val reportVideoReq = apiInterface.addIntoNotInterestedVideo(sessionManager.getToken(),categoryID,vID)
-
-        reportVideoReq.enqueue(object :Callback<CommanResponse>{
-            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
-                if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                    showToast("Add Successfully..")
-                }else{
-                    printLogE("No Data ${response.code()}")
-                }
-            }
-            override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                printLogE(t.message.toString())
-            }
-
-        })
-    }
-
     fun showToast(msg:String){
         Toast.makeText(contextFromActivity,msg,Toast.LENGTH_SHORT).show()
     }
@@ -178,4 +154,13 @@ import retrofit2.Response
     fun printLogE(msg:String){
         Log.e(TAG, msg)
     }
+     override fun onDestroyView() {
+         try {
+             listReport.clear()
+             adapter = null
+         }catch (e:Exception){
+             e.printStackTrace()
+         }
+         super.onDestroyView()
+     }
 }

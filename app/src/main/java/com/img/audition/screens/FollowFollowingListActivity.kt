@@ -15,26 +15,12 @@ class FollowFollowingListActivity : AppCompatActivity() {
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityFollowFollowingListBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@FollowFollowingListActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@FollowFollowingListActivity)
-    }
-
-    private val apiInterface by lazy {
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
     }
-
 
     override fun onResume() {
         super.onResume()

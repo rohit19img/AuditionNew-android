@@ -40,13 +40,6 @@ import java.util.*
         SessionManager(this@MessageActivity)
     }
 
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@MessageActivity)
-    }
 
     private var chat_list: ArrayList<ChatsGetSet> = ArrayList<ChatsGetSet>()
     private var adapter: ChatsAdapter? = null
@@ -62,6 +55,7 @@ import java.util.*
         viewBinding = ActivityMessageBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
 
         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
@@ -220,16 +214,16 @@ import java.util.*
                             }
                     }
                     Status.LOADING ->{
-                        myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                        Log.d(TAG, resources.status.toString())
                     }
                     else->{
                         if (resources.message!!.contains("401")){
-                            myApplication.printLogD(resources.message.toString(),"apiCall 4")
+
                             sessionManager.clearLogoutSession()
                             startActivity(Intent(this@MessageActivity, SplashActivity::class.java))
                             finishAffinity()
                         }
-                        myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                        Log.e(TAG, resources.status.toString())
                     }
 
                 }
@@ -264,6 +258,17 @@ import java.util.*
         }
 
 
+    }
+
+    override fun onStop() {
+        try {
+            chat_list.clear()
+            adapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        super.onStop()
     }
 
 }

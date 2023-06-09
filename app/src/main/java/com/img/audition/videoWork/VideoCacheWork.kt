@@ -24,7 +24,7 @@ class VideoCacheWork : Application() {
         lateinit var simpleCache: SimpleCache
         lateinit var leastRecentlyUsedCacheEvictor: LeastRecentlyUsedCacheEvictor
         lateinit var standaloneDatabaseProvider: StandaloneDatabaseProvider
-        private const val exoCacheSize: Long = 20 * 1024 * 1024 // Setting cache size to be ~ 20 MB
+        private const val exoCacheSize: Long = 30 * 1024 * 1024 // Setting cache size to be ~ 30 MB
         var mSocket: Socket? = null
     }
 

@@ -29,16 +29,16 @@ import retrofit2.Response
 @UnstableApi
 class LiveContestFragment : Fragment() {
 
-    val TAG = "LiveContestFragment"
-    lateinit var contestAdapter:ContestLiveAdapter
-    lateinit var contestViewpager2: ViewPager2
-    lateinit var noLiveContest: TextView
-    lateinit var videoItemPlayPause: PlayPauseContestVideo
+    private val TAG = "LiveContestFragment"
+    private var contestAdapter:ContestLiveAdapter? = null
+    private lateinit var contestViewpager2: ViewPager2
+    private lateinit var noLiveContest: TextView
+    private lateinit var videoItemPlayPause: PlayPauseContestVideo
 
     private val bundle by lazy {
         arguments
     }
-    var list : ArrayList<LiveContestData> = ArrayList()
+    private var list : ArrayList<LiveContestData> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +64,7 @@ class LiveContestFragment : Fragment() {
             noLiveContest.visibility = View.GONE
             contestAdapter = ContestLiveAdapter(view.context,list)
             contestViewpager2.adapter = contestAdapter
-            videoItemPlayPause = contestAdapter.onActivityStateChanged()
+            videoItemPlayPause = contestAdapter!!.onActivityStateChanged()
 
             Log.d("check 400" ,"onResponse: videoItemPlayPause")
         }else{
@@ -123,4 +123,5 @@ class LiveContestFragment : Fragment() {
         }
         super.onResume()
     }
+
 }

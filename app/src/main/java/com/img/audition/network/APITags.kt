@@ -35,6 +35,7 @@ class APITags {
         const val LogoutUser = "logoutUser"
         const val VerifyEmailAddress = "verifyEmail"
         const val VerifyMobileNumber = "verifyMobileNumber"
+        const val LiveRanksLeaderboard = "liveRanksLeaderboard"
         const val VerifyOTP = "verifyCode"
         const val AllVerify = "allverify"
         const val GetAllLiveContest = "get_all_contest"

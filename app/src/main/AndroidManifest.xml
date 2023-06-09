@@ -109,7 +109,7 @@
             android:name=".screens.MusicActivity"
             android:exported="false"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".screens.fragment.NotificationActivity"
             android:exported="false"
@@ -178,12 +178,6 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".screens.CameraActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:parentActivityName=".screens.HomeActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".screens.OtherUserProfileActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
@@ -199,8 +193,8 @@
         <activity
             android:name=".screens.SplashActivity"
             android:exported="true"
-            android:resizeableActivity="false"
             android:launchMode="singleTop"
+            android:resizeableActivity="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Splash">
             <intent-filter>
@@ -262,10 +256,7 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service
-            android:name=".network.NetworkStateService"
-            android:enabled="true"
-            android:exported="false" />
+
     </application>
     <uses-feature android:name="android.hardware.camera" />
 

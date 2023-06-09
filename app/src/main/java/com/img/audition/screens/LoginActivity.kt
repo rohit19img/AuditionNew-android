@@ -7,6 +7,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
@@ -46,7 +47,7 @@ import java.security.NoSuchAlgorithmException
 import java.util.*
 
 
-class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
+@UnstableApi class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
     val imageList = arrayListOf(
         R.drawable.item2,
         R.drawable.item1,
@@ -303,7 +304,7 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
                     sessionManager.setUserSelfID(userId)
                     sessionManager.setToken(token)
                     sessionManager.setEmailVerified(true)
-                    Thread.sleep(200)
+                    sleep(200)
                     myApplication.showToast("Login Successfully..")
                     sendToHomeActivity()
                 }else{
@@ -372,7 +373,13 @@ class LoginActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedLis
     }
 
     override fun onStop() {
-        timer.cancel()
+        try {
+            timer.cancel()
+            imageList.clear()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
         super.onStop()
 
     }

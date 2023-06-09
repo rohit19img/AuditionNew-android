@@ -11,6 +11,7 @@ class SectionFollowFollowingListPager (fm: FragmentManager,val userID:String) : 
         return 2
     }
 
+
     override fun getItem(position: Int): Fragment {
         return when (position) {
             0 -> FollowersFragment(userID)
@@ -18,7 +19,7 @@ class SectionFollowFollowingListPager (fm: FragmentManager,val userID:String) : 
         }
     }
 
-    override fun getPageTitle(position: Int): CharSequence? {
+    override fun getPageTitle(position: Int): CharSequence {
         return when (position) {
             0 -> "Followers"
             else -> "Following"

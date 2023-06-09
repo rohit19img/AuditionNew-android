@@ -25,12 +25,11 @@ class StateListAdapter(val context: Context,val stateList: Array<String>) : Base
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val v: View
-        var spinnerText: TextView
 
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         v = inflater.inflate(R.layout.statelist_textview, null)
 
-        spinnerText = v.findViewById<View>(R.id.spinnerText) as TextView
+        val spinnerText: TextView = v.findViewById<View>(R.id.spinnerText) as TextView
         spinnerText.setText(stateList.get(position))
 
 

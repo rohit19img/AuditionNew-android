@@ -6,16 +6,20 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -46,17 +50,15 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 private const val TAG = "SnapCameraActivity"
-private const val BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL = "use_custom_lenses_carousel"
-private const val BUNDLE_ARG_MUTE_AUDIO = "mute_audio"
-private const val BUNDLE_ARG_ENABLE_DIAGNOSTICS = "enable_diagnostics"
-private const val REQUEST_TAKE_GALLERY_VIDEO = 200
+private  val REQUEST_TAKE_GALLERY_VIDEO = 200
 private val LENS_GROUPS = arrayOf(
     LENS_GROUP_ID_BUNDLED, // lens group for bundled lenses available in lenses-bundle artifact. , // lens group for lenses obtained using Push to Device functionality.
     *BuildConfig.LENS_GROUP_ID_TEST.split(',').toTypedArray() // temporary lens group for testing
 )
+
 @UnstableApi
 class
-SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener {
+SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapButtonView.OnCaptureRequestListener{
 
     private val myApplication by lazy {
         MyApplication(this@SnapCameraActivity)
@@ -82,33 +84,27 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
     private var isStartTime = false
     private var maxVideoDuration: Long = 25000
     private var minVideoDuration: Long = 5 * 1000
-
     private lateinit var mLineView: LineProgressView
-
-    private var recordingCloseable: Closeable? = null
-
     private var videoFilePath = ""
-
     private var isFromContest = false
     private var isFromDuet = false
     private var hashTag = ""
 
-    private lateinit var cameraSession:Session
-    private lateinit var cameraLayout: CameraLayout
-    private lateinit var progressLayout: RelativeLayout
-    private val closeOnDestroy = mutableListOf<Closeable>()
-    private var useCustomLensesCarouselView = true
-    private var muteAudio = false
-    private var enableDiagnostics = false
-
+    //
     private lateinit var audioSource:AudioProcessorSource
     private val audioProcessorExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private val mediaCaptureExecutor: ExecutorService = Executors.newFixedThreadPool(2)
+    private lateinit var cameraSession:Session
+    private lateinit var cameraLayout: CameraLayout
+    private lateinit var progressLayout: RelativeLayout
+    private var recordingCloseable: Closeable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_snap_camera)
         Log.d(TAG, "Using the CameraKit version: ${versionFrom(this)}")
+
+
 
         mLineView = findViewById(R.id.line_view)
         progressLayout = findViewById(R.id.progressLayout)
@@ -130,6 +126,7 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
             }
 
 
+
         }
 
         cameraLayout.onError { error ->
@@ -147,8 +144,6 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         cameraLayout.onSessionAvailable {
             cameraSession = it
             cameraLayout.captureButton.onCaptureRequestListener = this@SnapCameraActivity
-
-
         }
 
         }
@@ -180,7 +175,6 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         findViewById<ImageView>(R.id.backPressIC).setOnClickListener {
             onBackPressed()
         }
-
 
     }
 
@@ -306,6 +300,7 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
 
     override fun onError(e: Exception) {
         myApplication.printLogE(e.toString(),TRACK)
+        finish()
     }
 
     private fun createFileAndFolder(): String {
@@ -348,18 +343,10 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean(BUNDLE_ARG_USE_CUSTOM_LENSES_CAROUSEL, useCustomLensesCarouselView)
-        outState.putBoolean(BUNDLE_ARG_MUTE_AUDIO, muteAudio)
-        outState.putBoolean(BUNDLE_ARG_ENABLE_DIAGNOSTICS, enableDiagnostics)
-        super.onSaveInstanceState(outState)
-    }
-
     override fun onDestroy() {
         if(videoFilePath.isNotEmpty() && File(videoFilePath).exists()){
             File(videoFilePath).delete()
         }
-        closeOnDestroy.forEach { it.close() }
         super.onDestroy()
     }
 
@@ -400,9 +387,10 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         if (sessionManager.getIsFromTryAudio()){
             findViewById<ImageButton>(R.id.music).visibility = View.GONE
             val songUrl = ConstValFile.BASEURL+sessionManager.getVideoSongUrl()
-            durationHint.text = "Record up to ${sessionManager.getAudioDuration()/1000} seconds"
             maxVideoDuration = sessionManager.getAudioDuration().toLong()
-            minVideoDuration = sessionManager.getAudioDuration().toLong()
+            minVideoDuration = sessionManager.getAudioDuration().toLong()-1000
+            durationHint.text = "Record up to ${minVideoDuration/1000} seconds"
+
             cameraLayout.captureButton.progressDuration = maxVideoDuration
             myApplication.printLogD("songUrl :$songUrl","songUrl")
              val mediaSource by lazy {
@@ -421,9 +409,6 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
             playerExo.setMediaSource(audioMediaSource)
             playerExo.prepare()
             playerExo.play()
-
-            val duration = playerExo.duration
-            myApplication.printLogD("audioDuration $duration","audioDuration")
         }
 
         findViewById<ImageButton>(R.id.music).setOnClickListener {
@@ -443,6 +428,7 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         myApplication.printLogD("sendToVideoPreview Call","TrimAudio")
         recordingCloseable?.close()
         cameraSession.close()
+
         mediaCaptureExecutor.shutdown()
         audioProcessorExecutor.shutdown()
         if (sessionManager.getIsFromTryAudio() || sessionManager.getIsAppAudio()){
@@ -450,6 +436,14 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
             myApplication.printLogD("sendToVideoPreview audioURl ${sessionManager.getVideoSongUrl()}","audioUrl")
             runOnUiThread{
                 progressLayout.visibility = View.VISIBLE
+               try {
+                   if (playerExo.isPlaying){
+                       playerExo.stop()
+                       playerExo.release()
+                   }
+               }catch (e:Exception){
+                   e.printStackTrace()
+               }
             }
 
             if (sessionManager.getIsFromTryAudio()){
@@ -481,7 +475,6 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         myApplication.printLogD("firstPosition $firstPosition","TrimAudio")
         myApplication.printLogD("endPosition ${endPosition/1000}","TrimAudio")
         myApplication.printLogD("trimFilePath $trimFilePath","TrimAudio")
-
 
         val cmd =
             "-y -i $audioFile -ss $firstPosition -t ${createVideoDuration/1000} -acodec copy -preset veryfast -threads 6 $trimFilePath"
@@ -593,12 +586,39 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
         }
     }
 
+
+
     override fun onBackPressed() {
         recordingCloseable?.close()
         cameraSession.close()
         mediaCaptureExecutor.shutdown()
         audioProcessorExecutor.shutdown()
+
+        if (playerExo.isPlaying){
+            playerExo.stop()
+            playerExo.release()
+        }
+        try {
+            if (File(sessionManager.getCreateVideoPath().toString()).exists()){
+                File(sessionManager.getCreateVideoPath().toString()).delete()
+            }
+            if (File(sessionManager.getCreateDuetVideoUrl().toString()).exists()){
+                File(sessionManager.getCreateDuetVideoUrl().toString()).delete()
+            }
+            if (File(sessionManager.getTrimAudioPath().toString()).exists()){
+                File(sessionManager.getTrimAudioPath().toString()).delete()
+            }
+
+        }catch (e :java.lang.Exception){
+            e.printStackTrace()
+        }
         finish()
         super.onBackPressed()
     }
+
+
+    override fun onStop() {
+        super.onStop()
+    }
+
 }

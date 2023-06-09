@@ -30,7 +30,7 @@ class MyApplication(val context: Context) : Application(), LifecycleObserver {
         Log.d(TAG, "printLogD: ${logMessage}")
     }
 
-    fun printLogE(logMessage: String,TAG:String){
+     fun printLogE(logMessage: String,TAG:String){
         Log.e(TAG, "printLogE: ${logMessage}")
     }
 

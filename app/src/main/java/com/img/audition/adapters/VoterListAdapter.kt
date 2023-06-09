@@ -25,7 +25,7 @@ class VoterListAdapter(val context: Context, val list: ArrayList<LeaderboardData
         RecyclerView.ViewHolder(itemView.root) {
         val img = itemView.img
         val userName = itemView.userName
-        val auditionID = itemView.auditionID
+        val auditionIDView = itemView.auditionID
         val voteCountBtn = itemView.voteCountBtn
         val voteCountly = itemView.voteCountly
         val voteCount = itemView.voteCount
@@ -44,13 +44,14 @@ class VoterListAdapter(val context: Context, val list: ArrayList<LeaderboardData
         holder.apply {
             val data = list[absoluteAdapterPosition]
 
-            voteCountly.visibility = View.GONE
-            if (data.name!!.isNotEmpty()){
+            voteCount.text = data.voteCount.toString()
+
+            if (data.name!!.isNotBlank()){
                 userName.text = data.name.toString()
             }else{
                 userName.text = "Biggee User"
             }
-         auditionID.text = data.auditionId.toString()
+            auditionIDView.text = data.auditionId.toString()
 
             try {
                 Glide.with(context).load(data.image).placeholder(R.drawable.person_ic).into(img)

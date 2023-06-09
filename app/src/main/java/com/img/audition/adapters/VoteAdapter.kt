@@ -18,10 +18,10 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class VoteAdapter(val contextFromActivity: Context,val voteList: ArrayList<VoteData>,val id:String,val voteDialog:Dialog) : RecyclerView.Adapter<VoteAdapter.ViewHolder>()
+class VoteAdapter(
+    private val contextFromActivity: Context,
+    private val voteList: ArrayList<VoteData>, val id:String, val voteDialog:Dialog) : RecyclerView.Adapter<VoteAdapter.ViewHolder>()
 {
-    val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
-    val  sessionManager = SessionManager(contextFromActivity.applicationContext)
     inner class ViewHolder(itemView: VoteItemHolderDesignBinding) : RecyclerView.ViewHolder(itemView.root){
         val voteEmoji = itemView.voteImage
         val voteText = itemView.voteText
@@ -52,7 +52,9 @@ class VoteAdapter(val contextFromActivity: Context,val voteList: ArrayList<VoteD
         val obj = JsonObject()
         obj.addProperty("videoid", id)
         obj.addProperty("like_category", likeCategory)
-        val voteReq = apiInterface.voteToUserVideo(sessionManager.getToken(),obj)
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        val voteReq = apiInterface.voteToUserVideo(SessionManager(contextFromActivity).getToken(),obj)
 
         voteReq.enqueue(object : Callback<CommanResponse>{
             override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {

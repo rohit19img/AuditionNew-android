@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -25,6 +26,7 @@ import com.img.audition.adapters.LanguageSelecteDialog
 import com.img.audition.adapters.VideoItemAdapter
 import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.UserSelfProfileResponse
+import com.img.audition.dataModel.VideoData
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.FragmentProfileBinding
 import com.img.audition.globalAccess.ConstValFile
@@ -39,19 +41,19 @@ import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.ArrayList
 
 
 @UnstableApi
 class ProfileFragment(val contextFromActivity: Context) : Fragment() {
-    val TAG = "ProfileFragment"
+    private  var videoItemAdapter: VideoItemAdapter? = null
+    private lateinit var videoData: ArrayList<VideoData>
+    private val TAG = "ProfileFragment"
 
     private lateinit var _viewBinding: FragmentProfileBinding
     private val view get() = _viewBinding
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
-    }
-    private val myApplication by lazy {
-        MyApplication(contextFromActivity)
     }
     private val apiInterface by lazy {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
@@ -180,7 +182,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                 activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("label", view.auditionID.text.toString())
             clipboard.setPrimaryClip(clip)
-            myApplication.showToast("Id Copied..")
+            Toast.makeText(contextFromActivity,"Id Copied..", Toast.LENGTH_SHORT).show()
         }
 
         view.logout.setOnClickListener {
@@ -257,15 +259,14 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
 
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
-                    myApplication.showToast("Something went wrong...")
+                    Toast.makeText(contextFromActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
 
                 }
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
-                myApplication.showToast("Something went wrong...")
-                myApplication.printLogE(t.toString(),TAG)
+                Toast.makeText(contextFromActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
+
             }
 
         })
@@ -276,21 +277,19 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         mainViewModel.getUserVideo(sessionManager.getUserSelfID()!!)
             .observe(viewLifecycleOwner){
                 it.let {videoResponse->
-                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
                     when(videoResponse.status){
                         Status.SUCCESS ->{
-                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
-                            if (videoResponse.data.success!!){
-                                val videoData = videoResponse.data.data
+                            if (videoResponse.data?.success!!){
+                                videoData = videoResponse.data.data
                                 if (videoData.size > 0) {
-                                    val videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
+                                    videoItemAdapter = VideoItemAdapter(contextFromActivity, videoData)
                                     userVideoRecycle.adapter = videoItemAdapter
                                     view.shimmerVideoView.stopShimmer()
                                     view.shimmerVideoView.hideShimmer()
                                     view.shimmerVideoView.visibility = View.GONE
                                     userVideoRecycle.visibility = View.VISIBLE
                                 } else {
-                                    myApplication.printLogD("No Video Data", TAG)
+                                    Log.d(TAG, "No Video Data")
                                     view.shimmerVideoView.stopShimmer()
                                     view.shimmerVideoView.hideShimmer()
                                     noVideoImage.visibility = View.VISIBLE
@@ -298,16 +297,15 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                            Log.d(TAG, videoResponse.status.toString())
                         }
                         else->{
                             if (videoResponse.message!!.contains("401")){
-                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
                                 sessionManager.clearLogoutSession()
                                 startActivity(Intent(contextFromActivity, SplashActivity::class.java))
                                 requireActivity().finishAffinity()
                             }
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                            Log.d(TAG, videoResponse.status.toString())
                         }
                     }
                 }
@@ -347,29 +345,27 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                                     }
                                     auditionID.text = userData.auditionId.toString()
                                 } else {
-                                    myApplication.printLogE("User Data Null", TAG)
+                                    Log.e(TAG, "User Data Null")
                                 }
                             }else{
-                                myApplication.showToast("Something went wrong..")
+                                Toast.makeText(contextFromActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
+
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                            Log.d(TAG, resources.status.toString())
                         }
                         else->{
                             if (resources.message!!.contains("401")){
-                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
                                 sessionManager.clearLogoutSession()
                                 startActivity(Intent(contextFromActivity, SplashActivity::class.java))
                                 requireActivity().finishAffinity()
                             }
-                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                            Log.d(TAG, resources.status.toString())
                         }
                     }
                 }
             }
-
-
     }
 
     private fun showLanguageDialog() {
@@ -379,6 +375,13 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
     override fun onDestroyView() {
         Log.d("check 400", "onDestroyView: $TAG")
+        try {
+            videoData.clear()
+            videoItemAdapter = null
+        }catch(e:Exception){
+            e.printStackTrace()
+        }
+
         getView()?.destroyDrawingCache()
         super.onDestroyView()
     }

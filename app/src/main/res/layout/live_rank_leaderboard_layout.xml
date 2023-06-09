@@ -23,6 +23,7 @@
                 android:layout_width="45dp"
                 android:id="@+id/imageCard"
                 android:layout_alignParentStart="true"
+                android:layout_below="@id/winAmt"
                 android:layout_centerVertical="true"
                 android:layout_gravity="center"
                 android:layout_height="45dp"
@@ -35,14 +36,23 @@
                     android:scaleType="fitXY"
                     android:src="@drawable/person_ic"/>
 
-
             </androidx.cardview.widget.CardView>
 
-            <LinearLayout
-                android:layout_gravity="center_vertical"
+            <TextView
+                android:id="@+id/winAmt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
+                android:padding="2dp"
+                android:layout_gravity="center_horizontal"
+                android:text="winAmt"
+                android:fontFamily="@font/avenir_next_bold"
+                android:textSize="10sp"
+                android:textColor="@color/white"/>
+
+            <LinearLayout
+                android:layout_below="@id/winAmt"
                 android:layout_toEndOf="@id/imageCard"
-                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -53,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:padding="4dp"
                     android:text="username"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textColor="@color/white"/>
 
                 <TextView
@@ -67,15 +77,26 @@
             </LinearLayout>
 
 
+            <TextView
+                android:id="@+id/rank"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="center_horizontal"
+                android:text="#Rank 1"
+                android:fontFamily="@font/avenir_next_bold"
+                android:textSize="10sp"
+                android:textColor="@color/white"/>
 
             <LinearLayout
-                android:layout_alignParentTop="true"
+                android:layout_below="@id/rank"
                 android:id="@+id/voteCountly"
                 android:layout_alignParentEnd="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 >
+
                 <ImageButton
                     android:id="@+id/voteCountBtn"
                     android:layout_width="wrap_content"

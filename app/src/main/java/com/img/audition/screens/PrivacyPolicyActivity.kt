@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.img.audition.dataModel.TermAboutPrivacyResponse
@@ -20,22 +21,12 @@ import retrofit2.Response
 
 class PrivacyPolicyActivity : AppCompatActivity() {
 
-    val TAG = "PrivacyPolicyActivity"
+    private val TAG = "PrivacyPolicyActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPrivacyPolicyBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@PrivacyPolicyActivity)
-    }
 
-    private val myApplication by lazy {
-        MyApplication(this@PrivacyPolicyActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
-    lateinit var progressDialog: ProgressDialog
+   private lateinit var progressDialog: ProgressDialog
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +62,8 @@ class PrivacyPolicyActivity : AppCompatActivity() {
     }
 
     private fun showPrivacyPolicyPage() {
-        val req = apiInterface.getPrivacyPolicy(sessionManager.getToken())
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val req = apiInterface.getPrivacyPolicy(SessionManager(this).getToken())
 
         req.enqueue(object : Callback<TermAboutPrivacyResponse> {
             override fun onResponse(call: Call<TermAboutPrivacyResponse>, response: Response<TermAboutPrivacyResponse>) {
@@ -92,12 +84,12 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                         }
                     }
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.e(TAG,response.toString())
                 }
             }
 
             override fun onFailure(call: Call<TermAboutPrivacyResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+               t.printStackTrace()
             }
 
         })

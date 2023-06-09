@@ -29,8 +29,8 @@ private const val DEQUE_TIMEOUT_USEC_VIDEO = 10000L
 private const val VIDEO_FRAME_RATE = 30
 private const val VIDEO_IFRAME_INTERVAL = 1
 private const val VIDEO_BITS_PER_PIXEL = 0.15
-private const val VIDEO_WIDTH = 1080
-private const val VIDEO_HEIGHT = 1920
+private const val VIDEO_WIDTH = 720
+private const val VIDEO_HEIGHT = 1280
 
 // Audio encoder configuration constants
 private const val DEQUE_TIMEOUT_USEC_AUDIO_INPUT = -1L
@@ -99,20 +99,20 @@ internal class MediaCapture(
 
         try {
             videoEncoder = MediaCodec.createEncoderByType(MIME_TYPE_VIDEO_AVC).apply {
-                reset()
 
-                val mediaFormat = MediaFormat.createVideoFormat(MIME_TYPE_VIDEO_AVC, VIDEO_WIDTH, VIDEO_HEIGHT)
-                val bitRate = ceil(VIDEO_WIDTH * VIDEO_HEIGHT * VIDEO_FRAME_RATE * VIDEO_BITS_PER_PIXEL).toInt()
-                mediaFormat.setInteger(
-                    MediaFormat.KEY_COLOR_FORMAT,
-                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
-                )
-                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
-                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, VIDEO_FRAME_RATE)
-                mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, VIDEO_IFRAME_INTERVAL)
+                    reset()
 
-                configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+                    val mediaFormat = MediaFormat.createVideoFormat(MIME_TYPE_VIDEO_AVC, VIDEO_WIDTH, VIDEO_HEIGHT)
+                    val bitRate = ceil(VIDEO_WIDTH * VIDEO_HEIGHT * VIDEO_FRAME_RATE * VIDEO_BITS_PER_PIXEL).toInt()
+                    mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
+                    mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
+                    mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, VIDEO_FRAME_RATE)
+                    mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, VIDEO_IFRAME_INTERVAL)
+                    configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+
+
                 surface = createInputSurface()
+
             }
         } catch (e: IOException) {
             throw IllegalStateException("Unable to create video encoder: ${e.cause}")
@@ -237,8 +237,8 @@ internal class MediaCapture(
                                         Log.d(
                                             TAG,
                                             "Dropping out of order frame. " +
-                                                "Current frame timestamp: ${bufferInfo.presentationTimeUs}, " +
-                                                "last frame timestamp: $lastTimestamp"
+                                                    "Current frame timestamp: ${bufferInfo.presentationTimeUs}, " +
+                                                    "last frame timestamp: $lastTimestamp"
                                         )
                                         audioEncoder.releaseOutputBuffer(outputBufferIdx, false)
                                     }

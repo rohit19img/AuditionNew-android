@@ -56,9 +56,7 @@ import java.util.*
         SessionManager(this@EditProfileActivity)
     }
 
-    private val myApplication by lazy {
-        MyApplication(this@EditProfileActivity)
-    }
+
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
@@ -184,26 +182,19 @@ import java.util.*
                                      viewBinding.dob.text = userData.dob.toString()
                                      gender = userData.gender.toString()
                                  } else {
-                                     myApplication.printLogE(
-                                         "Get Other User Self Data Response Failed",
-                                         TAG
-                                     )
+                                     Log.e(TAG,  "Get Other User Self Data Response Failed")
                                  }
                              }else{
-                                 myApplication.showToast("Something went wrong..")
+                                 Toast.makeText(this,"Something went wrong..",Toast.LENGTH_SHORT).show()
+
                              }
                          }
                          Status.LOADING ->{
-                             myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                             Log.d(TAG, "onResponse: ${resources.status.toString()}")
+
                          }
                          else->{
-                             if (resources.message!!.contains("401")){
-                                 myApplication.printLogD(resources.message.toString(),"apiCall 4")
-                                 sessionManager.clearLogoutSession()
-                                 startActivity(Intent(this@EditProfileActivity, SplashActivity::class.java))
-                                 finishAffinity()
-                             }
-                             myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                             Log.d(TAG, "onResponse: ${resources.status.toString()}")
                          }
                      }
                  }
@@ -246,7 +237,7 @@ import java.util.*
                 Log.e("Check file", imagePath)
                 viewBinding.userImage.setImageURI(Uri.parse(imagePath))
             } catch (e: Exception) {
-                myApplication.printLogE(e.message.toString(),TAG)
+                e.printStackTrace()
             }
         }
     }
@@ -265,7 +256,6 @@ import java.util.*
            val cancel = view.findViewById<TextView>(R.id.cancel_genBtn)
 
           if (gender!=""){
-              myApplication.printLogD(gender,"gender")
               if (gender.equals("male" ,true))
                   maleRb.isChecked = true
               else
@@ -292,7 +282,7 @@ import java.util.*
            dialog.show()
 
        }catch (e:Exception){
-           myApplication.printLogE(e.toString(),TAG)
+           e.printStackTrace()
        }
     }
 
@@ -319,12 +309,12 @@ import java.util.*
             val strRequest: VolleyMultipartRequest = object : VolleyMultipartRequest(
                 Method.POST, editProfileApiUrl,
                 com.android.volley.Response.Listener<NetworkResponse> { response ->
-                    myApplication.printLogD(response.toString(),TAG)
                     progressDialog.dismiss()
                     sendToMainActivity()
                 },
                 com.android.volley.Response.ErrorListener { error ->
-                    myApplication.printLogE(error.toString(),TAG)
+                    Log.e(TAG, "onResponse: ${error.toString()}")
+
                     progressDialog.dismiss()
                 })
             {
@@ -458,7 +448,7 @@ import java.util.*
                  ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
              )
          } else {
-            myApplication.printLogD("storage granted",TAG)
+             Log.d(TAG, "storage granted")
          }
      }
 

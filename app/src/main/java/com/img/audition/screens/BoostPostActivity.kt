@@ -76,7 +76,6 @@ import retrofit2.Response
     private val myApplication by lazy {
         MyApplication(this@BoostPostActivity)
     }
-
     private val sessionManager by lazy {
         SessionManager(this@BoostPostActivity)
     }

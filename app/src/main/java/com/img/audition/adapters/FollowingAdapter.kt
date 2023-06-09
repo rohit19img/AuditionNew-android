@@ -1,8 +1,10 @@
 package com.img.audition.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,18 +25,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FollowingAdapter(val context: Context,val followingList : ArrayList<FollowingList>) : RecyclerView.Adapter<FollowingAdapter.MyViewHolder>() {
-
-    val TAG = "FollowingAdapter"
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-    private val sessionManager by lazy {
-        SessionManager(context)
-    }
-    private val myApplication by lazy {
-        MyApplication(context)
-    }
+class FollowingAdapter(val context: Context, private val followingList : ArrayList<FollowingList>) : RecyclerView.Adapter<FollowingAdapter.MyViewHolder>() {
     inner class MyViewHolder(itemView: FollowerfollowingdesignBinding) : RecyclerView.ViewHolder(itemView.root) {
 
        val userImage = itemView.userImage
@@ -54,6 +45,7 @@ class FollowingAdapter(val context: Context,val followingList : ArrayList<Follow
         return followingList.size
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
        holder.apply {
            val data = followingList[position]
@@ -84,20 +76,18 @@ class FollowingAdapter(val context: Context,val followingList : ArrayList<Follow
     }
 
     private fun followUserApi(userId: String?, status: String) {
-        myApplication.printLogD("followUserApi: $userId $status",TAG)
-        val ffReq = apiInterface.followFollowing(sessionManager.getToken(),userId,status)
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val ffReq = apiInterface.followFollowing(SessionManager(context).getToken(),userId,status)
         ffReq.enqueue(object : Callback<FollowFollowingResponse> {
             override fun onResponse(call: Call<FollowFollowingResponse>, response: Response<FollowFollowingResponse>) {
                 if (response.isSuccessful){
-                    myApplication.printLogD("onResponse: FollowFollowing ${response.toString()}",TAG)
-
+                    Log.d("FollowingAdapter", "onResponse: ${response.message()}")
                 }else{
-                    myApplication.printLogE("onResponse: FollowFollowing ${response.toString()}",TAG)
-
+                    Log.e("FollowingAdapter", "onResponse: ${response.message()}")
                 }
             }
             override fun onFailure(call: Call<FollowFollowingResponse>, t: Throwable) {
-                myApplication.printLogE("onFailure: FollowFollowing ${t.toString()}",TAG)
+                Log.e("FollowingAdapter", "onFailure: $t")
 
             }
         })

@@ -7,13 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.img.audition.R
 import com.img.audition.dataModel.SearchHashtagsData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.HashtagVideoActivity
 
-class HashtagSearch_Adapter(val context: Context, val list: ArrayList<SearchHashtagsData>) :
+@UnstableApi class HashtagSearch_Adapter(val context: Context, val list: ArrayList<SearchHashtagsData>) :
     RecyclerView.Adapter<HashtagSearch_Adapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

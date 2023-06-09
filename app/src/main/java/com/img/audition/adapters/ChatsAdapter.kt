@@ -16,14 +16,12 @@ import java.util.*
 
 class ChatsAdapter(var context: Context, var list: ArrayList<ChatsGetSet>) :
     RecyclerView.Adapter<ChatsAdapter.MyViewHolder>() {
-    var ME_USER = 0
-    var OTHER_USER = 1
-    val session: SessionManager by lazy{
-        SessionManager(context)
-    }
+    private var ME_USER = 0
+    private var OTHER_USER = 1
+
 
     override fun getItemViewType(position: Int): Int {
-        return if (list[position].senderId == session.getUserSelfID()) ME_USER else OTHER_USER
+        return if (list[position].senderId == SessionManager(context).getUserSelfID()) ME_USER else OTHER_USER
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

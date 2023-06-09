@@ -86,7 +86,6 @@
                 android:textColor="@color/textColorBlack"
                 android:textColorHint="@color/Gray" />
 
-
         </RelativeLayout>
 
 
@@ -95,7 +94,7 @@
             android:id="@+id/cycleView"
             android:layout_below="@id/l1"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="250dp"
             >
 
             <androidx.recyclerview.widget.RecyclerView

@@ -13,7 +13,7 @@ import com.img.audition.dataModel.Languages
 import com.img.audition.databinding.LanguageItemBinding
 
 
-class LanguageAdapter(val context: Context, val langList: ArrayList<Languages>) : RecyclerView.Adapter<LanguageAdapter.MyViewHolder>() {
+class LanguageAdapter(val context: Context, private val langList: ArrayList<Languages>) : RecyclerView.Adapter<LanguageAdapter.MyViewHolder>() {
     inner class MyViewHolder(itemView: LanguageItemBinding) : RecyclerView.ViewHolder(itemView.root) {
         val langTextView = itemView.langE
         val langHoldCard = itemView.langHoldCard

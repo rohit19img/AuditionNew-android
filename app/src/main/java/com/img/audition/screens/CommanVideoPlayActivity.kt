@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
@@ -33,26 +34,18 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @UnstableApi class CommanVideoPlayActivity : AppCompatActivity() {
+    private lateinit var videoData: java.util.ArrayList<VideoData>
+    private var videoAdapter: VideoAdapter? = null
+    private lateinit var videoList: java.util.ArrayList<VideoData>
     private val TAG = "CommanVideoPlayActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCommanVideoPlayBinding.inflate(layoutInflater)
-    }
-    private val sessionManager by lazy {
-        SessionManager(this@CommanVideoPlayActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@CommanVideoPlayActivity)
     }
 
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
     private lateinit var videoItemPlayPause: VideoItemPlayPause
-
-     private val apiInterface by lazy{
-         RetrofitClient.getInstance().create(ApiInterface::class.java)
-     }
 
     private lateinit var mainViewModel: MainViewModel
 
@@ -61,7 +54,9 @@ import retrofit2.Response
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
-        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(SessionManager(this@CommanVideoPlayActivity).getToken(),apiInterface))[MainViewModel::class.java]
 
         if (bundle!=null){
             if (bundle!!.getBoolean(ConstValFile.IsFromContest)){
@@ -70,23 +65,15 @@ import retrofit2.Response
                 getContestVideo(userID,contestID)
             }else{
                 viewBinding.videoViewpager2.offscreenPageLimit = 2
-                val videoList = bundle!!.getSerializable(ConstValFile.VideoList) as ArrayList<VideoData>
+                videoList = bundle!!.getSerializable(ConstValFile.VideoList) as ArrayList<VideoData>
                 val videoPos = bundle!!.getInt(ConstValFile.VideoPosition)
-                for (da in videoList){
-                    myApplication.printLogD(da.usersLike.toString(),"like common play")
-                    myApplication.printLogD(da.auditionId.toString(),"userid Data common play")
-                    myApplication.printLogD(da.caption.toString(),"caption Data common play")
-                }
-                val videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoList)
+                videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoList)
                 viewBinding.videoViewpager2.adapter = videoAdapter
                 viewBinding.videoViewpager2.currentItem = videoPos
 
-                videoItemPlayPause = videoAdapter.onActivityStateChanged()
+                videoItemPlayPause = videoAdapter!!.onActivityStateChanged()
             }
-
-
         }
-
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
@@ -99,7 +86,15 @@ import retrofit2.Response
             val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
             videoItemPlayPause.onPause(holder,cPos)
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG)
+           e.printStackTrace()
+        }
+
+        try {
+            videoAdapter = null
+            videoData.clear()
+            videoList.clear()
+        }catch (e:Exception){
+            e.printStackTrace()
         }
         super.onBackPressed()
     }
@@ -111,7 +106,7 @@ import retrofit2.Response
             val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
             videoItemPlayPause.onPause(holder,cPos)
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG)
+           e.printStackTrace()
         }
         super.onPause()
     }
@@ -122,7 +117,7 @@ import retrofit2.Response
             val holder: VideoAdapter.VideoViewHolder = ( viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
             videoItemPlayPause.onResume(holder,cPos)
         }catch (e:Exception){
-            myApplication.printLogE(e.message.toString(),TAG)
+            e.printStackTrace()
         }
         Log.d(TRACK, "onResume: ")
         super.onResume()
@@ -136,76 +131,41 @@ import retrofit2.Response
              val holder: VideoAdapter.VideoViewHolder = (viewBinding.videoViewpager2.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(cPos) as VideoAdapter.VideoViewHolder
              videoItemPlayPause.onStop(holder,cPos)
          }catch (e:Exception){
-             myApplication.printLogE(e.message.toString(),TAG)
+             e.printStackTrace()
          }
+
+
          super.onStop()
      }
 
     private fun getContestVideo(userID: String,contestID:String){
         mainViewModel.getContestVideo(userID,contestID)
+
             .observe(this){
                 it.let {videoResponse->
-                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
                     when(videoResponse.status){
                         Status.SUCCESS ->{
-                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
-                            if (videoResponse.data.success!!){
-                                val videoData = videoResponse.data.data
+                            if (videoResponse.data?.success!!){
+                                videoData = videoResponse.data.data
                                 if (videoData.size>0){
-                                    val videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoData)
+                                    videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoData)
                                     viewBinding.videoViewpager2.adapter = videoAdapter
-                                    videoItemPlayPause = videoAdapter.onActivityStateChanged()
+                                    videoItemPlayPause = videoAdapter!!.onActivityStateChanged()
                                 }else{
-                                    myApplication.printLogD("No Video Data",TAG)
-                                    myApplication.showToast(videoResponse.data!!.message!!)
+                                   Toast.makeText(this,videoResponse.data.message!!,Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                            Log.e(TAG, "onResponse: ${videoResponse.status.toString()}")
                         }
                         else->{
-                            if (videoResponse.message!!.contains("401")){
-                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
-                                sessionManager.clearLogoutSession()
-                                startActivity(Intent(this, SplashActivity::class.java))
-                                finishAffinity()
-                            }else{
-                                myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
-                                myApplication.showToast(videoResponse.data!!.message!!)
-                                onBackPressed()
-                            }
+                            Toast.makeText(this,videoResponse.data!!.message!!,Toast.LENGTH_SHORT).show()
+                            onBackPressed()
                         }
                     }
                 }
             }
     }
 
-
-  /*  private fun getContestVideo(userID: String,contestID:String) {
-         val getUserVideoReq = apiInterface.getContestVideo(sessionManager.getToken(),userID,contestID)
-
-         getUserVideoReq.enqueue( object : Callback<VideoResponse> {
-             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
-                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
-                     val videoData = response.body()!!.data
-                     if (videoData.size>0){
-                         val videoAdapter = VideoAdapter(this@CommanVideoPlayActivity,videoData)
-                         viewBinding.videoViewpager2.adapter = videoAdapter
-                         videoItemPlayPause = videoAdapter.onActivityStateChanged()
-                     }else{
-                         myApplication.printLogD("No Video Data",TAG)
-                     }
-                 }else{
-                     myApplication.showToast(response.body()!!.message!!)
-                     onBackPressed()
-                     myApplication.printLogE("Get Video Response Failed ${response.code()}",TAG)
-                 }
-             }
-             override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                 myApplication.printLogE("Get Video onFailure ${t.toString()}",TAG)
-             }
-
-         })
-     }*/
 }

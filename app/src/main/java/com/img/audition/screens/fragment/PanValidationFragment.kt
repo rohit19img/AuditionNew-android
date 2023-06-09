@@ -1,8 +1,10 @@
 package com.img.audition.screens.fragment
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -12,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.android.volley.*
@@ -28,7 +31,6 @@ import com.canhub.cropper.CropImageView.Guidelines
 import com.img.audition.R
 import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentPanValidationBinding
-import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -52,23 +54,17 @@ class PanValidationFragment : Fragment() {
     var requestQueue: RequestQueue? = null
 
     private lateinit var _viewBinding : FragmentPanValidationBinding
-    private val view get() = _viewBinding!!
+    private val view get() = _viewBinding
     private val sessionManager by lazy {
         SessionManager(requireContext())
     }
 
-    private val myApplication by lazy {
-        MyApplication(requireContext())
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestQueue = Volley.newRequestQueue(activity)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentPanValidationBinding.inflate(inflater,container,false)
 
         return view.root
@@ -84,7 +80,7 @@ class PanValidationFragment : Fragment() {
         }
 
         view.btnSubmit.setOnClickListener {
-            validate()
+            validate(view1.context)
         }
 
         view.btnUpload.setOnClickListener {
@@ -92,7 +88,7 @@ class PanValidationFragment : Fragment() {
         }
     }
 
-    fun validate() {
+    fun validate(context: Context) {
         if (view.name.text.toString() == "") {
             view.name.error = "Please Enter Name"
         } else if (view.name.text.toString().length < 4) {
@@ -100,7 +96,7 @@ class PanValidationFragment : Fragment() {
         } else if (view.dobText.text.toString() == "Date of birth*") {
             view.dobText.error = "Please select dob"
         } else if (imagepath == "") {
-                myApplication.showToast("Please select image")
+            Toast.makeText(context,"Please select image", Toast.LENGTH_SHORT).show()
         } else {
             VerifyPanDetails()
         }
@@ -109,22 +105,23 @@ class PanValidationFragment : Fragment() {
     fun VerifyPanDetails() {
         try {
             val url = APITags.APIBASEURL + "panrequest"
-            val strRequest: VolleyMultipartRequest = object : VolleyMultipartRequest(
+            val strRequest: VolleyMultipartRequest = @SuppressLint("SetTextI18n")
+            object : VolleyMultipartRequest(
                 Method.POST, url,
                 Response.Listener<NetworkResponse?> {
                     sessionManager.setPANVerified("0")
-                    view.panVerified.setText("Your PAN Card details are sent for verification.")
-                    view.invalidRequest.setVisibility(View.GONE)
-                    view.cardVerified.setVisibility(View.VISIBLE)
-                    view.cardNotVerified.setVisibility(View.GONE)
-                    view.comment.setVisibility(View.GONE)
+                    view.panVerified.text = "Your PAN Card details are sent for verification."
+                    view.invalidRequest.visibility = View.GONE
+                    view.cardVerified.visibility = View.VISIBLE
+                    view.cardNotVerified.visibility = View.GONE
+                    view.comment.visibility = View.GONE
                     PANDetails()
                 },
                 ErrorListener { error -> Log.i("ErrorResponce", error.toString()) }) {
-                override fun getParams(): Map<String, String>? {
+                override fun getParams(): Map<String, String> {
                     val map = HashMap<String, String>()
-                    map["panname"] = view.name.getText().toString()
-                    map["pannumber"] = view.panNumber.getText().toString()
+                    map["panname"] = view.name.text.toString()
+                    map["pannumber"] = view.panNumber.text.toString()
                     map["dob"] = dob
                     map["typename"] = "pancard"
                     Log.d("map", map.toString())
@@ -139,7 +136,7 @@ class PanValidationFragment : Fragment() {
                     return params
                 }
 
-                override fun getByteData(): Map<String, DataPart>? {
+                override fun getByteData(): Map<String, DataPart> {
                     val params: MutableMap<String, DataPart> = HashMap()
                     params["image"] =
                         DataPart("BANK_Image.jpg", convertToByte(imagepath), "image/jpg")
@@ -169,6 +166,7 @@ class PanValidationFragment : Fragment() {
             .start(requireContext(), this)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -178,11 +176,12 @@ class PanValidationFragment : Fragment() {
                 Log.e("Check file", imagepath)
                 view.img.setImageURI(Uri.parse(imagepath))
             } catch (e: Exception) {
-                myApplication.printLogE(e.message.toString(),TAG)
+               e.printStackTrace()
             }
         }
     }
 
+    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     fun pickDate(dialog: TextView) {
         val mcurrentDate = Calendar.getInstance()
         val mYear = mcurrentDate[Calendar.YEAR]
@@ -192,13 +191,13 @@ class PanValidationFragment : Fragment() {
             requireActivity(),
             { datepicker, selectedyear, selectedmonth, selectedday ->
                 var selectedmonth = selectedmonth
-                selectedmonth = selectedmonth + 1
+                selectedmonth += 1
                 val d = "$selectedyear-$selectedmonth-$selectedday"
                 val date1: Date
                 var date2: String? = null
                 try {
                     val d1: DateFormat = SimpleDateFormat("yyyy-MM-dd")
-                    date1 = d1.parse(d)
+                    date1 = d1.parse(d) as Date
                     val d2: DateFormat = SimpleDateFormat("dd-MMM-yyyy")
                     date2 = d2.format(date1)
                 } catch (e: ParseException) {
@@ -210,14 +209,12 @@ class PanValidationFragment : Fragment() {
         )
         mDatePicker.datePicker.maxDate = (System.currentTimeMillis() - 5.681e+11).toLong()
         mDatePicker.setTitle("Select Birth Date")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mDatePicker.datePicker.firstDayOfWeek = Calendar.MONDAY
-        }
+        mDatePicker.datePicker.firstDayOfWeek = Calendar.MONDAY
         mDatePicker.show()
     }
 
 
-    fun convertToByte(path: String?): ByteArray? {
+    fun convertToByte(path: String?): ByteArray {
         Log.i("path", path!!)
         val file = File(path)
         Log.i("length", file.length().toString())
@@ -252,27 +249,25 @@ class PanValidationFragment : Fragment() {
                         Log.i("Response is", response)
                         val json = JSONObject(response)
                         val jsonObject = json.getJSONObject("data")
-                       if (jsonObject!=null){
-                           val panName = jsonObject.getString("panname")
-                           if (panName != "") {
-                               view.panname.setText(panName)
-                           }
-                           val pannumber = jsonObject.getString("pannumber")
-                           if (pannumber != "") {
-                               view.number.setText(pannumber)
-                           }
-                           val pandob = jsonObject.getString("pandob")
-                           if (pandob != "") {
-                               view.pandob.setText(pandob)
-                           }
-                           val panImage = jsonObject.getString("image")
-                           if (panImage != "") {
-                               Glide.with(requireContext()).load(panImage).into(view.pancard)
-                           }
-                       }
+                        val panName = jsonObject.getString("panname")
+                        if (panName != "") {
+                            view.panname.text = panName
+                        }
+                        val pannumber = jsonObject.getString("pannumber")
+                        if (pannumber != "") {
+                            view.number.text = pannumber
+                        }
+                        val pandob = jsonObject.getString("pandob")
+                        if (pandob != "") {
+                            view.pandob.text = pandob
+                        }
+                        val panImage = jsonObject.getString("image")
+                        if (panImage != "") {
+                            Glide.with(requireContext()).load(panImage).into(view.pancard)
+                        }
 
-                        if (jsonObject.has("comment")) view.comment.setText(jsonObject.getString("comment"))
-                        view.cardDetails.setVisibility(View.VISIBLE)
+                        if (jsonObject.has("comment")) view.comment.text = jsonObject.getString("comment")
+                        view.cardDetails.visibility = View.VISIBLE
                     } catch (je: JSONException) {
                         je.printStackTrace()
                         val d = AlertDialog.Builder(
@@ -283,10 +278,10 @@ class PanValidationFragment : Fragment() {
                         d.setMessage("Something went wrong, Please try again")
                         d.setPositiveButton(
                             "Retry"
-                        ) { dialog, which -> PANDetails() }
+                        ) { _, _ -> PANDetails() }
                         d.setNegativeButton(
                             "Cancel"
-                        ) { dialog, which -> (requireActivity() as Activity).finish() }
+                        ) { _, _ -> (requireActivity() as Activity).finish() }
                         try {
                             d.show()
                         } catch (f: java.lang.Exception) {
@@ -308,10 +303,14 @@ class PanValidationFragment : Fragment() {
                         d.setMessage("Something went wrong, Please try again")
                         d.setPositiveButton(
                             "Retry"
-                        ) { dialog, which -> PANDetails() }
+                        ) { dialog, _ ->
+                            dialog.dismiss()
+                            PANDetails() }
                         d.setNegativeButton(
                             "Cancel"
-                        ) { dialog, which -> (requireActivity() as Activity).finish() }
+                        ) { dialog, _ ->
+                            dialog.dismiss()
+                            (requireActivity() as Activity).finish() }
                         try {
                             d.show()
                         } catch (f: java.lang.Exception) {
@@ -341,6 +340,8 @@ class PanValidationFragment : Fragment() {
     }
 
     private fun AllVerify() {
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
         val allVerifyReq = apiInterface.getAllVerificationsData(sessionManager.getToken())
         allVerifyReq.enqueue(object : Callback<UserVerificationResponse> {
             override fun onResponse(
@@ -363,48 +364,47 @@ class PanValidationFragment : Fragment() {
                             sessionManager.setPANVerified(pan_verify.toString())
 
                             if (pan_verify == 0) {
-                                view.panVerified.setText("Your PAN Card details are sent for verification.")
-                                view.cardVerified.setVisibility(View.VISIBLE)
-                                view.invalidRequest.setVisibility(View.GONE)
+                                view.panVerified.text = "Your PAN Card details are sent for verification."
+                                view.cardVerified.visibility = View.VISIBLE
+                                view.invalidRequest.visibility = View.GONE
                                 view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
-                                view.cardNotVerified.setVisibility(View.GONE)
+                                view.cardNotVerified.visibility = View.GONE
                                 PANDetails()
                             } else if (pan_verify == 1) {
-                                view.invalidRequest.setVisibility(View.GONE)
-                                view.cardNotVerified.setVisibility(View.GONE)
-                                view.cardVerified.setVisibility(View.VISIBLE)
+                                view.invalidRequest.visibility = View.GONE
+                                view.cardNotVerified.visibility = View.GONE
+                                view.cardVerified.visibility = View.VISIBLE
                                 view.panicon.setImageResource(R.drawable.ic_credit_card_green)
                                 PANDetails()
                             } else if (pan_verify == -1) {
                                 view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
                                 view.invalidRequest.visibility = View.GONE
-                                view.cardVerified.setVisibility(View.GONE)
+                                view.cardVerified.visibility = View.GONE
                                 view.cardNotVerified.setVisibility(View.VISIBLE)
                             } else {
                                 view.panicon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_credit_card_green))
-                                view.invalidRequest.setVisibility(View.GONE)
-                                view.cardNotVerified.setVisibility(View.VISIBLE)
-                                view.comment.setVisibility(View.VISIBLE)
-                                view.panVerified.setText("Your PAN Card details are Rejected.")
+                                view.invalidRequest.visibility = View.GONE
+                                view.cardNotVerified.visibility = View.VISIBLE
+                                view.comment.visibility = View.VISIBLE
+                                view.panVerified.text = "Your PAN Card details are Rejected."
                                 view.panVerified.setTextColor(ContextCompat.getColor(requireContext(), R.color.bgColorRed))
-                                view.cardVerified.setVisibility(View.VISIBLE)
+                                view.cardVerified.visibility = View.VISIBLE
                                 PANDetails()
                             }
                         } else {
                             view.invalidRequest.visibility = View.VISIBLE
-                            view.cardNotVerified.setVisibility(View.GONE)
-                            view.comment.setVisibility(View.GONE)
-                            view.cardVerified.setVisibility(View.GONE)
+                            view.cardNotVerified.visibility = View.GONE
+                            view.comment.visibility = View.GONE
+                            view.cardVerified.visibility = View.GONE
                         }
                     }
 
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.e(TAG, response.toString())
                 }
             }
 
             override fun onFailure(call: Call<UserVerificationResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
                 Log.i("Exception",t.toString())
                 Log.i("Exception",t.message.toString())
             }

@@ -7,7 +7,7 @@ data class VideoResponse(
     @SerializedName("message" ) var message : String?         = null,
     @SerializedName("success" ) var success : Boolean?        = null,
     @SerializedName("data"    ) var data    : ArrayList<VideoData> = arrayListOf()
-)
+): java.io.Serializable
 
 data class VideoData(
     @SerializedName("_id"            ) var Id            : String?           = null,
@@ -50,6 +50,7 @@ data class VideoData(
     @SerializedName("isSaved"        ) var isSaved       : Boolean?          = false,
     @SerializedName("isBoosted"      ) var isBoosted     : Boolean?          = false,
     @SerializedName("hashName"       ) var hashName      : String?           = null,
+    @SerializedName("is_blocked"     ) var isBlocked     : Boolean           = false,
 
     ) : java.io.Serializable
 
@@ -58,7 +59,7 @@ data class VoteDataResponse(
     @SerializedName("success" ) var success : Boolean?        = null,
     @SerializedName("message" ) var message : String?         = null,
     @SerializedName("data"    ) var data    : ArrayList<VoteData> = arrayListOf()
-)
+): java.io.Serializable
 
 data class VoteData(
     @SerializedName("_id"           ) var Id           : String? = null,
@@ -66,32 +67,32 @@ data class VoteData(
     @SerializedName("vote"          ) var vote         : String? = null,
     @SerializedName("__v"           ) var _v           : Int?    = null,
     @SerializedName("emoji"         ) var emoji        : String? = null
-)
+): java.io.Serializable
 
 
 data class TrendingVideoResponse(
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("message" ) var message : String?  = null,
     @SerializedName("data"    ) var data    : TrendingVideoData?    = TrendingVideoData()
-)
+): java.io.Serializable
 data class TrendingVideoData(
     @SerializedName("data"   ) var data   : ArrayList<TrendingVideo>   = arrayListOf(),
     @SerializedName("images" ) var images : ArrayList<String> = arrayListOf()
-)
+): java.io.Serializable
 
 data class TrendingVideo(
     @SerializedName("_id"    ) var Id     : String?           = null,
     @SerializedName("name"   ) var name   : String?           = null,
     @SerializedName("views"  ) var views  : Int?              = null,
     @SerializedName("videos" ) var videos : ArrayList<VideoData> = arrayListOf()
-)
+): java.io.Serializable
 
 data class UploadMusicResponse(
     @SerializedName("message" ) var message : String?  = null,
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("data"    ) var data    : UploadMusicData?    = UploadMusicData()
 
-)
+): java.io.Serializable
 
 data class UploadMusicData(
     @SerializedName("title"            ) var title          : String?  = null,
@@ -130,7 +131,7 @@ data class SongVideoResponse(
     @SerializedName("message" ) var message : String?  = null,
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("data"    ) var data    : SongVideoData?    = SongVideoData()
-)
+): java.io.Serializable
 
 data class SongVideoData (
 

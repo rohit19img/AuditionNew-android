@@ -13,7 +13,7 @@ import com.img.audition.databinding.TrendHashVideoCycleBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
 
-class TrendingHashVideoAdapter(val context : Context, val trendVideoList: ArrayList<VideoData>) : RecyclerView.Adapter<TrendingHashVideoAdapter.MyViewHolder>() {
+class TrendingHashVideoAdapter(val context : Context, private val trendVideoList: ArrayList<VideoData>) : RecyclerView.Adapter<TrendingHashVideoAdapter.MyViewHolder>() {
     class MyViewHolder(itemView: TrendHashVideoCycleBinding) : RecyclerView.ViewHolder(itemView.root) {
         val videoThumbnail = itemView.hashtagVideo
     }

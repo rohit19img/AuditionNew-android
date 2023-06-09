@@ -33,6 +33,7 @@ class DetailsPrizecardAdapter(val context:Context,val list:ArrayList<SingleConte
        }
     }
 
+
     override fun getItemCount(): Int {
         return list.size
     }

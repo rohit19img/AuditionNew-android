@@ -14,7 +14,7 @@ import com.img.audition.dataModel.OfferData
 import com.img.audition.screens.AddAmountActivity
 import kotlin.Int
 
-class AddCashOfferAdapter(val context: Activity, val offerData: ArrayList<OfferData>?) :
+class AddCashOfferAdapter(val context: Activity, private val offerData: ArrayList<OfferData>?) :
     RecyclerView.Adapter<AddCashOfferAdapter.MyViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {

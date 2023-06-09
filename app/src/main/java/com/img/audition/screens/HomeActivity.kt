@@ -1,184 +1,224 @@
 package com.img.audition.screens
 
 import android.Manifest
-import android.app.ActivityManager
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Message
 import android.util.Log
+import android.view.View
 import android.view.Window
-import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.img.audition.R
 import com.img.audition.dataModel.UserLatLang
+import com.img.audition.dataModel.VideoData
 import com.img.audition.dataModel.WebSliderResponse
 import com.img.audition.databinding.ActivityHomeBinding
 import com.img.audition.globalAccess.AppPermission
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
-import com.img.audition.network.ApiInterface
-import com.img.audition.network.NetworkStateService
-import com.img.audition.network.RetrofitClient
-import com.img.audition.network.SessionManager
-import com.img.audition.screens.fragment.*
+import com.img.audition.network.*
+import com.img.audition.screens.fragment.ContestFragment
+import com.img.audition.screens.fragment.ProfileFragment
+import com.img.audition.screens.fragment.TrendingSearchFragment
+import com.img.audition.screens.fragment.VideoFragment
 import com.img.audition.snapCameraKit.SnapCameraActivity
-import org.apache.commons.io.IOUtils
+import com.img.audition.viewModel.MainViewModel
+import com.img.audition.viewModel.Status
+import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
-import java.lang.ref.WeakReference
 
 
 @UnstableApi
 class HomeActivity : AppCompatActivity() {
-    val TAG = "HomeActivity"
-    lateinit var appPermission : AppPermission
-    lateinit var fusedLocation : FusedLocationProviderClient
-    lateinit var userLatLang: UserLatLang
-    lateinit var locationManager:LocationManager
-    var dir = File(File(Environment.getExternalStorageDirectory(), "Audition"), "Audition")
-
-    var authToken = ""
+    private var videoData = ArrayList<VideoData>()
+    private val TAG = "HomeActivity"
+    lateinit var appPermission: AppPermission
+    lateinit var popupDialog: Dialog
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
-        ActivityHomeBinding.inflate(layoutInflater)
-        ActivityHomeBinding.inflate(layoutInflater)
+        ActivityHomeBinding.inflate(
+            layoutInflater
+        )
     }
-    private val sessionManager by lazy {
-        SessionManager(this@HomeActivity)
-    }
-
-    private val mHandler = MyHandler(this)
-    private val myApplication by lazy {
-        MyApplication(this@HomeActivity)
-    }
-
+    private val sessionManager by lazy { SessionManager(this@HomeActivity) }
+    private val myApplication by lazy { MyApplication(this) }
     val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
 
+    private lateinit var mainViewModel: MainViewModel
+    private var fusedLocation: FusedLocationProviderClient? = null
+    private var userLatLang: UserLatLang? = null
+    private var locationManager: LocationManager? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+        viewBinding.showVideoShimmer.startShimmer()
+        viewBinding.showVideoShimmer.visibility = View.VISIBLE
 
-        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        val runningTasks = activityManager.getRunningTasks(1)
-        val currentActivity = runningTasks[0].topActivity!!.className
+        appPermission = AppPermission(
+            this@HomeActivity,
+            ConstValFile.PERMISSION_LIST,
+            ConstValFile.REQUEST_PERMISSION_CODE
+        )
+        appPermission.checkPermissions()
 
-        val message = mHandler.obtainMessage()
-        message.what = 1
-        mHandler.sendMessageDelayed(message, 1000)
+        if (myApplication.isNetworkConnected()) {
+            askForLocation()
+        } else {
+            myApplication.showToast(ConstValFile.Check_Connection)
+        }
 
-        if (!(SplashActivity.isPopupBannerShow)){
+        mainViewModel = ViewModelProvider(
+            this,
+            ViewModelFactory(sessionManager.getToken(), apiInterface)
+        )[MainViewModel::class.java]
+        popupDialog = Dialog(this)
+        userLatLang = UserLatLang()
+        fusedLocation = LocationServices.getFusedLocationProviderClient(this)
+
+        if (!(SplashActivity.isPopupBannerShow)) {
             SplashActivity.isPopupBannerShow = true
             showPopupDialog()
         }
 
-        if (currentActivity != HomeActivity::class.java.name) {
-            val intent = Intent(applicationContext, NetworkStateService::class.java)
-            startService(intent)
-            Log.d("internet", "HomeActivity: // App is running in the background")
-        } else {
-            val intent = Intent(applicationContext, NetworkStateService::class.java)
-            stopService(intent)
-            Log.d("internet", "HomeActivity: // App is running in the foreground")
-        }
-
-        appPermission =  AppPermission(this@HomeActivity,ConstValFile.PERMISSION_LIST,ConstValFile.REQUEST_PERMISSION_CODE)
-        fusedLocation = LocationServices.getFusedLocationProviderClient(this@HomeActivity)
-        authToken = sessionManager.getToken().toString()
-        myApplication.printLogD(authToken,ConstValFile.TOKEN)
-
-        userLatLang = UserLatLang()
-        askForLocation()
-
-        appPermission.checkPermissions()
-
-        loadFragment(VideoFragment(this@HomeActivity))
+        clearTempSession()
+        getReelsVideo()
 
         viewBinding.bottomNav.setOnItemSelectedListener {
-            when(it.itemId){
+            when (it.itemId) {
                 R.id.home -> {
                     clearTempSession()
-                    loadFragment(VideoFragment(this@HomeActivity))
-                    true
-                }
-                R.id.search->{
-                    clearTempSession()
-                    loadFragment(TrendingSearchFragment(this@HomeActivity))
-                    true
-                }R.id.contest->{
-                    clearTempSession()
-                    loadFragment(ContestFragment(this@HomeActivity))
-                    true
-                }
-                R.id.createVideo->{
-                    clearTempSession()
-                    if (!(sessionManager.isUserLoggedIn())){
-                        sendToLoginScreen()
+                    if (myApplication.isNetworkConnected()){
+                        val videoFragment = VideoFragment(this)
+                        val bundle = Bundle()
+                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        videoFragment.arguments = bundle
+                        loadFragment(videoFragment)
+                        true
                     }else{
-                        fontToDevice(R.font.notosans_medium,ConstValFile.FontName,this@HomeActivity)
+                        checkInternetDialog(R.id.home)
+                        false
+                    }
+
+                }
+                R.id.search -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        loadFragment(TrendingSearchFragment(this@HomeActivity))
+                        true
+                    }else{
+                        checkInternetDialog(R.id.search)
+                        false
+                    }
+                }
+                R.id.contest -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        loadFragment(ContestFragment(this@HomeActivity))
+                        true
+                    }else{
+                        checkInternetDialog(R.id.contest)
+                        false
+                    }
+                }
+                R.id.createVideo -> {
+                    clearTempSession()
+                    if (!(sessionManager.isUserLoggedIn())) {
+                        sendToLoginScreen()
+                    } else {
+                        /* fontToDevice(R.font.notosans_medium,ConstValFile.FontName,this@HomeActivity)*/
                         sendForCreateVideo()
                     }
                     false
                 }
-                R.id.profile->{
+                R.id.profile -> {
                     clearTempSession()
-                    if (!(sessionManager.isUserLoggedIn())){
-                        sendToLoginScreen()
+                    if (myApplication.isNetworkConnected()){
+                        if (!(sessionManager.isUserLoggedIn())) {
+                            sendToLoginScreen()
+                        } else {
+                            loadFragment(ProfileFragment(this@HomeActivity))
+                        }
+                        true
                     }else{
-                        loadFragment(ProfileFragment(this@HomeActivity))
+                        checkInternetDialog(R.id.profile)
+                        false
                     }
-                    true
-                }else -> {
-                    clearTempSession()
-                    loadFragment(VideoFragment(this@HomeActivity))
-                    true
-
                 }
+                else -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        val videoFragment = VideoFragment(this)
+                        val bundle = Bundle()
+                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        videoFragment.arguments = bundle
+                        loadFragment(videoFragment)
+                        true
+                    }else{
+                        checkInternetDialog(R.id.home)
+                        false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun askForLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            appPermission.checkPermissions()
+        } else {
+            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+            if (!locationManager!!.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                myApplication.onGPS()
+            } else {
+                getLocation()
             }
         }
     }
 
     private fun showPopupDialog() {
-        val popupDialog = Dialog(this)
         popupDialog.window!!.requestFeature(Window.FEATURE_NO_TITLE)
         popupDialog.setContentView(layoutInflater.inflate(R.layout.popup_dialog_layout, null))
-
-
         val popupImage = popupDialog.findViewById<ImageView>(R.id.popupImage)
-        val popupButton = popupDialog.findViewById<Button>(R.id.popupButton)
-
-
         val popupImageReq = apiInterface.getWebSliderBanner(sessionManager.getToken())
 
-        popupImageReq.enqueue(object : Callback<WebSliderResponse>{
-            override fun onResponse(call: Call<WebSliderResponse>, response: Response<WebSliderResponse>) {
-                if (response.isSuccessful && response.body()!!.success!!){
+        popupImageReq.enqueue(object : Callback<WebSliderResponse> {
+            override fun onResponse(
+                call: Call<WebSliderResponse>,
+                response: Response<WebSliderResponse>
+            ) {
+                if (response.isSuccessful && response.body()!!.success!!) {
                     val banner = response.body()!!.data?.image.toString()
-                    Glide.with(this@HomeActivity).load(banner).into(popupImage)
-                }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    if (banner.isEmpty() || banner.isBlank()){
+                        popupDialog.dismiss()
+                    }else{
+                        Glide.with(this@HomeActivity).load(banner).into(popupImage)
+                    }
+                } else {
+                    popupDialog.dismiss()
+                    Log.e(TAG, "onResponse: ${response.toString()}")
                 }
             }
+
             override fun onFailure(call: Call<WebSliderResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+                popupDialog.dismiss()
+                t.printStackTrace()
             }
         })
 
@@ -189,65 +229,11 @@ class HomeActivity : AppCompatActivity() {
 
     private fun loadFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(viewBinding.viewContainer.id,fragment)
+        transaction.replace(viewBinding.viewContainer.id, fragment)
         transaction.commit()
     }
 
-
-    private fun askForLocation() {
-        if (ContextCompat.checkSelfPermission(this@HomeActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
-                ConstValFile.REQUEST_PERMISSION_CODE_LOCATION
-            )
-        } else {
-            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                myApplication.onGPS()
-            } else {
-                getLocation()
-            }
-        }
-    }
-
-
-    private fun getLocation() {
-        if (ActivityCompat.checkSelfPermission(this@HomeActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this@HomeActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this@HomeActivity,
-                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
-                ConstValFile.REQUEST_PERMISSION_CODE_LOCATION
-            )
-        } else {
-            fusedLocation.lastLocation
-                .addOnSuccessListener(this
-                ) { location ->
-                    if (location != null) {
-                        userLatLang = UserLatLang(location.latitude,location.longitude)
-                        myApplication.printLogI(userLatLang.lat.toString(),TAG + " latitude :")
-                        myApplication.printLogI(userLatLang.long.toString(),TAG + " longitude :")
-                    }
-                }
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == ConstValFile.REQUEST_PERMISSION_CODE_LOCATION) {
-            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                myApplication.onGPS()
-            } else {
-                getLocation()
-            }
-        }
-    }
-
-    fun sendToLoginScreen(){
+    fun sendToLoginScreen() {
         val intent = Intent(this@HomeActivity, LoginActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
@@ -256,64 +242,202 @@ class HomeActivity : AppCompatActivity() {
 
     private fun sendForCreateVideo() {
         val bundle = Bundle()
-        bundle.putBoolean(ConstValFile.IsFromContest,false)
+        bundle.putBoolean(ConstValFile.IsFromContest, false)
         bundle.putBoolean(ConstValFile.isFromDuet, false)
         val intent = Intent(this@HomeActivity, SnapCameraActivity::class.java)
-        intent.putExtra(ConstValFile.Bundle,bundle)
+        intent.putExtra(ConstValFile.Bundle, bundle)
         startActivity(intent)
     }
 
-    fun fontToDevice(resourceId: Int, resourceName: String, context: Context): File {
-        val path: String =
-            (filesDir.absolutePath + File.separator + ConstValFile.FONT) + File.separator
-        val folder = File(path)
-        if (!folder.exists()) folder.mkdirs()
-        val dataPath = "$path$resourceName.ttf"
-        val f1 = File(dataPath)
-        Log.d("check", "path: FontPath: $dataPath")
-        val In = context.resources.openRawResource(resourceId)
+    /*  fun fontToDevice(resourceId: Int, resourceName: String, context: Context): File {
+          val path: String =
+              (filesDir.absolutePath + File.separator + ConstValFile.FONT) + File.separator
+          val folder = File(path)
+          if (!folder.exists()) folder.mkdirs()
+          val dataPath = "$path$resourceName.ttf"
+          val f1 = File(dataPath)
+          Log.d("check", "path: FontPath: $dataPath")
+          val In = context.resources.openRawResource(resourceId)
+          try {
+              FileOutputStream(f1).use { outputStream -> IOUtils.copy(In, outputStream) }
+          } catch (e: FileNotFoundException) {
+              Log.d("check", "path: fontToDevice: $e")
+              e.printStackTrace()
+          } catch (e: IOException) {
+              e.printStackTrace()
+          }
+          return File(dataPath)
+      }
+  */
+
+    private fun clearTempSession() {
         try {
-            FileOutputStream(f1).use { outputStream -> IOUtils.copy(In, outputStream) }
-        } catch (e: FileNotFoundException) {
-            Log.d("check", "path: fontToDevice: $e")
+            if (File(sessionManager.getCreateVideoPath().toString()).exists()) {
+                File(sessionManager.getCreateVideoPath().toString()).delete()
+            }
+            if (File(sessionManager.getCreateDuetVideoUrl().toString()).exists()) {
+                File(sessionManager.getCreateDuetVideoUrl().toString()).delete()
+            }
+            if (File(sessionManager.getTrimAudioPath().toString()).exists()) {
+                File(sessionManager.getTrimAudioPath().toString()).delete()
+            }
+        } catch (e: java.lang.Exception) {
             e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
         }
-        return File(dataPath)
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mHandler.removeCallbacksAndMessages(null)
-    }
-
-
-    private class MyHandler(activity: HomeActivity?) : Handler() {
-        private val activityRef: WeakReference<HomeActivity>
-
-        init {
-            activityRef = WeakReference(activity)
-        }
-
-        override fun handleMessage(msg: Message) {
-            super.handleMessage(msg)
-            val activity = activityRef.get()
-            if (activity != null) { }
-        }
-    }
-
-    private fun clearTempSession(){
-
         sessionManager.clearVideoSession()
         sessionManager.clearContestSession()
         sessionManager.clearDuetSession()
     }
 
+    fun getReelsVideo() {
+        mainViewModel.getReelsVideo(
+            sessionManager.getSelectedLanguage(),
+            userLatLang?.lat,
+            userLatLang?.long
+        )
+            .observe(this) {
+                it.let { videoResponse ->
+                    when (videoResponse.status) {
+                        Status.SUCCESS -> {
+                            if (videoResponse.data?.success!!) {
+                                viewBinding.showVideoShimmer.stopShimmer()
+                                viewBinding.showVideoShimmer.hideShimmer()
+                                viewBinding.showVideoShimmer.visibility = View.GONE
+                                try {
+                                    videoData.clear()
+                                }catch (e:Exception){
+                                    e.printStackTrace()
+                                }
+                                videoData = videoResponse.data.data
+                                val videoFragment = VideoFragment(this)
+                                val bundle = Bundle()
+                                bundle.putSerializable(ConstValFile.VideoList, videoData)
+                                videoFragment.arguments = bundle
+                                loadFragment(videoFragment)
+                            }
+                        }
+                        Status.LOADING -> {
+                            Log.d(TAG, "getReelsVideo: ${videoResponse.message}")
+                        }
+                        else -> {
+                            if (videoResponse.message!!.contains("401")) {
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            Log.e(TAG, "getReelsVideo: ${videoResponse.message}")
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun getLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            appPermission.checkPermissions()
+        } else {
+            fusedLocation?.lastLocation?.addOnSuccessListener { location ->
+                if (location != null) {
+                    userLatLang = UserLatLang(location.latitude, location.longitude)
+                    myApplication.printLogI(userLatLang?.lat.toString(), "latitude")
+                    myApplication.printLogI(userLatLang?.long.toString(), "longitude")
+                }
+            }
+        }
+    }
+
+    override fun onBackPressed() {
+        if (viewBinding.bottomNav.selectedItemId == R.id.home)
+            super.onBackPressed()
+        else
+            viewBinding.bottomNav.selectedItemId = R.id.home
+    }
+
+    private fun checkInternetDialog(id: Int) {
+
+        val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "Ok"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            when (id) {
+                R.id.home -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        val videoFragment = VideoFragment(this)
+                        val bundle = Bundle()
+                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        videoFragment.arguments = bundle
+                        loadFragment(videoFragment)
+                        viewBinding.bottomNav.selectedItemId = R.id.home
+                    }else{
+                        checkInternetDialog(R.id.home)
+                    }
+                }
+                R.id.search -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        loadFragment(TrendingSearchFragment(this@HomeActivity))
+                        viewBinding.bottomNav.selectedItemId = R.id.search
+                    }else{
+                        checkInternetDialog(R.id.search)
+                    }
+                }
+                R.id.contest -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        loadFragment(ContestFragment(this@HomeActivity))
+                        viewBinding.bottomNav.selectedItemId = R.id.contest
+                    }else{
+                        checkInternetDialog(R.id.contest)
+                    }
+                }
+                R.id.createVideo -> {
+                    clearTempSession()
+                    if (!(sessionManager.isUserLoggedIn())) {
+                        sendToLoginScreen()
+                    } else {
+                        /* fontToDevice(R.font.notosans_medium,ConstValFile.FontName,this@HomeActivity)*/
+                        sendForCreateVideo()
+                    }
+                }
+                R.id.profile -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        if (!(sessionManager.isUserLoggedIn())) {
+                            sendToLoginScreen()
+                        } else {
+                            loadFragment(ProfileFragment(this@HomeActivity))
+                            viewBinding.bottomNav.selectedItemId = R.id.profile
+                        }
+                    }else{
+                        checkInternetDialog(R.id.profile)
+                    }
+                }
+                else -> {
+                    clearTempSession()
+                    if (myApplication.isNetworkConnected()){
+                        val videoFragment = VideoFragment(this)
+                        val bundle = Bundle()
+                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        videoFragment.arguments = bundle
+                        loadFragment(videoFragment)
+                        viewBinding.bottomNav.selectedItemId = R.id.home
+                    }else{
+                        checkInternetDialog(R.id.home)
+                    }
+                }
+            }
+        }
+        sweetAlertDialog.show()
+    }
 }

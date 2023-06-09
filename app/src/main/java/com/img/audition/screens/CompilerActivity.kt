@@ -35,9 +35,9 @@ import java.nio.ByteBuffer
 
 @UnstableApi
 class CompilerActivity : AppCompatActivity() {
-    val TAG = "CompilerActivity"
-    val TARCK = "check 100"
-    var downloadFilePath = ""
+    private val TAG = "CompilerActivity"
+    private val TARCK = "check 100"
+    private var downloadFilePath = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityCompilerBinding.inflate(layoutInflater)
     }
@@ -611,7 +611,6 @@ class CompilerActivity : AppCompatActivity() {
              } catch (e: Exception) {
                  e.printStackTrace()
              }
-
              return file.absolutePath
          }
      }

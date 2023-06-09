@@ -156,3 +156,33 @@ data class LiveContestPriceCard (
     @SerializedName("_id"           ) var Id           : String? = null
 
 ) : java.io.Serializable
+
+data class LiveRanksLeaderboardResponse(
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : LiveRanksLeaderboardData?    = LiveRanksLeaderboardData()
+)
+
+data class LiveRanksLeaderboardData(
+    @SerializedName("userrank"  ) var userrank  : Int?                 = null,
+    @SerializedName("pdfname"   ) var pdfname   : String?              = null,
+    @SerializedName("jointeams" ) var jointeams : ArrayList<Jointeams> = arrayListOf()
+)
+
+data class Jointeams(
+    @SerializedName("userjoinid"     ) var userjoinid     : String?  = null,
+    @SerializedName("userid"         ) var userid         : String?  = null,
+    @SerializedName("joinVideosId"   ) var joinVideosId   : String?  = null,
+    @SerializedName("joinleaugeid"   ) var joinleaugeId   : String?  = null,
+    @SerializedName("videoid"   ) var videoId   : String?  = null,
+    @SerializedName("vote"           ) var vote           : Int?     = null,
+    @SerializedName("teamname"       ) var teamname       : String?  = null,
+    @SerializedName("getcurrentrank" ) var getcurrentrank : Int?     = null,
+    @SerializedName("image"          ) var image          : String?  = null,
+    @SerializedName("userno"         ) var userno         : Int?     = null,
+    @SerializedName("is_show"        ) var isShow         : Boolean? = null,
+    @SerializedName("winingamount"   ) var winingamount   : String?  = null,
+    @SerializedName("audition_id"   ) var auditionId   : String?  = null,
+    @SerializedName("status"   ) var status   : String?  = null,
+    @SerializedName("winningcrown"   ) var winningcrown   : String?  = null
+)

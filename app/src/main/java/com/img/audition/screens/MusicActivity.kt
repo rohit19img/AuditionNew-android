@@ -53,11 +53,7 @@ class MusicActivity : AppCompatActivity() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
 
         })
-
-
     }
-
-
 
     private fun loadFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()

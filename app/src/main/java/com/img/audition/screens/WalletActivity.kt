@@ -2,6 +2,8 @@ package com.img.audition.screens
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
@@ -35,20 +37,13 @@ import kotlin.toString
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityWalletBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@WalletActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@WalletActivity)
-    }
 
     private lateinit var mainViewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
-        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(SessionManager(this).getToken(),apiInterface))[MainViewModel::class.java]
 
         viewBinding.btnAddCash.setOnClickListener {
             sendToAddCashActivity()
@@ -119,23 +114,18 @@ import kotlin.toString
                                         viewBinding.winning.text = "₹ 0"
                                     }
                                 }else{
-                                    myApplication.printLogE("User Data Null",TAG)
+                                    Log.e(TAG,"User Data Null")
                                 }
                             }else{
-                                myApplication.showToast("Something went wrong..")
+                                Toast.makeText(this,"Something went wrong..", Toast.LENGTH_SHORT).show()
+
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(resources.status.toString(),"apiCall 3")
+                            Log.e(TAG,resources.status.toString())
                         }
                         else->{
-                            if (resources.message!!.contains("401")){
-                                myApplication.printLogD(resources.message.toString(),"apiCall 4")
-                                sessionManager.clearLogoutSession()
-                                startActivity(Intent(this@WalletActivity, SplashActivity::class.java))
-                                finishAffinity()
-                            }
-                            myApplication.printLogD(resources.status.toString(),"apiCall 5")
+                            Log.e(TAG,resources.status.toString())
                         }
                     }
                 }

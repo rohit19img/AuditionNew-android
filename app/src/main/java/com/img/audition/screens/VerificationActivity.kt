@@ -17,13 +17,6 @@ class VerificationActivity : AppCompatActivity() {
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityVerificationBinding.inflate(layoutInflater)
     }
-    private val sessionManager by lazy {
-        SessionManager(this@VerificationActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@VerificationActivity)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

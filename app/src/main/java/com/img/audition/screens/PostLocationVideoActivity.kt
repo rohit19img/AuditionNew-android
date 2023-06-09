@@ -2,7 +2,9 @@ package com.img.audition.screens
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import androidx.media3.common.util.UnstableApi
 import com.img.audition.adapters.VideoItemAdapter
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.ActivityHashtagVideoBinding
@@ -18,21 +20,10 @@ import retrofit2.Response
 
 class PostLocationVideoActivity : AppCompatActivity() {
 
-    val TAG = "PostLocationVideoActivity"
+    private val TAG = "PostLocationVideoActivity"
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPostLocationVideoBinding.inflate(layoutInflater)
-    }
-
-    private val sessionManager by lazy {
-        SessionManager(this@PostLocationVideoActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@PostLocationVideoActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
     private val bundle by lazy {
@@ -56,15 +47,15 @@ class PostLocationVideoActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val postLocation = bundle!!.getString(ConstValFile.PostLocation)
-        myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} HaAc","videoHashTag")
         viewBinding.postLocation.text = postLocation.toString()
         getPostLocationVideo(postLocation!!)
     }
 
 
     private fun getPostLocationVideo(postLocation:String) {
-        val userVideoReq = apiInterface.getPostLocationVideo(sessionManager.getToken(),postLocation)
-        userVideoReq.enqueue( object : Callback<VideoResponse> {
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
+        val userVideoReq = apiInterface.getPostLocationVideo(SessionManager(this).getToken(),postLocation)
+        userVideoReq.enqueue( @UnstableApi object : Callback<VideoResponse> {
             override fun onResponse(call: Call<VideoResponse>, response: Response<VideoResponse>) {
                 if (response.isSuccessful && response.body()!!.success!! && response.body()!=null){
                     val videoData = response.body()!!.data
@@ -76,18 +67,17 @@ class PostLocationVideoActivity : AppCompatActivity() {
                         viewBinding.shimmerVideoView.visibility = View.GONE
                         viewBinding.userVideoRecycle.visibility = View.VISIBLE
                     }else{
-                        myApplication.printLogD("No Video Data",TAG)
                         viewBinding.shimmerVideoView.stopShimmer()
                         viewBinding.shimmerVideoView.hideShimmer()
                         viewBinding.noVideo.visibility = View.VISIBLE
                     }
                 }else{
-                    myApplication.printLogE("Get Other User Self Video Response Failed ${response.code()}",TAG)
+                    Log.e(TAG,"Get Other User Self Video Response Failed ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
-                myApplication.printLogE("Get Other User Self Video onFailure ${t.toString()}",TAG)
+               t.printStackTrace()
             }
         })
     }

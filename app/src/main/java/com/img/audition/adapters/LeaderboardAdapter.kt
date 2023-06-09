@@ -18,7 +18,8 @@ import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
 import com.img.audition.screens.VoterListActivity
 
-@UnstableApi class LeaderboardAdapter(val context: Context, val list: ArrayList<LeaderboardData>,val contestID:String) :
+@UnstableApi
+class LeaderboardAdapter(val context: Context, val list: ArrayList<LeaderboardData>,val contestID:String) :
     RecyclerView.Adapter<LeaderboardAdapter.MyViewHolder>() {
 
     class MyViewHolder(itemView: LeaderboardrecycledesignBinding) :
@@ -43,11 +44,13 @@ import com.img.audition.screens.VoterListActivity
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.apply {
 
-            if (list[position].voteCount==0){
+            /*if (list[position].voteCount==0){
                 voteCountly.visibility = View.GONE
             }else{
                 voteCount.text = list[position].voteCount.toString()
-            }
+            }*/
+
+            voteCount.text = list[position].voteCount.toString()
             auditionID.setText(list[position].auditionId)
 
             if (list[position].name!!.isNotEmpty()){
@@ -56,8 +59,7 @@ import com.img.audition.screens.VoterListActivity
                 userName.text = "Biggee User"
             }
             try {
-                Glide.with(context).load(list[position].image).placeholder(R.drawable.person_ic)
-                    .into(img)
+                Glide.with(context).load(list[position].image).placeholder(R.drawable.person_ic).into(img)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

@@ -14,6 +14,7 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.img.audition.adapters.AddCashOfferAdapter
 import com.img.audition.cashfree.PaymentActivity
+import com.img.audition.dataModel.OfferData
 import com.img.audition.dataModel.OfferDataResponse
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.APITags
@@ -26,22 +27,18 @@ import retrofit2.Call
 import com.img.audition.databinding.ActivityAddAmountBinding
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.ArrayList
 
 class AddAmountActivity : AppCompatActivity() {
-    val TAG = "AddAmountActivity"
+    private  var adapter: AddCashOfferAdapter? = null
+    private lateinit var data: ArrayList<OfferData>
+    private val TAG = "AddAmountActivity"
     var ifOfferApplied = false
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityAddAmountBinding.inflate(layoutInflater)
     }
     private val sessionManager by lazy {
         SessionManager(this@AddAmountActivity)
-    }
-
-    private val myApplication by lazy {
-        MyApplication(this@AddAmountActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
 
     var offerId = ""
@@ -92,8 +89,6 @@ class AddAmountActivity : AppCompatActivity() {
             if (amount != "") {
                 if (ifOfferApplied) {
                     val amt: Int = amount.toInt()
-                    myApplication.printLogD("amt : $amt" ,"AddCash")
-                    myApplication.printLogD("offerMinAmt : $offerMinAmt" ,"AddCash")
                     if (amt < offerMinAmt) {
                         Toast.makeText(
                             this@AddAmountActivity,
@@ -110,7 +105,8 @@ class AddAmountActivity : AppCompatActivity() {
                         if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                             AddAmount(amount, "Cashfree")
                         }else{
-                            myApplication.showToast("Please Verify Mobile & Email")
+                            Toast.makeText(this@AddAmountActivity,"Please Verify Mobile & Email", Toast.LENGTH_SHORT).show()
+
                             sendToVerficationActivity()
 
                         }
@@ -119,7 +115,7 @@ class AddAmountActivity : AppCompatActivity() {
                     if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                         AddAmount(amount, "Cashfree")
                     }else{
-                        myApplication.showToast("Please Verify Mobile & Email")
+                        Toast.makeText(this@AddAmountActivity,"Please Verify Mobile & Email", Toast.LENGTH_SHORT).show()
                         sendToVerficationActivity()
                     }
                 }
@@ -137,32 +133,35 @@ class AddAmountActivity : AppCompatActivity() {
     }
 
     private fun getOfferDetails() {
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
         val offerReq = apiInterface.getOfferDetails(sessionManager.getToken())
 
         offerReq.enqueue(object : Callback<OfferDataResponse>{
             override fun onResponse(call: Call<OfferDataResponse>, response: Response<OfferDataResponse>) {
                 if (response.isSuccessful && response.body()!!.success!!) {
-                    val data  = response.body()!!.data
+                     data  = response.body()!!.data
                   if (data.size>0){
                       viewBinding.offerRecycler.visibility = View.VISIBLE
                       viewBinding.offersText.visibility = View.VISIBLE
-                      val adapter = AddCashOfferAdapter(this@AddAmountActivity,data)
+                       adapter = AddCashOfferAdapter(this@AddAmountActivity,data)
                       viewBinding.offerRecycler.adapter = adapter
                   }else{
-                      myApplication.printLogD("No Offers Available..",TAG)
+                      Log.d(TAG, "No Offers Available..")
+
                   }
                 }else{
-                    myApplication.printLogE(response.toString(),TAG)
+                    Log.e(TAG, response.toString())
                 }
             }
 
             override fun onFailure(call: Call<OfferDataResponse>, t: Throwable) {
-                myApplication.printLogE(t.toString(),TAG)
+               t.printStackTrace()
             }
 
         })
     }
-    fun AddAmount(Amount: String, from: String) {
+    private fun AddAmount(Amount: String, from: String) {
         try {
             val url = APITags.APIBASEURL+ "requestAddCash"
             Log.i("url", url)
@@ -205,7 +204,7 @@ class AddAmountActivity : AppCompatActivity() {
                         if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
                             AddAmount(Amount, from)
                         }else{
-                            myApplication.showToast("Please Verify Mobile & Email")
+                            Toast.makeText(this@AddAmountActivity,"Please Verify Mobile & Email", Toast.LENGTH_SHORT).show()
                             sendToVerficationActivity()
                         }
                     }
@@ -241,5 +240,16 @@ class AddAmountActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.i("Exception", e.message!!)
         }
+    }
+
+    override fun onStop() {
+        try {
+            data.clear()
+            adapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        super.onStop()
     }
 }

@@ -10,7 +10,7 @@ import com.img.audition.R
 import com.img.audition.dataModel.TransactionData
 import kotlin.Int
 
-class TransactionReportAdapter(val context: Activity, val transData: ArrayList<TransactionData>) :
+class TransactionReportAdapter(val context: Activity, private val transData: ArrayList<TransactionData>) :
     RecyclerView.Adapter<TransactionReportAdapter.MyViewHolder>() {
 
 
@@ -30,7 +30,7 @@ class TransactionReportAdapter(val context: Activity, val transData: ArrayList<T
 
 
     override fun getItemCount(): Int {
-        return transData!!.size
+        return transData.size
     }
 
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

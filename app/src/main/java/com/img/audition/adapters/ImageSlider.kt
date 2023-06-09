@@ -22,6 +22,7 @@ class ImageSlider(private val context: Context, private val imageList: ArrayList
         return itemView
     }
 
+
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         container.removeView(`object` as View)
     }

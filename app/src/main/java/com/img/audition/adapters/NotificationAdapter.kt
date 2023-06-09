@@ -1,4 +1,4 @@
-package com.img.audition.screens.fragment
+package com.img.audition.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class NotificationAdapter(val context: Context,val datalist: ArrayList<NotificationData>) : RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
+class NotificationAdapter(val context: Context, private val datalist: ArrayList<NotificationData>) : RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: NotirecycledesignBinding) : RecyclerView.ViewHolder(itemView.root) {
         val notiTitle = itemView.notification

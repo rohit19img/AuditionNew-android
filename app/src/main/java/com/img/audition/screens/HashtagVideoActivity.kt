@@ -3,10 +3,12 @@ package com.img.audition.screens
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import com.img.audition.adapters.VideoItemAdapter
+import com.img.audition.dataModel.VideoData
 import com.img.audition.dataModel.VideoResponse
 import com.img.audition.databinding.ActivityEditProfileBinding
 import com.img.audition.databinding.ActivityHashtagVideoBinding
@@ -22,10 +24,13 @@ import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.ArrayList
 
 @UnstableApi
 class HashtagVideoActivity : AppCompatActivity() {
 
+    private  var videoItemAdapter: VideoItemAdapter? = null
+    private lateinit var videoData: ArrayList<VideoData>
     private val TAG = "HashtagVideoActivity"
 
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
@@ -36,20 +41,11 @@ class HashtagVideoActivity : AppCompatActivity() {
         SessionManager(this@HashtagVideoActivity)
     }
 
-    private val myApplication by lazy {
-        MyApplication(this@HashtagVideoActivity)
-    }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-
     private val bundle by lazy {
         intent.getBundleExtra(ConstValFile.Bundle)
     }
 
     private lateinit var mainViewModel: MainViewModel
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +54,7 @@ class HashtagVideoActivity : AppCompatActivity() {
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
 
         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
@@ -75,7 +72,6 @@ class HashtagVideoActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val hashTag = bundle!!.getString(ConstValFile.VideoHashTag)
-        myApplication.printLogD("${sessionManager.getVideoHashTag().toString()} HaAc","videoHashTag")
         viewBinding.hashtagname.text = hashTag.toString()
         getHashTagVideo(hashTag!!)
 
@@ -96,24 +92,22 @@ class HashtagVideoActivity : AppCompatActivity() {
     }
 
     private fun getHashTagVideo(hashTag:String){
+
         mainViewModel.getHashTagVideo(hashTag)
             .observe(this){
                 it.let {videoResponse->
-                    myApplication.printLogD(videoResponse.message.toString(),"apiCall 1")
                     when(videoResponse.status){
                         Status.SUCCESS ->{
-                            myApplication.printLogD(videoResponse.data!!.message.toString(),"apiCall 2")
-                            if (videoResponse.data.success!!){
-                                val videoData = videoResponse.data.data
+                            if (videoResponse.data?.success!!){
+                                 videoData = videoResponse.data.data
                                 if (videoData.size>0) {
-                                    val videoItemAdapter = VideoItemAdapter(this@HashtagVideoActivity, videoData)
+                                     videoItemAdapter = VideoItemAdapter(this@HashtagVideoActivity, videoData)
                                     viewBinding.userVideoRecycle.adapter = videoItemAdapter
                                     viewBinding.shimmerVideoView.stopShimmer()
                                     viewBinding.shimmerVideoView.hideShimmer()
                                     viewBinding.shimmerVideoView.visibility = View.GONE
                                     viewBinding.userVideoRecycle.visibility = View.VISIBLE
                                 }else{
-                                    myApplication.printLogD("No Video Data",TAG)
                                     viewBinding.shimmerVideoView.stopShimmer()
                                     viewBinding.shimmerVideoView.hideShimmer()
                                     viewBinding.noVideo.visibility = View.VISIBLE
@@ -121,20 +115,24 @@ class HashtagVideoActivity : AppCompatActivity() {
                             }
                         }
                         Status.LOADING ->{
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 3")
+                            Log.d(TAG, videoResponse.status.toString())
                         }
                         else->{
-                            if (videoResponse.message!!.contains("401")){
-                                myApplication.printLogD(videoResponse.message.toString(),"apiCall 4")
-                                sessionManager.clearLogoutSession()
-                                startActivity(Intent(this, SplashActivity::class.java))
-                                finishAffinity()
-                            }
-                            myApplication.printLogD(videoResponse.status.toString(),"apiCall 5")
+                            Log.d(TAG, videoResponse.status.toString())
                         }
                     }
                 }
             }
     }
 
+    override fun onStop() {
+        try {
+            videoData.clear()
+            videoItemAdapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        super.onStop()
+    }
 }

@@ -27,11 +27,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
- @UnstableApi class PhoneLoginActivity : AppCompatActivity() {
+ @UnstableApi
+ class PhoneLoginActivity : AppCompatActivity() {
 
-    val TAG = "PhoneLoginActivity"
-    var number = ""
-    var otp = ""
+    private val TAG = "PhoneLoginActivity"
+    private var number = ""
+    private var otp = ""
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPhoneLoginBinding.inflate(layoutInflater)
     }
@@ -42,9 +43,7 @@ import retrofit2.Response
     private val myApplication by lazy {
         MyApplication(this@PhoneLoginActivity)
     }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
+
 
      private lateinit var mainViewModel: MainViewModel
 
@@ -59,6 +58,7 @@ import retrofit2.Response
             otp = it
         }
 
+         val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
          mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
 

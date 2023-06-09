@@ -33,8 +33,6 @@ class MobileVerificationFragment : Fragment() {
         SessionManager(requireContext())
     }
 
-    var emailPattern  = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
-
     private val myApplication by lazy {
         MyApplication(requireContext())
     }

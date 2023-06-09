@@ -20,20 +20,17 @@ import retrofit2.Response
 
 class WithdrawActivity : AppCompatActivity() {
 
-    val TAG = "WithdrawActivity"
+    private val TAG = "WithdrawActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityWithdrawBinding.inflate(layoutInflater)
     }
     private val sessionManager by lazy {
         SessionManager(this@WithdrawActivity)
     }
-
     private val myApplication by lazy {
         MyApplication(this@WithdrawActivity)
     }
-    private val apiInterface by lazy{
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -73,6 +70,7 @@ class WithdrawActivity : AppCompatActivity() {
     private fun withdrawRequest(amount: String) {
         val obj = JsonObject()
         obj.addProperty("amount",amount)
+        val apiInterface =  RetrofitClient.getInstance().create(ApiInterface::class.java)
         val withdrawReq = apiInterface.withdrawRequest(sessionManager.getToken(),obj)
 
         withdrawReq.enqueue(object : Callback<CommanResponse>{

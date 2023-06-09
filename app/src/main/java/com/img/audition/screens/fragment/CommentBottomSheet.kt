@@ -2,9 +2,12 @@ package com.img.audition.screens.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.tasks.OnFailureListener
@@ -18,29 +21,17 @@ import com.img.audition.dataModel.CommentData
 import com.img.audition.dataModel.VideoData
 import com.img.audition.databinding.CommentBottomSheetBinding
 import com.img.audition.globalAccess.ConstValFile
-import com.img.audition.globalAccess.MyApplication
-import com.img.audition.network.ApiInterface
-import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.LoginActivity
 import com.img.audition.videoWork.VideoCacheWork
-import io.socket.client.Socket
 import org.json.JSONObject
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CommentBottomSheet : BottomSheetDialogFragment() {
-    val TAG = "CommentBottomSheet"
+@UnstableApi class CommentBottomSheet : BottomSheetDialogFragment() {
 
     private val sessionManager by lazy {
         SessionManager(requireActivity().applicationContext)
-    }
-    private val apiInterface by lazy {
-        RetrofitClient.getInstance().create(ApiInterface::class.java)
-    }
-    private val myApplication by lazy {
-        MyApplication(requireActivity().applicationContext)
     }
 
     private val bundle by lazy {
@@ -55,10 +46,8 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         FirebaseFirestore.getInstance()
     }
 
-
-
-    val commentDataList = ArrayList<CommentData>()
-    lateinit var adapter: CommentAdapter
+    private val commentDataList = ArrayList<CommentData>()
+    private var adapter: CommentAdapter? = null
 
     lateinit var commentCycle : RecyclerView
     lateinit var commentLayoutManager: LinearLayoutManager
@@ -83,10 +72,7 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         commentCycle.layoutManager = commentLayoutManager
         val auditionID = bundle!!.getString(ConstValFile.AuditionID)
         val userID = bundle!!.getString(ConstValFile.AllUserID)
-        myApplication.printLogD("$userID userID","check 300")
         val videoID = bundle!!.getString(ConstValFile.VideoID)
-        myApplication.printLogD("$videoID videoID","check 300")
-
         val uIm = bundle!!.getString(ConstValFile.UserImage).toString()
         var userImage = ""
         if (uIm.isNotEmpty()){
@@ -100,15 +86,14 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
                 sendToLoginScreen()
             }else{
                 val commentText = view.commentET.text.toString().trim()
-                val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
                 val position = bundle!!.getInt(ConstValFile.UserPositionInList)
+                val videoList = bundle!!.getSerializable("list") as ArrayList<VideoData>
                 if (commentText.isNotEmpty()){
                     view.commentET.text.clear()
-                    list[position].commentCount =+1
-//                    adapter.notifyItemChanged(position)
+                    videoList[position].commentCount = videoList[position].commentCount?.plus(1)
                     writeNewComment(auditionID, userID,postID,videoID,userImage,commentText)
                 }else{
-                    myApplication.showToast("Please write something..")
+                    Toast.makeText(view1.context,"Please write something..", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -120,7 +105,7 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
                                 userImage: String?,commentText: String?)
     {
 
-        view.noCommentView.visibility = View.GONE
+       /* view.noCommentView.visibility = View.GONE
         commentCycle.visibility = View.VISIBLE
         val commentData =  JSONObject()
         commentData.put("video_id",videoID)
@@ -140,13 +125,16 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         val time = timeFormat.format(calendar.time)
         val now = "$date $time"
 
+        val comment_id = UUID.randomUUID().toString()
         mapData.put("created_at", now.toString())
         mapData.put("user_id", userID.toString())
         mapData.put("userimage",userImage.toString())
         mapData.put("post_id",postID.toString())
+        mapData.put("comment_id",comment_id)
 
         val cData = CommentData()
         cData.auditionID = auditionID.toString()
+        cData.comment_id = comment_id
         cData.commentBy = sessionManager.getUserName()!!
         cData.comment = commentText.toString()
         cData.createdAt = now.toString()
@@ -154,11 +142,11 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         cData.postID = postID.toString()
 
         commentDataList.add(0,cData)
-        if(this::adapter.isInitialized){
-            adapter = CommentAdapter(requireContext(),commentDataList)
+        if(adapter!=null){
+            adapter = CommentAdapter(requireContext(), commentDataList)
             commentCycle.adapter = adapter
 
-            adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            adapter!!.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                     super.onItemRangeInserted(positionStart, itemCount)
                     val totalItemCount: Int = commentLayoutManager.itemCount
@@ -172,10 +160,10 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
             adapter!!.notifyDataSetChanged()
         }else{
 
-            adapter = CommentAdapter(requireContext(),commentDataList)
+            adapter = CommentAdapter(requireContext(), commentDataList, this)
             commentCycle.adapter = adapter
 
-            adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            adapter!!.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                     super.onItemRangeInserted(positionStart, itemCount)
                     val totalItemCount: Int = commentLayoutManager.itemCount
@@ -192,11 +180,10 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
         firebaseDB.collection(ConstValFile.FirebaseCommentDB)
             .add(mapData)
             .addOnSuccessListener(OnSuccessListener<DocumentReference> { documentReference ->
-
             }).addOnFailureListener(OnFailureListener { e ->
-                myApplication.printLogE("Firebase Failure",TAG)
+                e.printStackTrace()
             })
-
+*/
     }
 
     fun sendToLoginScreen(){
@@ -206,11 +193,13 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun getAllComments(postID: String?) {
-        firebaseDB.collection(ConstValFile.FirebaseCommentDB).whereEqualTo("post_id",postID)
+        /*firebaseDB.collection(ConstValFile.FirebaseCommentDB).whereEqualTo("post_id",postID)
             .get().addOnSuccessListener {
-
                 for (snap in it){
                     val cData = CommentData()
+
+                    cData.comment_id = snap.get("comment_id").toString()
+                    Log.i("DocumentId","Snap_values : ${snap.get("auto-id").toString()}")
                     cData.auditionID = snap.get("auditionid").toString()
                     cData.commentBy = snap.get("comment_by").toString()
                     cData.comment = snap.get("comment").toString()
@@ -219,16 +208,30 @@ class CommentBottomSheet : BottomSheetDialogFragment() {
                     cData.postID = snap.get("post_id").toString()
                     commentDataList.add(cData)
                 }
+
                 if (commentDataList.size>0){
                     view.noCommentView.visibility = View.GONE
                     commentCycle.visibility = View.VISIBLE
-                    val adapter = CommentAdapter(requireContext(),commentDataList)
+                    val adapter = CommentAdapter(requireContext(), commentDataList, this)
                     commentCycle.adapter = adapter
                 }else{
                     view.noCommentView.visibility = View.VISIBLE
                     commentCycle.visibility = View.GONE
                 }
 
-            }
+            }*/
     }
+
+    override fun onDestroyView() {
+        try {
+            commentCycle.adapter = null
+            commentDataList.clear()
+            adapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+        getView()?.destroyDrawingCache()
+        super.onDestroyView()
+    }
+
 }

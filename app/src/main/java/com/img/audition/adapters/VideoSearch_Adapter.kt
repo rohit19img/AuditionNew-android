@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.media3.common.util.UnstableApi
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -18,7 +19,7 @@ import com.img.audition.dataModel.VideoData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
 
- class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
+ @UnstableApi class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val auditionid =  itemView.findViewById<TextView>(R.id.auditionid)

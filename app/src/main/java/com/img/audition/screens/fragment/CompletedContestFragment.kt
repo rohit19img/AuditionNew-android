@@ -28,12 +28,10 @@ import retrofit2.Response
 @UnstableApi
 class CompletedContestFragment : Fragment() {
 
-
-
     lateinit var contestViewpager2: ViewPager2
     lateinit var noLiveContest: TextView
 
-    val TAG = "CompletedContestFragment"
+    private val TAG = "CompletedContestFragment"
     private lateinit var _viewBinding : FragmentJoinedContestBinding
     lateinit var contestAdapter:ContestLiveAdapter
 

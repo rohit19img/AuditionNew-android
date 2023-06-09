@@ -10,20 +10,21 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.LocationManager
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.AudioColumns.TRACK
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Base64.encodeToString
 import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.Switch
-import android.widget.TextView
+import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -69,6 +70,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.sql.Timestamp
@@ -82,8 +84,9 @@ class UploadVideoActivity : AppCompatActivity() {
     private val TARCK = "check 100"
     private var videoSongName = ""
     private var videoSongID = ""
+    var videoThumbnail = ""
     private var audiFilePath = ""
-    private var check:Boolean=false
+    var check:Boolean=false
 
     private val PLACE_PICKER_REQUEST = 200
 
@@ -149,12 +152,12 @@ class UploadVideoActivity : AppCompatActivity() {
         }
 
         videoCapEt = viewBinding.captionForVideoET
+        videoCapEt.requestFocus()
         cycleViewlayout = viewBinding.cycleView
         progressDialog = ProgressDialog(this@UploadVideoActivity)
         progressDialog.setCancelable(false)
-        progressDialog.setTitle("Uploading.")
-        progressDialog.setMessage("please wait...")
-
+        progressDialog.setTitle("Uploading..")
+        progressDialog.setMessage("please wait.....")
 
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
@@ -162,10 +165,14 @@ class UploadVideoActivity : AppCompatActivity() {
 
         viewBinding.tagFriendBtn.setOnClickListener {
             viewBinding.captionForVideoET.append(" @")
+            val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.showSoftInput(videoCapEt,SHOW_IMPLICIT)
         }
 
         viewBinding.addHashtagBtn.setOnClickListener {
             viewBinding.captionForVideoET.append(" #")
+            val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.showSoftInput(videoCapEt,SHOW_IMPLICIT)
         }
 
         if (sessionManager.getIsFromDuet()){
@@ -194,7 +201,11 @@ class UploadVideoActivity : AppCompatActivity() {
                                 val atIndex =  caption.indexOf("@")
                                 if (atIndex!=-1){
                                     searchUserName = caption
-                                    searchUser(searchUserName)
+                                    if (myApplication.isNetworkConnected()){
+                                        searchUser(searchUserName)
+                                    }else{
+                                       myApplication.showToast(ConstValFile.Check_Connection)
+                                    }
                                 }
                             }
                         }
@@ -203,9 +214,6 @@ class UploadVideoActivity : AppCompatActivity() {
                         }
                     }
                 }
-
-
-
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -217,12 +225,15 @@ class UploadVideoActivity : AppCompatActivity() {
         }
 
         viewBinding.addLocation.setOnClickListener {
-            val fields=Arrays.asList(Place.Field.ADDRESS,Place.Field.ID,Place.Field.NAME,Place.Field.LAT_LNG)
-            val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields).build(this)
-            startActivityForResult(intent, PLACE_PICKER_REQUEST)
+            if  (myApplication.isNetworkConnected()){
+                val fields=Arrays.asList(Place.Field.ADDRESS,Place.Field.ID,Place.Field.NAME,Place.Field.LAT_LNG)
+                val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields).build(this)
+                startActivityForResult(intent, PLACE_PICKER_REQUEST)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
         }
-
 
     private fun uploadVideoMainFun() {
         val cap = viewBinding.captionForVideoET.text.toString().trim()
@@ -240,10 +251,15 @@ class UploadVideoActivity : AppCompatActivity() {
             }
         }
 
-
         if (sessionManager.getVideoSongID()!!.trim().isNotEmpty()){
             videoSongID = sessionManager.getVideoSongID().toString()
-            uploadVideoToS3()
+            if  (myApplication.isNetworkConnected()){
+                progressDialog.setMessage("Step 2")
+                uploadVideoToS3()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+
         }else{
             extractAudioFromVideo(videoOriginalPath)
         }
@@ -303,12 +319,21 @@ class UploadVideoActivity : AppCompatActivity() {
 
     private fun sendToHomeActivity() {
         try {
+            if (File(sessionManager.getCreateDuetVideoUrl().toString()).exists()){
+                File(sessionManager.getCreateDuetVideoUrl().toString()).delete()
+            }
+
+            if (File(sessionManager.getTrimAudioPath().toString()).exists()){
+                File(sessionManager.getTrimAudioPath().toString()).delete()
+            }
+
             if(File(sessionManager.getCreateVideoPath()!!).exists()){
                 File(sessionManager.getCreateVideoPath()!!).delete()
             }
             if (File(sessionManager.getTrimAudioPath()!!).exists()){
                 File(sessionManager.getTrimAudioPath()!!).delete()
             }
+
             if(audiFilePath.isNotEmpty() && File(audiFilePath).exists()){
                 File(audiFilePath).delete()
             }
@@ -318,7 +343,7 @@ class UploadVideoActivity : AppCompatActivity() {
         val intent = Intent(this@UploadVideoActivity, HomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
-        finish()
+        finishAffinity()
     }
 
     private fun sendToAddAmountActivity() {
@@ -431,7 +456,12 @@ class UploadVideoActivity : AppCompatActivity() {
                     myApplication.printLogD("Complete Upload Video On S3",TARCK)
                     val finalVideoUrl = APITags.digitalOceanBaseUrl +nameOfS3VideoFile
                     myApplication.printLogD("Call writePostOnFirebase Fun",TARCK)
-                    writePostOnFirebase(finalVideoUrl)
+                    if  (myApplication.isNetworkConnected()){
+                        progressDialog.setMessage("Step 7")
+                        writePostOnFirebase(finalVideoUrl)
+                    }else{
+                        myApplication.showToast(ConstValFile.Check_Connection)
+                    }
                 }
 
                 Log.i("UploadTest","State Changed : $state")
@@ -440,6 +470,7 @@ class UploadVideoActivity : AppCompatActivity() {
 
             override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
                 val progress = 100.0 * bytesCurrent / bytesTotal
+                progressDialog.setMessage("Progress: ${progress.toString()}")
                 myApplication.printLogD(progress.toString(),"uploadVideoToS3")
                 Log.i("UploadTest","Progress Changed : ${bytesCurrent * 100 / bytesTotal}")
             }
@@ -448,7 +479,7 @@ class UploadVideoActivity : AppCompatActivity() {
                 Log.i("UploadTest","Error : $id")
                 Log.i("UploadTest","Error : ${ex.toString()}")
                 Log.i("UploadTest","Error : ${ex!!.message}")
-
+                progressDialog.setMessage("Progress: S3")
                 myApplication.printLogD(ex.toString(),"uploadVideoToS3")
                 myApplication.printLogD(id.toString(),"uploadVideoToS3")
             }
@@ -482,12 +513,25 @@ class UploadVideoActivity : AppCompatActivity() {
                     myApplication.printLogD("Complete writePostOnFirebase Fun",TARCK)
                     if (isFromContest){
                         myApplication.printLogD("Contest Video",TAG)
-                        uploadContestVideoDataToServer(docRef!!.id,finalVideoUrl)
+                        if  (myApplication.isNetworkConnected()){
+                            progressDialog.setMessage("Step 8")
+                            uploadContestVideoDataToServer(docRef!!.id,finalVideoUrl)
+                        }else{
+                            myApplication.showToast(ConstValFile.Check_Connection)
+                        }
+
                     }else{
+                        if  (myApplication.isNetworkConnected()){
+                            progressDialog.setMessage("Step 9")
+                            uploadNormalVideoDataToServer(docRef!!.id,finalVideoUrl)
+                        }else{
+                            myApplication.showToast(ConstValFile.Check_Connection)
+                        }
                         myApplication.printLogD("Normal Video",TAG)
                         myApplication.printLogD("Call uploadNormalVideoDataToServer Fun",TARCK)
-                        uploadNormalVideoDataToServer(docRef!!.id,finalVideoUrl)
                     }
+                    Log.d("docRef", docRef!!.id.toString())
+                    Log.d("finalVideoUrl", finalVideoUrl)
                 }
 
             })
@@ -517,6 +561,10 @@ class UploadVideoActivity : AppCompatActivity() {
         myApplication.printLogD("uploadTime = $videoSongID","SongID")
         obj.addProperty("songName", videoSongName)
         obj.addProperty("language", sessionManager.getSelectedLanguage())
+
+//        if (videoThumbnail.isNotEmpty())
+//            obj.addProperty("thumbnail", videoThumbnail)
+
         obj.addProperty("lat",userLatLang.lat.toString())
         obj.addProperty("long",userLatLang.long.toString())
         obj.addProperty("location", postLocation)
@@ -532,9 +580,11 @@ class UploadVideoActivity : AppCompatActivity() {
                     myApplication.printLogD("Complete  uploadNormalVideoDataToServer Fun",TARCK)
                     val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.SUCCESS_TYPE)
                     sweetAlertDialog.contentText = ConstValFile.UploadSuccess
+                    sweetAlertDialog.setCanceledOnTouchOutside(false)
                     sweetAlertDialog.show()
                     sweetAlertDialog.setConfirmClickListener {
                         sweetAlertDialog.dismiss()
+
                         sendToHomeActivity()
                     }
                 }
@@ -586,7 +636,8 @@ class UploadVideoActivity : AppCompatActivity() {
                     myApplication.printLogD("Complete  uploadContestVideoDataToServer Fun",TARCK)
                     val sweetAlertDialog = SweetAlertDialog(this@UploadVideoActivity, SweetAlertDialog.SUCCESS_TYPE)
                     sweetAlertDialog.titleText = "Congratulations"
-                    sweetAlertDialog.contentText = "You are join this Contest!"
+                    sweetAlertDialog.setCanceledOnTouchOutside(false)
+                    sweetAlertDialog.contentText = "Join Contest Successfully!"
                     sweetAlertDialog.show()
                     sweetAlertDialog.setConfirmClickListener {
                         sendToHomeActivity()
@@ -614,7 +665,22 @@ class UploadVideoActivity : AppCompatActivity() {
 //        videoOriginalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
         videoOriginalPath = videoUri
         myApplication.printLogD(videoOriginalPath, "videoPath")
-        Glide.with(this@UploadVideoActivity).load(videoOriginalPath).into(viewBinding.videoThumbnail)
+
+        //
+        val bitmap = getVideoThumbnail(videoOriginalPath)
+        if (bitmap!=null){
+            viewBinding.videoThumbnail.setImageBitmap(bitmap)
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 20, byteArrayOutputStream)
+            val byteArray = byteArrayOutputStream.toByteArray()
+            videoThumbnail = encodeToString(byteArray,android.util.Base64.DEFAULT)
+            Log.d("videoThumbnail", "videoThumbnail: ${videoThumbnail}")
+            Log.d("videoThumbnail", "bitmapSize: ${bitmap.byteCount}")
+        }else{
+            Glide.with(this@UploadVideoActivity).load(videoOriginalPath).into(viewBinding.videoThumbnail)
+        }
+
+
         myApplication.printLogD("$isFromContest onStart"," isFromContest $TAG")
 
 
@@ -635,11 +701,21 @@ class UploadVideoActivity : AppCompatActivity() {
                     myApplication.printLogD("contest.file ${sessionManager.getContestFile()}", "contestCheck")
                     myApplication.printLogD("Call getUserWalletBalance",TARCK)
                     myApplication.printLogD("$contestFees contestFees ",TARCK)
-                    getUserWalletBalance(contestFees)
+                    if  (myApplication.isNetworkConnected()){
+                        getUserWalletBalance(contestFees)
+                    }else{
+                       myApplication.showToast(ConstValFile.Check_Connection)
+                    }
                 }else{
-                    progressDialog.show()
-                    myApplication.printLogD("Call uploadVideoMainFun",TARCK)
-                    uploadVideoMainFun()
+                    if  (myApplication.isNetworkConnected()){
+                        progressDialog.setMessage("Step 1")
+                        progressDialog.show()
+                        myApplication.printLogD("Call uploadVideoMainFun",TARCK)
+                        uploadVideoMainFun()
+                    }else{
+                        checkInternetDialog()
+                    }
+
                 }
 
             }
@@ -671,7 +747,12 @@ class UploadVideoActivity : AppCompatActivity() {
                                         myApplication.printLogD("contestFees $contestFees",TARCK)
                                         myApplication.printLogD("totalWon $totalWon",TARCK)
                                         myApplication.printLogD("Call uploadVideoMainFun",TARCK)
-                                        uploadVideoMainFun()
+                                        if (myApplication.isNetworkConnected()){
+                                            uploadVideoMainFun()
+                                        }else{
+                                            checkInternetDialog()
+                                        }
+
                                     }else{
                                         myApplication.printLogD("Inside getUserWalletBalance",TARCK)
                                         myApplication.printLogD("walletBalance $walletBalance",TARCK)
@@ -716,8 +797,6 @@ class UploadVideoActivity : AppCompatActivity() {
                     }
                 }
             }
-
-
     }
 
 
@@ -737,7 +816,6 @@ class UploadVideoActivity : AppCompatActivity() {
                 myApplication.printLogE(i.toString(),TAG)
             }
         }
-
         return createFile.absolutePath
 
     }
@@ -773,12 +851,22 @@ class UploadVideoActivity : AppCompatActivity() {
                 audioOriginalPath = outputPath
                 myApplication.printLogD("extractAudioFromVideo Path  : $audioOriginalPath",TARCK)
                 myApplication.printLogD("Call uploadVideoToS3 Fun",TARCK)
-                uploadAudioToServer(outputPath)
+                if  (myApplication.isNetworkConnected()){
+                    progressDialog.setMessage("Step 3")
+                    uploadAudioToServer(outputPath)
+                }else{
+                    myApplication.showToast(ConstValFile.Check_Connection)
+                }
             }
 
             override fun onFailure() {
                 myApplication.printLogD("log : onFailure",TARCK)
-                uploadVideoToS3()
+                if  (myApplication.isNetworkConnected()){
+                    progressDialog.setMessage("Step 4")
+                    uploadVideoToS3()
+                }else{
+                    myApplication.showToast(ConstValFile.Check_Connection)
+                }
             }
 
             override fun onProgress(progress: Float) {
@@ -827,11 +915,22 @@ class UploadVideoActivity : AppCompatActivity() {
                     if (sessionManager.getAppSongID()!!.trim().isNotEmpty()){
                         videoSongID = sessionManager.getAppSongID().toString()
                         sessionManager.setVideoSongUrl(songLink)
-                        uploadVideoToS3()
+                        if  (myApplication.isNetworkConnected()){
+                            progressDialog.setMessage("Step 5")
+                            uploadVideoToS3()
+                        }else{
+                            myApplication.showToast(ConstValFile.Check_Connection)
+                        }
+
                     }else{
-                        videoSongID =response.body()!!.data?.Id.toString()
-                        sessionManager.setVideoSongUrl(songLink)
-                        uploadVideoToS3()
+                        if  (myApplication.isNetworkConnected()){
+                            progressDialog.setMessage("Step 6")
+                            videoSongID =response.body()!!.data?.Id.toString()
+                            sessionManager.setVideoSongUrl(songLink)
+                            uploadVideoToS3()
+                        }else{
+                            myApplication.showToast(ConstValFile.Check_Connection)
+                        }
                     }
                 }else{
                     myApplication.showToast("Something went wrong..")
@@ -942,5 +1041,47 @@ class UploadVideoActivity : AppCompatActivity() {
                 Log.i("address 3", status.statusMessage!!)
             }
         }
+    }
+
+    override fun onStop() {
+        try {
+            userlist?.clear()
+            viewBinding.userCycle.adapter = null
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        super.onStop()
+    }
+
+    private fun getVideoThumbnail(videoUri: String): Bitmap? {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(videoUri)
+
+        val timeUs = 1000000L // Retrieve thumbnail at 1 second into the video
+        val bitmap: Bitmap?
+
+        try {
+            bitmap = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            return null
+        } finally {
+            retriever.release()
+        }
+
+        return bitmap
+    }
+
+    private fun checkInternetDialog() {
+        val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "Retry"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            uploadVideoMainFun()
+        }
+        sweetAlertDialog.show()
     }
 }

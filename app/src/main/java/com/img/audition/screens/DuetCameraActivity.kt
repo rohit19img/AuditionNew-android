@@ -712,10 +712,7 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
 
             } else {
                 Log.e(TAG, "video Download Failed : ")
-
             }
-
-
         }
 
         fun getImageAbsolutePath(context: Context, fileName: String): String {
@@ -736,7 +733,6 @@ class DuetCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
             return file.absolutePath
         }
     }

@@ -18,8 +18,9 @@ import com.img.audition.R
 import com.img.audition.dataModel.VideoData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.CommanVideoPlayActivity
+import java.text.DecimalFormat
 
- @UnstableApi class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
+@UnstableApi class VideoSearch_Adapter(val context : Context, val list : ArrayList<VideoData>) : RecyclerView.Adapter<VideoSearch_Adapter.ViewHolder>(){
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val auditionid =  itemView.findViewById<TextView>(R.id.auditionid)
@@ -36,7 +37,7 @@ import com.img.audition.screens.CommanVideoPlayActivity
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
             auditionid.text = list[position].auditionId
-            plays.text = list[position].views.toString()
+            plays.text = formatCount(list[position].views!!)
             Glide.with(context).load(list[position].file).placeholder(R.drawable.splash_icon).into(videothumb)
             itemView.setOnClickListener {
                 val bundle = Bundle()
@@ -53,4 +54,25 @@ import com.img.audition.screens.CommanVideoPlayActivity
         return list.size
     }
 
+     private fun formatCount(count: Int): String {
+         val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+         val numValue: Long = count.toLong()
+         val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+         val base = value / 3
+         return if (value >= 3 && base < suffix.size) {
+             DecimalFormat("#0.0").format(
+                 numValue / Math.pow(
+                     10.0,
+                     (base * 3).toDouble()
+                 )
+             ) + suffix[base]
+         } else {
+             DecimalFormat("#,##0").format(numValue)
+         }
+         /*return when {
+             count < 1000 -> count.toString()
+             count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+             else -> (count / 1000).toString() + "k"
+         }*/
+     }
 }

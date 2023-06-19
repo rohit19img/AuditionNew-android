@@ -64,6 +64,7 @@ class CompletedContestFragment : Fragment() {
 
         if (list.size>0){
             noLiveContest.visibility = View.GONE
+            list.reverse()
             contestAdapter = ContestLiveAdapter(view.context,list)
             contestViewpager2.adapter = contestAdapter
             videoItemPlayPause = contestAdapter.onActivityStateChanged()

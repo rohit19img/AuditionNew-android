@@ -18,6 +18,7 @@
         <ImageView
             android:id="@+id/hashtag_video"
             android:layout_width="@dimen/_85sdp"
+            android:src="@drawable/auditon_logo"
             android:layout_height="@dimen/_100sdp"
             android:background="@color/white"
             android:scaleType="fitXY"/>

@@ -103,7 +103,7 @@ import kotlin.toString
                                     }
 
                                     if (userData.walletamaount.toString().isNotEmpty()){
-                                        viewBinding.depsoitCash.text = "₹ " + userData.walletamaount.toString()
+                                        viewBinding.depsoitCash.text = "₹ " + userData.totalbalance.toString()
                                     }else{
                                         viewBinding.depsoitCash.text = "₹ 0"
                                     }

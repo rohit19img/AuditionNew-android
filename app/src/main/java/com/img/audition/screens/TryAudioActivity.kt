@@ -184,6 +184,7 @@ class TryAudioActivity : AppCompatActivity() {
                                     myApplication.printLogD("No Video Data",TAG)
                                     viewBinding.shimmerVideoView.stopShimmer()
                                     viewBinding.shimmerVideoView.hideShimmer()
+                                    viewBinding.shimmerVideoView.visibility = View.GONE
                                     viewBinding.noVideo.visibility = View.VISIBLE
                                 }
                             }

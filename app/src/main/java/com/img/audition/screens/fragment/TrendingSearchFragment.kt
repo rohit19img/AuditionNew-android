@@ -81,9 +81,8 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                        if(searchBar.text.toString().length > 2){
-                            searchlist(searchBar.text.toString())
-                        }
+                        searchlist(s.toString())
+
                     }
 
                     override fun afterTextChanged(s: Editable?) {
@@ -167,6 +166,9 @@ class TrendingSearchFragment(val contextFromHome: Context) : Fragment() {
                     }
                 }
             }
+        view.userRecycle.adapter?.notifyDataSetChanged()
+        view.hashtagRecycle.adapter?.notifyDataSetChanged()
+        view.videoRecycle.adapter?.notifyDataSetChanged()
     }
 
     private fun getTrendingVideo(){

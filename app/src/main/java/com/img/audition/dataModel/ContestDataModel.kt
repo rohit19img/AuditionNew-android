@@ -186,3 +186,16 @@ data class Jointeams(
     @SerializedName("status"   ) var status   : String?  = null,
     @SerializedName("winningcrown"   ) var winningcrown   : String?  = null
 )
+
+data class JoinUsableBalanceResponse(
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : JoinUsableBalanceData?    = JoinUsableBalanceData()
+)
+
+data class JoinUsableBalanceData(
+    @SerializedName("usablebalance"    ) var usablebalance    : String? = null,
+    @SerializedName("usertotalbalance" ) var usertotalbalance : String? = null,
+    @SerializedName("entryfee"         ) var entryfee         : String? = null,
+    @SerializedName("bonus"            ) var bonus            : String? = null
+)

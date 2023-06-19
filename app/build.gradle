@@ -3,7 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
-
 }
 
 
@@ -18,8 +17,6 @@ android {
         versionCode 2
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-
     }
 
     buildTypes {
@@ -92,7 +89,7 @@ dependencies {
     //Shimmer
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
-    //crop image for pan and bank verification
+    //crop image
     implementation 'com.github.CanHub:Android-Image-Cropper:3.1.1'
 
     // image crop
@@ -145,9 +142,7 @@ dependencies {
     implementation "com.snap.camerakit:support-camera-layout:1.21.1"
     implementation "com.snap.camerakit:lenses-bundle:1.21.1"
     implementation "com.snap.camerakit:support-camerax:1.21.1"
-//    implementation "com.snap.camerakit:camerakit-extension-lens-push-to-device:1.21.1"
     implementation "com.snap.camerakit:support-lenses-carousel:1.21.1"
-//    implementation "com.snap.camerakit:camerakit-extension-auth-token-provider-loginkit:1.21.1"
 
     //facebook Login
     implementation 'com.facebook.android:facebook-android-sdk:13.0.0'
@@ -160,9 +155,5 @@ dependencies {
 
     //leakcanary
     //debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.11'
-
-
-
-
 
 }

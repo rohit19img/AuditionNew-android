@@ -1,7 +1,6 @@
 package com.img.audition.screens.fragment
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,13 +9,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.img.audition.adapters.MusicAdapter
-import com.img.audition.dataModel.MusicData
+import com.img.audition.adapters.CategoryMusicAdapter
+import com.img.audition.dataModel.AllCategoryMusicData
 import com.img.audition.databinding.FragmentAllMusicBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
@@ -24,7 +22,6 @@ import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.MusicActivity
-import com.img.audition.screens.SplashActivity
 import com.img.audition.videoWork.PlayPauseAudio
 import com.img.audition.viewModel.MainViewModel
 import com.img.audition.viewModel.Status
@@ -33,17 +30,18 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-@UnstableApi class AllMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fragment() {
+@UnstableApi
+class AllMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fragment() {
 
     private val TAG = "AllMusicFragment"
-    private var musicList = ArrayList<MusicData>()
+    private var musicList = ArrayList<AllCategoryMusicData>()
     private lateinit var musicCycle : RecyclerView
     private lateinit var playPauseAudio: PlayPauseAudio
 
     private lateinit var _viewBinding : FragmentAllMusicBinding
     private val view get() = _viewBinding
 
-    private lateinit var musicAdapter: MusicAdapter
+    private lateinit var musicAdapter: CategoryMusicAdapter
 
     private lateinit var mainViewModel: MainViewModel
 
@@ -53,7 +51,6 @@ import kotlin.collections.ArrayList
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentAllMusicBinding.inflate(inflater,container,false)
@@ -88,7 +85,7 @@ import kotlin.collections.ArrayList
                            if (resources.data!!.success!!){
                                musicList = resources.data.data
                                if (musicList.size>0){
-                                   musicAdapter = MusicAdapter(context,musicList)
+                                   musicAdapter = CategoryMusicAdapter(context,musicList)
                                    playPauseAudio = musicAdapter.onActivityStateChanged()
                                    musicCycle.adapter = musicAdapter
                                    view.shimmerVideoView.stopShimmer()
@@ -104,11 +101,10 @@ import kotlin.collections.ArrayList
                                }
                            }else{
                                view.noDataView.visibility = View.VISIBLE
-                               view.noDataView.text = "Something went wrong.."
+                               view.noDataView.text = "List Empty"
                                view.shimmerVideoView.stopShimmer()
                                view.shimmerVideoView.hideShimmer()
                                view.shimmerVideoView.visibility = View.GONE
-                               Toast.makeText(contextFromMusicActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
                            }
                         }
                         Status.LOADING ->{
@@ -120,7 +116,8 @@ import kotlin.collections.ArrayList
                             view.shimmerVideoView.stopShimmer()
                             view.shimmerVideoView.hideShimmer()
                             view.shimmerVideoView.visibility = View.GONE
-                            Log.d(TAG, resources.status.toString())
+                            Log.e("dfef", resources.status.toString())
+                            Log.e("dfef", resources.message.toString())
                         }
                     }
                 }
@@ -158,7 +155,7 @@ import kotlin.collections.ArrayList
     }
 
     private fun searchMusic(toString: String) {
-        val searchList: ArrayList<MusicData> = ArrayList()
+        val searchList: ArrayList<AllCategoryMusicData> = ArrayList()
         for (ds in musicList) {
             if (ds.title!!.toLowerCase().contains(toString.lowercase(Locale.getDefault()))) {
                 searchList.add(ds)

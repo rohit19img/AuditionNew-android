@@ -26,6 +26,7 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
     private val myApplication by lazy {
         MyApplication(context)
     }
+
     class MyViewHolder(itemView: LiveRankLeaderboardLayoutBinding) :
         RecyclerView.ViewHolder(itemView.root) {
         val img = itemView.img
@@ -90,7 +91,6 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
                 }else{
                     Toast.makeText(context,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
                 }
-
             }
 
             itemView.setOnClickListener {
@@ -111,7 +111,6 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
                 }else{
                     Toast.makeText(context,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
                 }
-
             }
         }
     }

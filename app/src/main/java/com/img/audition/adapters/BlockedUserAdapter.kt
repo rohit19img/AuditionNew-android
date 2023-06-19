@@ -21,6 +21,7 @@ import com.img.audition.network.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 
 class BlockedUserAdapter(val context: Context, private val blockedUserData : ArrayList<BlockedUserData>) : RecyclerView.Adapter<BlockedUserAdapter.MyViewHolder>() {
     inner class MyViewHolder(itemView: FollowerfollowingdesignBinding) : RecyclerView.ViewHolder(itemView.root) {
@@ -93,5 +94,6 @@ class BlockedUserAdapter(val context: Context, private val blockedUserData : Arr
 
         })
     }
+
 
 }

@@ -59,6 +59,11 @@
     <string name="effect_tip">After selecting the position, press and hold to use the effect</string>
     <string name="undo">Undo</string>
     <string name="split_screen">split screen</string>
+    <string name="available_balance">Available balance:</string>
+
+    <string name="usable_amount">Usable Amount</string>
+
+    <string name="joining_amount">Joining Amount</string>
     <string name="dream">Dream</string>
     <string name="dynamic">dynamic</string>
     <string name="caption_effect_font_category_name">plain text</string>

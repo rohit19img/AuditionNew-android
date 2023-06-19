@@ -66,6 +66,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -86,6 +87,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
     var Ar = arrayOf(-1, 0)
     var cPos = 0
 
+
     private var videoPosition = 0
 
     private val myApplication by lazy {
@@ -100,7 +102,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         firestore = FirebaseFirestore.getInstance()
         mSocket = VideoCacheWork.mSocket!!
     }
-
 
     override fun onIntentReceived(followStatus: Boolean, userID: String, position: Int) {
         Log.d("onIntentReceived","Intent $TAG : $followStatus")
@@ -130,6 +131,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         val commentBtn = itemView.commentButton
         val postLocation = itemView.postLocation
         val commentCount = itemView.commentCount
+        val viewCount = itemView.viewCount
         val playPauseIc = itemView.videoPlayPause
         val playPauseVideoBtn = itemView.playPauseVideoBtn
 
@@ -181,6 +183,8 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                 postLocation.visibility = View.GONE
             }
 
+            viewCount.text = formatCount(list.views!!)
+
             postLocation.setOnClickListener {
                 sendPostLocationVideoActivity(list.location.toString())
             }
@@ -221,19 +225,22 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             }
 
             voteBtn.setOnClickListener {
-                if (list.contestStatus.equals("started",true)){
-                    if (!(sessionManager.isUserLoggedIn())) {
-                        sendToLoginScreen()
-                    } else {
-                        if (list.voteStatus!!){
-                            Toast.makeText(contextFromActivity,"You already vote this video",Toast.LENGTH_SHORT).show()
-                        }else{
-                            showVoteDialog(list.Id,position)
+                if (myApplication.isNetworkConnected()){
+                    if (list.contestStatus.equals("started",true)){
+                        if (!(sessionManager.isUserLoggedIn())) {
+                            sendToLoginScreen()
+                        } else {
+                            if (list.voteStatus!!){
+                                Toast.makeText(contextFromActivity,"You already vote this video",Toast.LENGTH_SHORT).show()
+                            }else{
+                                showVoteDialog(list.Id,position)
+                            }
                         }
+                    }else{
+                        Toast.makeText(contextFromActivity,"Contest Close",Toast.LENGTH_SHORT).show()
                     }
                 }else{
-                    Toast.makeText(contextFromActivity,"Contest Close",Toast.LENGTH_SHORT).show()
-
+                    showToast(ConstValFile.Check_Connection)
                 }
             }
 
@@ -249,7 +256,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                         commentList.add(note)
                     }
                     videoList[position].commentCount = commentList.size
-                    commentCount.text = list.commentCount.toString()
+                    commentCount.text = formatCount(list.commentCount!!)
                     Log.d("commentCount", "c list size: ${commentList.size.toString()}")
 
                 }
@@ -257,12 +264,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
 
             Log.d("commentCount", "c count: ${list.commentCount.toString()}")
             if (list.likeStatus!!) {
-                likeBtn.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        contextFromActivity,
-                        R.drawable.liked_ic
-                    )
-                )
+                likeBtn.setImageDrawable(ContextCompat.getDrawable(contextFromActivity, R.drawable.liked_ic))
                 likeBtn.setColorFilter(contextFromActivity.resources.getColor(R.color.likeHeartRed))
             } else {
                 likeBtn.setImageDrawable(
@@ -309,14 +311,11 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                             textPaint.color = Color.WHITE
                             textPaint.isUnderlineText = false
                             textPaint.typeface = Typeface.DEFAULT_BOLD
-
                         }
-
                     }
 
                     // Set the clickable span on the corresponding text range
                     spannable.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
                 }
 
                 val tagPattern = Pattern.compile("@(\\w+)")
@@ -405,7 +404,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                         } else {
                             list.likeCount = 0
                         }
-                        likeCount.text = newlikeCount.toString()
+                        likeCount.text = formatCount(newlikeCount!!)
                     } else {
                         likeBtn.setImageDrawable(
                             ContextCompat.getDrawable(
@@ -419,7 +418,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                         list.likeStatus = true
                         val newlikeCount = list.likeCount?.plus(1)
                         list.likeCount = newlikeCount
-                        likeCount.text = newlikeCount.toString()
+                        likeCount.text = formatCount(newlikeCount!!)
 
                     }
                 }else{
@@ -472,6 +471,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                         if (!(list.isSelf)!!) {
                             val bundle = Bundle()
                             bundle.putString(ConstValFile.USER_IDFORIntent, list.userId)
+                            bundle.putString("auditionID", list.auditionId)
                             bundle.putInt(ConstValFile.UserPositionInList, position)
                             bundle.putSerializable("list", videoList)
                             bundle.putBoolean(ConstValFile.UserFollowStatus, list.followStatus!!)
@@ -487,7 +487,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
 
             shareBtn.setOnClickListener {
 //                       val videoUrl = "https://audition.com/video/${videoList[position].Id}"
-                val videoUrl = "http://139.59.30.125:6060/video/${videoList[position].Id}"
+                val videoUrl = "${ConstValFile.BASEURL}/video/${videoList[position].Id}"
                 shareDialog(position, videoUrl)
             }
 
@@ -528,7 +528,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                 }
             }
 
-            likeCount.text = list.likeCount.toString()
+            likeCount.text = formatCount(list.likeCount!!)
 
             Glide.with(contextFromActivity).load(list.image).placeholder(R.drawable.person_ic)
                 .into(userProfile)
@@ -697,7 +697,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             }
 
             override fun onResume(holder: VideoViewHolder, cPos: Int) {
-
                 holder.apply {
                     if (cPos >= 0) {
                         if (cPos == position) {
@@ -723,28 +722,15 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
-                            exoPlayer.clearMediaItems()
-                            exoPlayer.release()
-                            playerViewExo.player!!.release()
-
                         } else {
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
-                            exoPlayer.clearMediaItems()
-                            exoPlayer.release()
-                            playerViewExo.player!!.release()
-
-
                         }
                     }
                     exoPlayer.playWhenReady = false
                     exoPlayer.seekTo(0)
                     exoPlayer.stop()
-                    exoPlayer.clearMediaItems()
-                    exoPlayer.release()
-                    playerViewExo.player!!.release()
-
                 }
             }
         }
@@ -753,6 +739,26 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
 
     override fun onViewDetachedFromWindow(holder: VideoViewHolder) {
         holder.apply {
+            Log.d("videoUrl ", "onViewDetachedFromWindow: ${videoList[absoluteAdapterPosition].file}")
+            try {
+
+            val duration = exoPlayer.contentDuration
+
+            val jsonObject = JSONObject()
+            try {
+                jsonObject.put("userId", sessionManager.getUserSelfID())
+                jsonObject.put("time", duration)
+                jsonObject.put("videoId", videoList[absoluteAdapterPosition].Id)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+            mSocket.emit("scroll", jsonObject)
+            Log.d("socket", "scrollSocket: videoId ${videoList[absoluteAdapterPosition].Id}")
+            Log.d("socket", "scrollSocket: userId ${sessionManager.getUserSelfID()}")
+            Log.d("socket", "scrollSocket: time ${duration}")
+        } catch (e: Exception) {
+            Log.e(TAG, "onScrolled: ", e)
+        }
             playerViewExo.player!!.playWhenReady = false
             playerViewExo.player!!.seekTo(0)
             playerViewExo.player!!.pause()
@@ -769,14 +775,15 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
+
                 }
 
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     val visiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
-//                    var lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
+                    var lastPosition = layoutManager.findLastCompletelyVisibleItemPosition()
 
-                    var lastPosition = Ar[0]
+                     lastPosition = Ar[0]
                     Ar[0] = Ar[1]
                     Ar[1] = visiblePosition
 
@@ -803,16 +810,19 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                                 jsonObject.put("videoId", videoList[visiblePosition].Id)
                             } catch (e: Exception) {
                                 e.printStackTrace()
+                                Log.e(TAG, "viewSocket: ", e)
                             }
 
                             mSocket.emit("view", jsonObject)
+                            Log.d("socket", "viewSocket: userId ${sessionManager.getUserSelfID()}")
+                            Log.d("socket", "viewSocket: videoId ${videoList[visiblePosition].Id}")
                         }
                     }
+//                    Log.d("socket", "lastPosition: $lastPosition")
 
                     if (lastPosition >= 0) {
                         try {
-                            val holder_previous: VideoViewHolder =
-                                recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
+                            val holder_previous =  recyclerView.findViewHolderForAdapterPosition(lastPosition) as VideoViewHolder
                             holder_previous.exoPlayer.seekTo(0)
                             if (holder_previous.exoPlayer.isPlaying)
                                 holder_previous.exoPlayer.stop()
@@ -828,20 +838,18 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                             } catch (e: JSONException) {
                                 e.printStackTrace()
                             }
-
-                            Log.i("SocketCheck", "Scroll : $jsonObject")
-
                             mSocket.emit("scroll", jsonObject)
+                            Log.d("socket", "scrollSocket: videoId ${videoList[visiblePosition].Id}")
+                            Log.d("socket", "scrollSocket: userId ${sessionManager.getUserSelfID()}")
+                            Log.d("socket", "scrollSocket: time ${duration}")
                         } catch (e: Exception) {
-                           e.printStackTrace()
+                            Log.e("TAG", "onScrolled: ", e)
                         }
-
                     }
                     if (visiblePosition >= 0) {
                         cPos = visiblePosition
 //                        notifyDataSetChanged()
                     }
-
                 }
             })
         }
@@ -952,7 +960,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                     val intent = Intent(contextFromActivity.applicationContext, LoginActivity::class.java)
                     contextFromActivity.startActivity(intent)
                 } else {
-
                     val manager: FragmentManager = (contextFromActivity as AppCompatActivity).supportFragmentManager
                     val showReportDialog = VideoReportDialog(contextFromActivity, videoList[i].Id.toString(), ConstValFile.NotInterestedDialogView,this@VideoAdapter,i)
                     showReportDialog.show(manager, showReportDialog.tag)
@@ -961,7 +968,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             }else{
                 showToast(ConstValFile.Check_Connection)
             }
-
         }
 
         iv_share_download!!.setOnClickListener {
@@ -1038,7 +1044,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             }else{
                 showToast(ConstValFile.Check_Connection)
             }
-
         }
 
         dialog1.show()
@@ -1049,22 +1054,17 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         val removeWatchLaterReq = apiInterface.remove_watch_later(sessionManager.getToken(), id)
 
         removeWatchLaterReq.enqueue(object : Callback<CommanResponse> {
-            override fun onResponse(
-                call: Call<CommanResponse>,
-                response: Response<CommanResponse>
-            ) {
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()!!.success!!) {
                     Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
                     Log.d(TAG, "onResponse: ${response.message()}")
-
                 }
             }
 
             override fun onFailure(call: Call<CommanResponse>, t: Throwable) {
                 t.printStackTrace()
             }
-
         })
     }
 
@@ -1072,15 +1072,11 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         val watchLaterReq = apiInterface.saveIntoWatchLater(sessionManager.getToken(), id)
 
         watchLaterReq.enqueue(object : Callback<CommanResponse> {
-            override fun onResponse(
-                call: Call<CommanResponse>,
-                response: Response<CommanResponse>
-            ) {
+            override fun onResponse(call: Call<CommanResponse>, response: Response<CommanResponse>) {
                 if (response.isSuccessful && response.body()!!.success!!) {
                     Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
                     Log.d(TAG, "onResponse: ${response.message()}")
-
                 }
             }
 
@@ -1088,7 +1084,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                 t.printStackTrace()
             }
         })
-
     }
 
     private fun shareDialog(i: Int, videoUrl: String) {
@@ -1110,6 +1105,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                 .putExtra("name", videoList[i].auditionId)
                 .putExtra("userid", videoList[i].userId.toString())
                 .putExtra("image", videoList[i].image)
+                .putExtra("auditionID", videoList[i].auditionId)
             contextFromActivity.startActivity(intent)
         }
 
@@ -1181,7 +1177,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             contextFromActivity.startActivity(Intent.createChooser(intent, "Audition"))
             dialog1.dismiss()
         }
-
         dialog1.show()
     }
 
@@ -1220,13 +1215,11 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                     Log.d(TAG, "onResponse: ${response.body()!!.message}")
                 } else {
                     Log.d(TAG, "onResponse: ${response.message()}")
-
                 }
             }
 
             override fun onFailure(call: Call<LikeResponse>, t: Throwable) {
                 t.printStackTrace()
-
             }
 
         })
@@ -1277,7 +1270,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
     }
 
 
-
     private fun showVoteDialog(id: String?, position: Int) {
         val voteDialog = Dialog(contextFromActivity)
         voteDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -1301,14 +1293,14 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             ) {
                 if (response.isSuccessful && response.body()!!.success!!) {
                     val data = response.body()!!.data
-                    voteCycle.adapter = VoteAdapter(contextFromActivity, data, id!!, voteDialog)
-                    if (!(videoList[position].voteStatus!!)) {
+                    voteCycle.adapter = VoteAdapter(contextFromActivity, data, id!!, voteDialog,this@VideoAdapter,position)
+                    /*if (!(videoList[position].voteStatus!!)) {
                         for (uList in videoList) {
                             if (uList.userId.equals(videoList[position].userId)) {
                                 uList.voteStatus = true
                             }
                         }
-                    }
+                    }*/
                 } else {
                     Log.e(TAG, "onResponse: ${response.message()}")
                 }
@@ -1356,7 +1348,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
     }
 
 
-
     private fun showCommentDialog2(
         postId: String?,
         auditionId: String,
@@ -1395,11 +1386,9 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             }else{
                 showToast(ConstValFile.Check_Connection)
             }
-
         }
 
         getAllComments(postID = postId,noCommentView!!,commentCycle!!)
-
         dialog.show()
     }
 
@@ -1441,9 +1430,14 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         commentCycle.visibility = View.VISIBLE
         val commentData =  JSONObject()
         commentData.put("video_id",videoID)
-        commentData.put("user_id",userID)
+        commentData.put("user_id",sessionManager.getUserSelfID())
         commentData.put("comment",commentText)
         mSocket.emit("post-comment",commentData)
+
+        Log.d(TAG, "writeNewComment : video_id: ${videoID}")
+        Log.d(TAG, "writeNewComment : user_id: ${sessionManager.getUserSelfID()}")
+        Log.d(TAG, "writeNewComment : comment: ${commentText}")
+
 
 
         val mapData = HashMap<String, Any>()
@@ -1459,7 +1453,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
 
         val comment_id = UUID.randomUUID().toString()
         mapData.put("created_at", now.toString())
-        mapData.put("user_id", userID.toString())
+        mapData.put("user_id", sessionManager.getUserSelfID().toString())
         mapData.put("userimage",userImage.toString())
         mapData.put("post_id",postID.toString())
         mapData.put("comment_id",comment_id)
@@ -1518,6 +1512,28 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             sweetAlertDialog.dismiss()
         }
         sweetAlertDialog.show()
+    }
+
+    private fun formatCount(count: Int): String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
     }
 
 }

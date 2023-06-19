@@ -67,7 +67,6 @@ class CollectionActivity : AppCompatActivity() {
                     }
                 }else{
                     Log.d(TAG, "Get Other User Video Response Failed ${response.code()}")
-
                 }
             }
             override fun onFailure(call: Call<VideoResponse>, t: Throwable) {

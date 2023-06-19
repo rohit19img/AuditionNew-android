@@ -45,14 +45,11 @@ import java.io.File
 
 @UnstableApi
 class HomeActivity : AppCompatActivity() {
-    private var videoData = ArrayList<VideoData>()
     private val TAG = "HomeActivity"
     lateinit var appPermission: AppPermission
     lateinit var popupDialog: Dialog
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
-        ActivityHomeBinding.inflate(
-            layoutInflater
-        )
+        ActivityHomeBinding.inflate(layoutInflater)
     }
     private val sessionManager by lazy { SessionManager(this@HomeActivity) }
     private val myApplication by lazy { MyApplication(this) }
@@ -62,6 +59,10 @@ class HomeActivity : AppCompatActivity() {
     private var fusedLocation: FusedLocationProviderClient? = null
     private var userLatLang: UserLatLang? = null
     private var locationManager: LocationManager? = null
+
+    private var forYouVideoList : ArrayList<VideoData> = ArrayList()
+    private var liveContestVideoList : ArrayList<VideoData> = ArrayList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -69,11 +70,7 @@ class HomeActivity : AppCompatActivity() {
         viewBinding.showVideoShimmer.startShimmer()
         viewBinding.showVideoShimmer.visibility = View.VISIBLE
 
-        appPermission = AppPermission(
-            this@HomeActivity,
-            ConstValFile.PERMISSION_LIST,
-            ConstValFile.REQUEST_PERMISSION_CODE
-        )
+        appPermission = AppPermission(this@HomeActivity, ConstValFile.PERMISSION_LIST, ConstValFile.REQUEST_PERMISSION_CODE)
         appPermission.checkPermissions()
 
         if (myApplication.isNetworkConnected()) {
@@ -82,10 +79,7 @@ class HomeActivity : AppCompatActivity() {
             myApplication.showToast(ConstValFile.Check_Connection)
         }
 
-        mainViewModel = ViewModelProvider(
-            this,
-            ViewModelFactory(sessionManager.getToken(), apiInterface)
-        )[MainViewModel::class.java]
+        mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(), apiInterface))[MainViewModel::class.java]
         popupDialog = Dialog(this)
         userLatLang = UserLatLang()
         fusedLocation = LocationServices.getFusedLocationProviderClient(this)
@@ -96,6 +90,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         clearTempSession()
+        
         getReelsVideo()
 
         viewBinding.bottomNav.setOnItemSelectedListener {
@@ -105,7 +100,8 @@ class HomeActivity : AppCompatActivity() {
                     if (myApplication.isNetworkConnected()){
                         val videoFragment = VideoFragment(this)
                         val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        bundle.putSerializable(ConstValFile.ForYouVideoList,forYouVideoList)
+                        bundle.putSerializable(ConstValFile.LiveContestVideoList,liveContestVideoList)
                         videoFragment.arguments = bundle
                         loadFragment(videoFragment)
                         true
@@ -113,7 +109,6 @@ class HomeActivity : AppCompatActivity() {
                         checkInternetDialog(R.id.home)
                         false
                     }
-
                 }
                 R.id.search -> {
                     clearTempSession()
@@ -164,7 +159,8 @@ class HomeActivity : AppCompatActivity() {
                     if (myApplication.isNetworkConnected()){
                         val videoFragment = VideoFragment(this)
                         val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        bundle.putSerializable(ConstValFile.ForYouVideoList,forYouVideoList)
+                        bundle.putSerializable(ConstValFile.LiveContestVideoList,liveContestVideoList)
                         videoFragment.arguments = bundle
                         loadFragment(videoFragment)
                         true
@@ -289,35 +285,60 @@ class HomeActivity : AppCompatActivity() {
         sessionManager.clearDuetSession()
     }
 
-    fun getReelsVideo() {
-        mainViewModel.getReelsVideo(
-            sessionManager.getSelectedLanguage(),
-            userLatLang?.lat,
-            userLatLang?.long
-        )
+    private fun getReelsVideo() {
+        mainViewModel.getForYouReelsVideo(sessionManager.getSelectedLanguage(), userLatLang?.lat, userLatLang?.long)
             .observe(this) {
                 it.let { videoResponse ->
                     when (videoResponse.status) {
                         Status.SUCCESS -> {
-                            if (videoResponse.data?.success!!) {
+                            val data = videoResponse.data!!.data
+                            if (data.size>0){
+                                val videoFragment = VideoFragment(this)
+                                val bundle = Bundle()
                                 viewBinding.showVideoShimmer.stopShimmer()
                                 viewBinding.showVideoShimmer.hideShimmer()
                                 viewBinding.showVideoShimmer.visibility = View.GONE
-                                try {
-                                    videoData.clear()
-                                }catch (e:Exception){
-                                    e.printStackTrace()
-                                }
-                                videoData = videoResponse.data.data
-                                val videoFragment = VideoFragment(this)
-                                val bundle = Bundle()
-                                bundle.putSerializable(ConstValFile.VideoList, videoData)
+                                forYouVideoList = data
+                                bundle.putSerializable(ConstValFile.ForYouVideoList,forYouVideoList)
                                 videoFragment.arguments = bundle
                                 loadFragment(videoFragment)
+                            }else{
+                                Log.d(TAG, "getForYouReelsVideo: No Video")
+                            }
+
+                        }
+                        Status.LOADING -> {
+                            Log.d(TAG, "getForYouReelsVideo: ${videoResponse.message}")
+                        }
+                        else -> {
+                            viewBinding.showVideoShimmer.stopShimmer()
+                            viewBinding.showVideoShimmer.hideShimmer()
+                            viewBinding.showVideoShimmer.visibility = View.GONE
+                            if (videoResponse.message!!.contains("401")) {
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            Log.e(TAG, "getForYouReelsVideo: ${videoResponse.message}")
+                        }
+                    }
+                }
+            }
+      /*  mainViewModel.getLiveContestReelsVideo(sessionManager.getSelectedLanguage(), userLatLang?.lat, userLatLang?.long)
+            .observe(this) {
+                it.let { videoResponse ->
+                    when (videoResponse.status) {
+                        Status.SUCCESS -> {
+                            val data = videoResponse.data!!.data
+                            if (data.size>0){
+                                liveContestVideoList = data
+                                bundle.putSerializable(ConstValFile.LiveContestVideoList,liveContestVideoList)
+                            }else{
+                                Log.d(TAG, "getLiveContestReelsVideo: No Video")
                             }
                         }
                         Status.LOADING -> {
-                            Log.d(TAG, "getReelsVideo: ${videoResponse.message}")
+                            Log.d(TAG, "getLiveContestReelsVideo: ${videoResponse.message}")
                         }
                         else -> {
                             if (videoResponse.message!!.contains("401")) {
@@ -325,11 +346,13 @@ class HomeActivity : AppCompatActivity() {
                                 startActivity(Intent(this, SplashActivity::class.java))
                                 finishAffinity()
                             }
-                            Log.e(TAG, "getReelsVideo: ${videoResponse.message}")
+                            Log.e(TAG, "getLiveContestReelsVideo: ${videoResponse.message}")
                         }
                     }
                 }
-            }
+            }*/
+
+
     }
 
     private fun getLocation() {
@@ -375,7 +398,8 @@ class HomeActivity : AppCompatActivity() {
                     if (myApplication.isNetworkConnected()){
                         val videoFragment = VideoFragment(this)
                         val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        bundle.putSerializable(ConstValFile.ForYouVideoList,forYouVideoList)
+                        bundle.putSerializable(ConstValFile.LiveContestVideoList,liveContestVideoList)
                         videoFragment.arguments = bundle
                         loadFragment(videoFragment)
                         viewBinding.bottomNav.selectedItemId = R.id.home
@@ -428,7 +452,8 @@ class HomeActivity : AppCompatActivity() {
                     if (myApplication.isNetworkConnected()){
                         val videoFragment = VideoFragment(this)
                         val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.VideoList, videoData)
+                        bundle.putSerializable(ConstValFile.ForYouVideoList,forYouVideoList)
+                        bundle.putSerializable(ConstValFile.LiveContestVideoList,liveContestVideoList)
                         videoFragment.arguments = bundle
                         loadFragment(videoFragment)
                         viewBinding.bottomNav.selectedItemId = R.id.home

@@ -74,6 +74,7 @@
             android:src="@drawable/add_music_ic"
             android:contentDescription="Add Music"/>
 
+
         <TextureView
             android:id="@+id/mini_preview"
             android:layout_width="126dp"
@@ -82,26 +83,6 @@
             android:visibility="gone"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:visibility="gone"
-            android:id="@+id/lens_attribution"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="48dp"
-            android:ellipsize="end"
-            android:fontFamily="@font/avenir_next_demi_bold"
-            android:textSize="20sp"
-            android:singleLine="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Very long lens name that should get ellipsized"
             />
 
 
@@ -150,8 +131,9 @@
             android:layout_marginStart="20dp"
           />
 
-        <ImageView
 
+
+        <ImageView
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="15dp"
             android:id="@+id/backPressIC"
@@ -163,6 +145,10 @@
 
     </com.snap.camerakit.support.widget.CameraLayout>
 
-
+    <FrameLayout
+        android:id="@+id/viewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
 </androidx.drawerlayout.widget.DrawerLayout>

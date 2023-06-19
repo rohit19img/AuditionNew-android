@@ -1,14 +1,23 @@
 package com.img.audition.screens
 
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.media3.common.util.UnstableApi
+import com.img.audition.R
+import com.img.audition.dataModel.JoinUsableBalanceResponse
+import com.img.audition.dataModel.LiveContestData
 import com.img.audition.dataModel.SingleContestDetailsResponse
 import com.img.audition.dataModel.SingleContestPriceCard
 import com.img.audition.databinding.ActivityContestDetailsBinding
@@ -41,6 +50,7 @@ import java.text.SimpleDateFormat
     private var contestID = ""
     private var contestStatus = ""
     private var isContestJoin = false
+    private var currentPagePosition = 0
     private var prizecard: ArrayList<SingleContestPriceCard>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -152,7 +162,6 @@ import java.text.SimpleDateFormat
         contestStatus = bundle!!.getString(ConstValFile.ContestStatus).toString()
         isContestJoin = bundle!!.getBoolean(ConstValFile.IsContestJoin,false)
 
-
         contestDetails(contestID)
 
         if (!isContestJoin){
@@ -161,16 +170,24 @@ import java.text.SimpleDateFormat
             viewBinding.btnJoin.visibility = View.GONE
         }
 
-
-
         viewBinding.btnJoin.setOnClickListener {
             if (!(sessionManager.isUserLoggedIn())) {
                 sendToLoginScreen()
             } else {
-                sendForCreateVideo()
+                getUsableBalance(contestID)
             }
         }
 
+        viewBinding.refreshData.setOnRefreshListener {
+            currentPagePosition = viewBinding.viewpager.currentItem
+            contestDetails(contestID)
+            viewBinding.showShimmer.startShimmer()
+            viewBinding.tabLayout.setupWithViewPager(viewBinding.viewpager)
+            viewBinding.viewpager.adapter = SectionPagerAdapter(supportFragmentManager)
+            viewBinding.viewpager.currentItem = currentPagePosition
+
+            viewBinding.refreshData.isRefreshing = false
+        }
     }
 
     fun sendToLoginScreen() {
@@ -186,6 +203,59 @@ import java.text.SimpleDateFormat
         sessionManager.setIsFromContest(true)
         val intent = Intent(this@ContestDetailsActivity, SnapCameraActivity::class.java)
         intent.putExtra(ConstValFile.Bundle, bundle)
+        startActivity(intent)
+    }
+
+
+    private fun getUsableBalance(contestID:String) {
+
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        val voterListReq = apiInterface.getUsableBalance(sessionManager.getToken(),contestID)
+
+        voterListReq.enqueue(object : Callback<JoinUsableBalanceResponse> {
+            override fun onResponse(call: Call<JoinUsableBalanceResponse>, response: Response<JoinUsableBalanceResponse>) {
+                if (response.isSuccessful && response.body()?.success!!){
+
+                    val res = response.body()!!.data
+
+                    val dialog = Dialog(this@ContestDetailsActivity)
+                    dialog.setContentView(R.layout.join_contest_dailog)
+                    val availableBalance: TextView = dialog.findViewById(R.id.availableBalance)
+                    val entryFee: TextView = dialog.findViewById(R.id.entryFee)
+                    val btnJoinContest: TextView = dialog.findViewById(R.id.btnJoinContest)
+                    val usableBalance: TextView = dialog.findViewById(R.id.usableBalance)
+                    val bonus_amount: TextView = dialog.findViewById(R.id.bonus_amount)
+
+                    availableBalance.text = "₹${res!!.usertotalbalance}"
+                    entryFee.text = "₹${res!!.entryfee}"
+                    usableBalance.text = "₹${res.usablebalance}"
+                    bonus_amount.text = "(Bonus :${res!!.bonus}%)"
+                    btnJoinContest.setOnClickListener {
+                        dialog.dismiss()
+                        if(res.usablebalance!!.toDouble() <  res.entryfee!!.toDouble()){
+//                                val amount : Double = res.entryfee!!.toDouble() - res.usablebalance!!.toDouble()
+                            sendToAddAmountActivity()
+                        } else{
+                            sendForCreateVideo()
+                        }
+                    }
+                    dialog.window!!.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                    dialog.show()
+                }else{
+                    Log.e(TAG, "onResponse: $response")
+                }
+            }
+            override fun onFailure(call: Call<JoinUsableBalanceResponse>, t: Throwable) {
+                Log.e(TAG, "onFailure: $t")
+            }
+
+        })
+    }
+
+    private fun sendToAddAmountActivity() {
+        val intent = Intent(this@ContestDetailsActivity, AddAmountActivity::class.java)
         startActivity(intent)
     }
 }

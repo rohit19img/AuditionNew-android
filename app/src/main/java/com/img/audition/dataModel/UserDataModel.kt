@@ -76,7 +76,7 @@ data class UserSelfData(
     @SerializedName("totalbonus"        ) var totalbonus       : String? = null,
     @SerializedName("totalcheers"       ) var totalcheers      : String? = null,
     @SerializedName("totalmints"        ) var totalmints       : String? = null,
-    @SerializedName("walletamaount"     ) var walletamaount    : Int?    = null,
+    @SerializedName("walletamaount"     ) var walletamaount    : Double?    = null,
     @SerializedName("verified"          ) var verified         : Int?    = null,
     @SerializedName("downloadapk"       ) var downloadapk      : Int?    = null,
     @SerializedName("emailfreeze"       ) var emailfreeze      : Int?    = null,
@@ -140,7 +140,7 @@ data class FollowerList(
     @SerializedName("email"           ) var email          : String? = null,
     @SerializedName("followers_count" ) var followersCount : Int?    = null,
     @SerializedName("audition_id"     ) var auditionId     : String? = null,
-    @SerializedName("follow_status"     ) var followStatus     : Boolean? = false
+    @SerializedName("follow_status"   ) var followStatus     : Boolean? = false
 )
 
 data class NotificationDataResponse(
@@ -172,7 +172,6 @@ data class BlockedUserData(
     @SerializedName("audition_id" ) var auditionId : String? = null
 )
 
-
 data class WebSliderResponse (
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("message" ) var message : String?  = null,
@@ -180,7 +179,6 @@ data class WebSliderResponse (
 )
 
 data class  WebSliderData (
-
     @SerializedName("image" ) var image : String? = null
 
 )

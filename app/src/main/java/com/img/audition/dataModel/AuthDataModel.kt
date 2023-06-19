@@ -15,20 +15,17 @@ data class LoginData (
     @SerializedName("token" ) var token : String? = null,
     @SerializedName("id"    ) var id    : String? = null
 )
-
 data class NumLoginRequest(
     @SerializedName("mobile" ) var mobile : String? = null
 )
 data class EmailLoginRequest(
     @SerializedName("email" ) var email : String? = null
 )
-
 data class CommanResponse(
     @SerializedName("success" ) var success : Boolean? = null,
     @SerializedName("message" ) var message : String?  = null,
 //    @SerializedName("data"    ) var data    : Data?    = Data()
 )
-
 data class OTPRequest(
     @SerializedName("mobile" ) var mobile : String? = null,
     @SerializedName("otp"    ) var otp    : Int?    = null,
@@ -42,7 +39,6 @@ data class OfferDataResponse(
     @SerializedName("message" ) var message : String?         = null,
     @SerializedName("data"    ) var data    : ArrayList<OfferData> = arrayListOf()
 )
-
 data class OfferData(
     @SerializedName("_id"         ) var Id          : String? = null,
     @SerializedName("min_amount"  ) var minAmount   : Int?    = null,
@@ -59,19 +55,16 @@ data class OfferData(
     @SerializedName("amt_limit"   ) var amtLimit    : Int?    = null,
     @SerializedName("description" ) var description : String? = null
 )
-
 data class TransactionReportResponse(
     @SerializedName("success" ) var success : Boolean?        = null,
     @SerializedName("message" ) var message : String?         = null,
     @SerializedName("data"    ) var data    : ArrayList<TransactionData> = arrayListOf()
 )
-
 data class TransactionData(
     @SerializedName("_id"            ) var Id            : String? = null,
     @SerializedName("type"           ) var type          : String? = null,
     @SerializedName("transaction_id" ) var transactionId : String? = null,
     @SerializedName("amount"         ) var amount        : Double?    = null,
     @SerializedName("paymentstatus"  ) var paymentstatus : String? = null
-
 )
 

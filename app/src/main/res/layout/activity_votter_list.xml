@@ -26,12 +26,20 @@
             android:paddingStart="0dp"
             android:src="@drawable/back_arrow_ic" />
 
-        <TextView
+        <EditText
+            android:inputType="text"
+            android:id="@+id/searchET"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Voter List"
-            android:textColor="@color/textColorWhite"
-            android:textSize="16sp"/>
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="5dp"
+            android:layout_toEndOf="@id/onBackPressBtn"
+            android:background="@color/bgColorWhite"
+            android:drawableStart="@drawable/search_ic"
+            android:drawablePadding="10dp"
+            android:hint="Search in voter list"
+            android:padding="8dp" />
 
 
     </androidx.appcompat.widget.Toolbar>

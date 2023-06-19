@@ -39,6 +39,15 @@
                 android:textColor="@color/textColorWhite"
                 android:textSize="18sp" />
 
+            <ImageView
+                android:id="@+id/uploadVideoBtn"
+                android:layout_width="35dp"
+                android:layout_marginEnd="15dp"
+                android:layout_height="35dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:src="@drawable/ic_check"
+                app:tint="@color/textColorYellow"/>
 
         </RelativeLayout>
 
@@ -204,7 +213,8 @@
         </RelativeLayout>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/uploadVideoBtn"
+            android:visibility="gone"
+            android:id="@+id/uploadVideoBtn3333"
             style="@style/carViewStyle"
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
@@ -223,6 +233,7 @@
                 android:textAlignment="center"
                 android:textColor="@color/textColorWhite"
                 android:textStyle="bold" />
+
         </androidx.cardview.widget.CardView>
 
     </RelativeLayout>

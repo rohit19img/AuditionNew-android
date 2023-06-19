@@ -9,11 +9,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.img.audition.R
 import com.img.audition.adapters.ChatsAdapter
 import com.img.audition.dataModel.ChatsGetSet
 import com.img.audition.databinding.ActivityMessageBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
@@ -66,48 +68,53 @@ import java.util.*
         mSocket = VideoCacheWork.mSocket!!
 
         viewBinding.sendMessage.setOnClickListener(View.OnClickListener {
-            Log.i("ChatSizeCheck","Before : ${chat_list.size}")
-            val messageText: String = viewBinding.messageET.text.toString().trim()
-            if (messageText.isNotEmpty()) {
-                val jsonObject = JSONObject()
-                try {
-                    jsonObject.put("senderId", sessionManager.getUserSelfID())
-                    jsonObject.put("receiverId", userid)
-                    jsonObject.put("message", messageText)
+            if (MyApplication(this).isNetworkConnected()){
+                Log.i("ChatSizeCheck","Before : ${chat_list.size}")
+                val messageText: String = viewBinding.messageET.text.toString().trim()
+                if (messageText.isNotEmpty()) {
+                    val jsonObject = JSONObject()
+                    try {
+                        jsonObject.put("senderId", sessionManager.getUserSelfID())
+                        jsonObject.put("receiverId", userid)
+                        jsonObject.put("message", messageText)
 
-                    mSocket.emit("message", jsonObject)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+                        mSocket.emit("message", jsonObject)
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+                    Log.i("data", "Sent data is : $jsonObject")
+                    viewBinding.messageET.setText("")
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                    val calendar = Calendar.getInstance().time
+                    val year = calendar.year
+                    val month = calendar.month + 1
+                    val day = calendar.day
+                    val hour = calendar.hours
+                    val minutes = calendar.minutes
+                    val seconds = calendar.seconds
+                    var now: Date? = null
+                    try {
+                        now = dateFormat.parse(year.toString() + "-" + month + "-" + day + "T" + hour + ":" + minutes + ":" + seconds)
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
+                    val ob = ChatsGetSet()
+                    ob.message = messageText
+                    ob.senderId = sessionManager.getUserSelfID()!!
+                    ob.receiverId = userid
+                    ob.createdAt = now.toString()
+                    chat_list.add(0, ob)
+                    Log.i("ChatSizeCheck","After : ${chat_list.size}")
+                    adapter!!.notifyDataSetChanged()
+                    Log.i("ChatSizeCheck","after notify : ${chat_list.size}")
+                    Log.i("ChatSizeCheck","after notify : ${viewBinding.chatsRV.layoutManager!!.childCount}")
+                } else {
+                    Toast.makeText(applicationContext, "Please Enter Something..", Toast.LENGTH_SHORT).show()
                 }
-                Log.i("data", "Sent data is : $jsonObject")
-                viewBinding.messageET.setText("")
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-                val calendar = Calendar.getInstance().time
-                val year = calendar.year
-                val month = calendar.month + 1
-                val day = calendar.day
-                val hour = calendar.hours
-                val minutes = calendar.minutes
-                val seconds = calendar.seconds
-                var now: Date? = null
-                try {
-                    now = dateFormat.parse(year.toString() + "-" + month + "-" + day + "T" + hour + ":" + minutes + ":" + seconds)
-                } catch (e: ParseException) {
-                    e.printStackTrace()
-                }
-                val ob = ChatsGetSet()
-                ob.message = messageText
-                ob.senderId = sessionManager.getUserSelfID()!!
-                ob.receiverId = userid
-                ob.createdAt = now.toString()
-                chat_list.add(0, ob)
-                Log.i("ChatSizeCheck","After : ${chat_list.size}")
-                adapter!!.notifyDataSetChanged()
-                Log.i("ChatSizeCheck","after notify : ${chat_list.size}")
-                Log.i("ChatSizeCheck","after notify : ${viewBinding.chatsRV.layoutManager!!.childCount}")
-            } else {
-                Toast.makeText(applicationContext, "Please Enter Something..", Toast.LENGTH_SHORT).show()
+            }else{
+               Toast.makeText(this,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
             }
+
         })
 
         mSocket.on("message") { args ->
@@ -177,7 +184,13 @@ import java.util.*
 
     override fun onResume() {
         super.onResume()
-        getChatData()
+
+        if (MyApplication(this).isNetworkConnected())
+        {
+            getChatData()
+        }else{
+          checkInternetDialog()
+        }
 
         val job1 = JSONObject()
         try {
@@ -191,10 +204,11 @@ import java.util.*
 
     private fun getChatData() {
         Log.i("canLoadData","Page_no $page_no")
-        mainViewModel.getChatHistory(userid,page_no).observe(this){
-            it.let {resources ->
-                when (resources.status){
-                    Status.SUCCESS->{
+        if (MyApplication(this).isNetworkConnected()){
+            mainViewModel.getChatHistory(userid,page_no).observe(this){
+                it.let {resources ->
+                    when (resources.status){
+                        Status.SUCCESS->{
                             Log.d("check", resources.data!!.message)
                             val chatList = resources.data.data
                             chat_list.addAll(chatList)
@@ -212,22 +226,25 @@ import java.util.*
                                     viewBinding.chatsRV.adapter = adapter
                                 }
                             }
-                    }
-                    Status.LOADING ->{
-                        Log.d(TAG, resources.status.toString())
-                    }
-                    else->{
-                        if (resources.message!!.contains("401")){
-
-                            sessionManager.clearLogoutSession()
-                            startActivity(Intent(this@MessageActivity, SplashActivity::class.java))
-                            finishAffinity()
                         }
-                        Log.e(TAG, resources.status.toString())
-                    }
+                        Status.LOADING ->{
+                            Log.d(TAG, resources.status.toString())
+                        }
+                        else->{
+                            if (resources.message!!.contains("401")){
 
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this@MessageActivity, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            Log.e(TAG, resources.status.toString())
+                        }
+
+                    }
                 }
             }
+        }else{
+            checkInternetDialog()
         }
     }
 
@@ -237,14 +254,20 @@ import java.util.*
         userid = intent.getStringExtra("userid").toString()
         val image = intent.getStringExtra("image")
         val username = intent.getStringExtra("name")
+        val auditionID = intent.getStringExtra("auditionID")
         val url204 = intent.getStringExtra("url204")
 
         Log.i("intent_test","image : $image")
         Log.i("intent_test","username : $username")
         Log.i("intent_test","userid : $userid")
 
-        viewBinding.name.text = username
-        viewBinding.uname.text = username
+        if (username!!.isNotEmpty()){
+            viewBinding.name.text = username
+            viewBinding.uname.text = username
+        }else{
+            viewBinding.name.text = auditionID
+            viewBinding.uname.text = auditionID
+        }
 
         try {
             if (url204!=null){
@@ -271,4 +294,16 @@ import java.util.*
         super.onStop()
     }
 
+    private fun checkInternetDialog() {
+
+        val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+        sweetAlertDialog.titleText = "Internet"
+        sweetAlertDialog.contentText = ConstValFile.Check_Connection
+        sweetAlertDialog.confirmText = "Retry"
+        sweetAlertDialog.setConfirmClickListener {
+            sweetAlertDialog.dismiss()
+            getChatData()
+        }
+        sweetAlertDialog.show()
+    }
 }

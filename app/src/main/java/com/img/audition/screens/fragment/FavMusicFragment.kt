@@ -101,11 +101,10 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
                                 }
                             }else{
                                 view.noDataView.visibility = View.VISIBLE
-                                view.noDataView.text = "Something went wrong.."
+                                view.noDataView.text ="No Favourite Song.."
                                 view.shimmerVideoView.stopShimmer()
                                 view.shimmerVideoView.hideShimmer()
                                 view.shimmerVideoView.visibility = View.GONE
-                                Toast.makeText(contextFromMusicActivity,"Something went wrong..", Toast.LENGTH_SHORT).show()
                             }
                         }
                         Status.LOADING ->{
@@ -113,7 +112,6 @@ class FavMusicFragment(private val contextFromMusicActivity: MusicActivity) : Fr
                         }
                         else->{
                             view.noDataView.visibility = View.VISIBLE
-                            view.noDataView.text = "Something went wrong.."
                             view.shimmerVideoView.stopShimmer()
                             view.shimmerVideoView.hideShimmer()
                             view.shimmerVideoView.visibility = View.GONE

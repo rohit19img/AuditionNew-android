@@ -42,15 +42,6 @@
                 android:textColor="@color/commanBackground"
                 android:textSize="@dimen/_13sdp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:gravity="bottom"
-                android:hint="trend"
-                android:textColor="@color/textColorYellow"
-                android:textSize="@dimen/_8sdp" />
-
         </LinearLayout>
 
         <LinearLayout

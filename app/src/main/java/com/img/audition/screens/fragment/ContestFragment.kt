@@ -39,6 +39,7 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
     private val myApplication by lazy {
         MyApplication(contextFromHome)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -116,21 +117,28 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
                             list_live = ArrayList()
                             list_completed = ArrayList()
 
-                            for(zz in contestData){
-                                when (zz.status) {
-                                    "started" -> list_live.add(zz)
-                                    "completed" -> list_completed.add(zz)
-                                    "notstarted" -> list_upcoming.add(zz)
-                                }
+                            for(zz in contestData) {
+                                if(zz.status == "notstarted")
+                                    list_upcoming.add(zz)
+                                else if(zz.finalStatus.equals("IsReviewed",true) || zz.finalStatus.equals("pending",true))
+                                    list_live.add(zz)
+                                else if(zz.finalStatus == "winnerdeclared")
+                                    list_completed.add(zz)
                             }
+
+//                            for(zz in contestData){
+//                                when (zz.status) {
+//                                    "started" -> list_live.add(zz)
+//                                    "completed" -> list_completed.add(zz)
+//                                    "notstarted" -> list_upcoming.add(zz)
+//                                }
+//                            }
 
                             val upcoming = UpComingContestFragment()
                             val bundle = Bundle()
                             bundle.putSerializable(ConstValFile.UpContestComingList,list_upcoming)
                             upcoming.arguments = bundle
                             loadFragment(upcoming)
-
-
                             Log.d("check 400" ,"onResponse: videoItemPlayPause")
                         }else{
                             Log.d(TAG, " No Live Contest")
@@ -139,11 +147,9 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
                         Log.e(TAG,response.toString())
                     }
                 }
-
                 override fun onFailure(call: Call<GetLiveContestDataResponse>, t: Throwable) {
                     Log.e(TAG,t.toString())
                 }
-
             })
         }else{
             checkInternetDialog()

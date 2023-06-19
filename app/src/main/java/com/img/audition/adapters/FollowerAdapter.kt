@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.img.audition.R
@@ -22,8 +23,9 @@ import com.img.audition.screens.OtherUserProfileActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 
-class FollowerAdapter(val context: Context, private val followerList : ArrayList<FollowerList>) : RecyclerView.Adapter<FollowerAdapter.MyViewHolder>() {
+@UnstableApi class FollowerAdapter(val context: Context, private val followerList : ArrayList<FollowerList>) : RecyclerView.Adapter<FollowerAdapter.MyViewHolder>() {
     inner class MyViewHolder(itemView: FollowerfollowingdesignBinding) : RecyclerView.ViewHolder(itemView.root) {
         val userImage = itemView.userImage
         val followerCount = itemView.followerCount
@@ -52,7 +54,7 @@ class FollowerAdapter(val context: Context, private val followerList : ArrayList
             }
             auditionId.text = data.auditionId.toString()
 
-            followerCount.text = data.followersCount.toString() + " Followers"
+            followerCount.text = formatCount(data.followersCount!!) + " Followers"
 
             followBtnText.setOnClickListener {
                 followBtnText.isSelected = false
@@ -78,6 +80,7 @@ class FollowerAdapter(val context: Context, private val followerList : ArrayList
                 val bundle = Bundle()
                 bundle.putString(ConstValFile.USER_IDFORIntent,data.Id)
                 bundle.putBoolean(ConstValFile.UserFollowStatus, data.followStatus!!)
+                bundle.putString("auditionID", data.auditionId)
                 sendToVideoUserProfile(bundle)
             }
         }
@@ -106,5 +109,27 @@ class FollowerAdapter(val context: Context, private val followerList : ArrayList
         val intent = Intent(context, OtherUserProfileActivity::class.java)
         intent.putExtra(ConstValFile.Bundle,bundle)
         context.startActivity(intent)
+    }
+
+    private fun formatCount(count: Int): String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
     }
 }

@@ -72,6 +72,17 @@
                 android:layout_gravity="right"
                 android:src="@drawable/block_ic"
                 app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/chatUser"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:paddingTop="4dp"
+                android:layout_margin="4dp"
+                android:layout_gravity="right"
+                android:src="@drawable/ic_chat"
+                app:tint="@color/white" />
+
         </androidx.appcompat.widget.Toolbar>
 
         <LinearLayout

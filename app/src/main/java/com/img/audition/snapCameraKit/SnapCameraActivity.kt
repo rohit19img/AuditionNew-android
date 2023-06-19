@@ -34,6 +34,8 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.SessionManager
 import com.img.audition.screens.CompilerActivity
 import com.img.audition.screens.MusicActivity
+import com.img.audition.screens.UserUploadedVideoActivity
+import com.img.audition.screens.fragment.ProfileFragment
 import com.img.audition.videoWork.VideoCacheWork
 import com.snap.camerakit.ImageProcessor
 import com.snap.camerakit.Session
@@ -121,12 +123,10 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
                 audioProcessorSource(audioSource)
             }
 
+
             configureLensesCarousel {
                 observedGroupIds = linkedSetOf(*LENS_GROUPS)
             }
-
-
-
         }
 
         cameraLayout.onError { error ->
@@ -168,14 +168,21 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
             myApplication.printLogD("$isFromContest onStart2", " isFromContest + $TAG")
         }
 
+
         findViewById<ImageView>(R.id.selectFromGallery).setOnClickListener {
-            selectVideoFromDevice()
+//            selectVideoFromDevice()
+            selectVideoFromProfile()
         }
 
         findViewById<ImageView>(R.id.backPressIC).setOnClickListener {
             onBackPressed()
         }
 
+    }
+
+    private fun selectVideoFromProfile() {
+        val intent = Intent(this@SnapCameraActivity,UserUploadedVideoActivity::class.java)
+        startActivity(intent)
     }
 
     private fun selectVideoFromDevice() {
@@ -201,11 +208,11 @@ SnapCameraActivity : AppCompatActivity(),MediaCapture.MediaCaptureCallback,SnapB
                 myApplication.printLogD("selectVideoDuration : $time" ,TAG)
                 val selectVideoDuration = time!!.toLong()
 
-                if (selectVideoDuration<=15000){
+                if (selectVideoDuration<=maxVideoDuration){
                     sendToVideoPreview(videoUri.toString(),selectVideoDuration)
                     sessionManager.setIsVideoFromGallery(true)
                 }else{
-                    myApplication.showToast("Please select 15 second video")
+                    myApplication.showToast("Please select ${maxVideoDuration/1000} second video")
                 }
             }
         }

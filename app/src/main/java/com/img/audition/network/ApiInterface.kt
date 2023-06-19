@@ -18,8 +18,11 @@ interface ApiInterface {
     @POST(APITags.OTPLogin)
     suspend fun userOtpVerify(@Body otpRequest: OTPRequest):LoginResponse
 
-    @GET(APITags.GetVideo)
-    suspend fun getReels(@Header(APITags.AUTHORIZATION) Auth: String, @Query("language") language: String?, @Query("lat") lat: Double?, @Query("long") lang: Double?):VideoResponse
+    @GET(APITags.GetForYouVideo)
+    suspend fun getForYouReelsVideo(@Header(APITags.AUTHORIZATION) Auth: String, @Query("language") language: String?, @Query("lat") lat: Double?, @Query("long") lang: Double?):VideoResponse
+
+    @GET(APITags.GetLiveContestVideo)
+    suspend fun getLiveContestReelsVideo(@Header(APITags.AUTHORIZATION) Auth: String, @Query("language") language: String?, @Query("lat") lat: Double?, @Query("long") lang: Double?):VideoResponse
 
     @GET(APITags.GetUserVideo)
     suspend fun getUserVideo(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("id") userID: String?):VideoResponse
@@ -42,8 +45,11 @@ interface ApiInterface {
     @GET(APITags.GetChatHistory)
     suspend fun getChatHistory(@Header(APITags.AUTHORIZATION) Auth: String?, @Query("receiverId") receiverId: String?, @Query("page") page_no: Int): ChatsGetSet
 
+    @GET("get-all-chat")
+    suspend fun getChatUser(@Header(APITags.AUTHORIZATION) Auth: String?,@Query("page") page_no: Int): ChatUserDataResponse
+
     @GET(APITags.GetMusicList)
-    suspend fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : MusicDataResponse
+    suspend fun getMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : AllCategoryMusicDataResponse
 
     @GET(APITags.GetFavMusicList)
     suspend fun getFavMusicList(@Header(APITags.AUTHORIZATION) Auth:String) : MusicDataResponse
@@ -146,11 +152,9 @@ interface ApiInterface {
     ): Call<CommanResponse>
 
     @GET(APITags.blockUnblock)
-    fun blockUnblockUser(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Query("blockId") videoid: String?,
-        @Query("status") status: String?
-    ): Call<CommanResponse>
+    fun blockUnblockUser(@Header(APITags.AUTHORIZATION) Auth: String?,
+                         @Query("blockId") videoid: String?,
+                         @Query("status") status: String?): Call<CommanResponse>
 
     @GET(APITags.GetAddCashOffer)
     fun getOfferDetails(@Header(APITags.AUTHORIZATION) Auth: String?): Call<OfferDataResponse>
@@ -159,48 +163,28 @@ interface ApiInterface {
     fun getTransactions(@Header(APITags.AUTHORIZATION) Auth: String?): Call<TransactionReportResponse>
 
     @POST(APITags.UploadNormalVideoToServer)
-    fun uploadNormalVideoToServer(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Body postVideoObj: JsonObject?
-    ): Call<CommanResponse>
+    fun uploadNormalVideoToServer(@Header(APITags.AUTHORIZATION) Auth: String?, @Body postVideoObj: JsonObject?): Call<CommanResponse>
 
     @POST(APITags.UploadContestVideoToServer)
-    fun uploadContestVideoToServer(
-        @Header(APITags.AUTHORIZATION) Auth: String?,
-        @Body postVideoObj: JsonObject?
-    ): Call<CommanResponse>
+    fun uploadContestVideoToServer(@Header(APITags.AUTHORIZATION) Auth: String?, @Body postVideoObj: JsonObject?): Call<CommanResponse>
 
     @POST("search")
     suspend fun search(@Header("Authorization") Auth: String?, @Body searchObj: JsonObject?): SearchResponse
 
     @GET("leagueDetails")
-    fun getSingleContestDetails(
-        @Header("Authorization") Auth: String?,
-        @Query("contestId") contestId: String?
-    ): Call<SingleContestDetailsResponse>
+    fun getSingleContestDetails(@Header("Authorization") Auth: String?, @Query("contestId") contestId: String?): Call<SingleContestDetailsResponse>
 
     @GET("myLeaderboard")
-    fun getLeaderboardDetails(
-        @Header("Authorization") Auth: String?,
-        @Query("contestId") contestId: String?
-    ): Call<LeaderboardDataResponse>
+    fun getLeaderboardDetails(@Header("Authorization") Auth: String?, @Query("contestId") contestId: String?): Call<LeaderboardDataResponse>
 
     @GET(APITags.LiveRanksLeaderboard)
-    fun getLiveRanksLeaderboardDetails(
-        @Header("Authorization") Auth: String?,
-        @Query("contestId") contestId: String?
-    ): Call<LiveRanksLeaderboardResponse>
+    fun getLiveRanksLeaderboardDetails(@Header("Authorization") Auth: String?, @Query("contestId") contestId: String?): Call<LiveRanksLeaderboardResponse>
 
     @GET("boost-rate")
     fun getBoostRate(@Header("Authorization") Auth: String?): Call<JsonObject>
 
     @POST("boost-video")
-    fun boostPost(
-        @Header("Authorization") Auth: String?,
-        @Body boostPost: JsonObject?
-    ): Call<BoostPostGetSet>
-
-
+    fun boostPost(@Header("Authorization") Auth: String?, @Body boostPost: JsonObject?): Call<BoostPostGetSet>
 
     @GET("getLikeCategory")
     fun getVoteCategory(@Header("Authorization") Auth: String?): Call<VoteDataResponse>
@@ -212,16 +196,14 @@ interface ApiInterface {
     fun getNotification(@Header("Authorization") Auth: String?): Call<NotificationDataResponse>
 
     @GET("delete_video")
-    fun deleteUserSelfVideo(
-        @Header("Authorization") Auth: String?,
-        @Query("id") contestId: String?
-    ): Call<CommanResponse>
+    fun deleteUserSelfVideo(@Header("Authorization") Auth: String?, @Query("id") contestId: String?): Call<CommanResponse>
 
     @POST("socialauthentication")
     fun socialLogin(@Body socialLoginObj: JsonObject?): Call<LoginResponse>
 
     @POST("requestwithdraw")
     fun withdrawRequest(@Header("Authorization") Auth: String?,@Body jsonObject: JsonObject): Call<CommanResponse>
+
     @GET("getBlockedUser")
     fun getBlockedUser(@Header("Authorization") Auth: String?): Call<BlockedUserResponse>
 
@@ -245,5 +227,6 @@ interface ApiInterface {
 
     @GET("user-votes")
     fun getVoterList(@Header("Authorization") Auth: String?, @Query("videoid") videoId: String?): Call<LeaderboardDataResponse>
-
+    @GET("get_usable_balance")
+    fun getUsableBalance(@Header("Authorization") Auth: String?, @Query("id") contestID: String?): Call<JoinUsableBalanceResponse>
 }

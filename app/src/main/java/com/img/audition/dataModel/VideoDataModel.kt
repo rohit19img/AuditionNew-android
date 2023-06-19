@@ -51,6 +51,7 @@ data class VideoData(
     @SerializedName("isBoosted"      ) var isBoosted     : Boolean?          = false,
     @SerializedName("hashName"       ) var hashName      : String?           = null,
     @SerializedName("is_blocked"     ) var isBlocked     : Boolean           = false,
+    var isSelected     : Boolean           = false,
 
     ) : java.io.Serializable
 

@@ -8,7 +8,8 @@ class ConstValFile {
 
     companion object{
 
-
+        const val BASEURL = "http://139.59.4.142:6060"
+        const val SOCKET_URL = "http://139.59.4.142:6060"
         const val VideoHashTag = "VideoHashTag"
         const val SongUrl = "SongUrl"
         const val PostLocation = "PostLocation"
@@ -34,7 +35,10 @@ class ConstValFile {
         const val VideoOriginalPath ="videoOriginalPath"
         const val TYPE_IMAGE = "image"
         const val UpContestComingList = "UpContestList"
+        const val ForYouVideoList = "ForYouVideoList"
+        const val LiveContestVideoList = "LiveContestVideoList"
         const val LiveContestList = "LiveContestList"
+        const val MusicList = "MusicList"
         const val VideoList = "VideoList"
         const val CompletedContestList = "CompletedContestList"
         const val FromCamera = "FromCamera"
@@ -66,8 +70,6 @@ class ConstValFile {
         const val TrimAudioUrl = "trimAudioUrl"
         const val VideoSpeedState = "videoSpeedState"
         const val VideoDuration = "videoDuration"
-        const val BASEURL = "http://139.59.30.125:6060"
-        const val SOCKET_URL = "http://139.59.30.125:6060"
         const val LoginMsg: String = "Login Required.."
         const val IS_GUEST = "isGuest"
         const val ContestID = "contestID"

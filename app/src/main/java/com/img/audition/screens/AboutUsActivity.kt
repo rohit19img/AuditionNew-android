@@ -43,7 +43,7 @@ class AboutUsActivity : AppCompatActivity() {
         viewBinding.webView.settings.setGeolocationEnabled(true)
         viewBinding.webView.isSoundEffectsEnabled = true
 
-        viewBinding.webView.loadUrl("   http://139.59.30.125/about-us.html")
+        viewBinding.webView.loadUrl("   http://139.59.4.142/about-us.html")
 
         viewBinding.webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {

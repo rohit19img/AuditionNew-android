@@ -2,6 +2,8 @@ package com.img.audition.screens
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import com.img.audition.adapters.VoterListAdapter
@@ -12,10 +14,11 @@ import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.snap.camerakit.internal.se
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.ArrayList
+import java.util.*
 
 class VoterListActivity : AppCompatActivity() {
 
@@ -33,6 +36,25 @@ class VoterListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
+        viewBinding.backPressIC.setOnClickListener {
+            onBackPressed()
+        }
+
+        viewBinding.searchET.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchInList(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+        })
     }
 
     override fun onStart() {
@@ -74,6 +96,15 @@ class VoterListActivity : AppCompatActivity() {
         })
     }
 
+    private fun searchInList(value: String) {
+        val searchList: ArrayList<LeaderboardData> = ArrayList()
+        for (ds in data) {
+            if (ds.name!!.toLowerCase().contains(value.lowercase(Locale.getDefault())) || ds.auditionId!!.contains(value)) {
+                searchList.add(ds)
+            }
+        }
+        adapter!!.filterList(searchList)
+    }
     override fun onStop() {
         try {
             data.clear()

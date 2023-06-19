@@ -13,6 +13,7 @@ import com.img.audition.R
 import com.img.audition.dataModel.SearchHashtagsData
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.screens.HashtagVideoActivity
+import java.text.DecimalFormat
 
 @UnstableApi class HashtagSearch_Adapter(val context: Context, val list: ArrayList<SearchHashtagsData>) :
     RecyclerView.Adapter<HashtagSearch_Adapter.ViewHolder>() {
@@ -35,7 +36,7 @@ import com.img.audition.screens.HashtagVideoActivity
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.hashtagname.text =  list[position].Name
-        holder.hashtagplays.text = "${list[position].Videos} Videos"
+        holder.hashtagplays.text = formatCount(list[position].Videos!!) + "Videos"
         holder.itemView.setOnClickListener(View.OnClickListener {
             sendHashTagVideo(list[position].Name.toString())
         })
@@ -53,4 +54,25 @@ import com.img.audition.screens.HashtagVideoActivity
         context.startActivity(intent)
     }
 
+    private fun formatCount(count: Int): String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
+    }
 }

@@ -14,10 +14,19 @@ import retrofit2.http.Part
 
 class MainViewModel(private val token: String?,private val apiInterface: ApiInterface): ViewModel() {
 
-    fun getReelsVideo(language: String?,lat:Double?,long:Double?) = liveData(Dispatchers.IO) {
+    fun getForYouReelsVideo(language: String?,lat:Double?,long:Double?) = liveData(Dispatchers.IO) {
         emit(Resource.loading(data = null))
         try {
-            emit(Resource.success(data = apiInterface.getReels(token!!,language,lat,long)))
+            emit(Resource.success(data = apiInterface.getForYouReelsVideo(token!!,language,lat,long)))
+        } catch (exception: Exception) {
+            emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
+        }
+    }
+
+    fun getLiveContestReelsVideo(language: String?,lat:Double?,long:Double?) = liveData(Dispatchers.IO) {
+        emit(Resource.loading(data = null))
+        try {
+            emit(Resource.success(data = apiInterface.getLiveContestReelsVideo(token!!,language,lat,long)))
         } catch (exception: Exception) {
             emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
         }
@@ -120,6 +129,15 @@ class MainViewModel(private val token: String?,private val apiInterface: ApiInte
         emit(Resource.loading(data = null))
         try {
             emit(Resource.success(data = apiInterface.getChatHistory(token,receiverId,page_no)))
+        } catch (exception: Exception) {
+            emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
+        }
+    }
+
+    fun getChatUser(page_no: Int) = liveData(Dispatchers.IO) {
+        emit(Resource.loading(data = null))
+        try {
+            emit(Resource.success(data = apiInterface.getChatUser(token,page_no)))
         } catch (exception: Exception) {
             emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
         }

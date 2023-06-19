@@ -41,6 +41,7 @@ import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 import java.util.ArrayList
 
 
@@ -55,9 +56,13 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     private val sessionManager by lazy {
         SessionManager(contextFromActivity)
     }
+    private val myApplication by lazy {
+        MyApplication(contextFromActivity)
+    }
     private val apiInterface by lazy {
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
+
     lateinit var userName: TextView
     lateinit var auditionID: TextView
     lateinit var followCount: TextView
@@ -72,13 +77,8 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
     private lateinit var mainViewModel: MainViewModel
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _viewBinding = FragmentProfileBinding.inflate(inflater, container, false)
-
 
         userName = view.userName
         userBio = view.userBio
@@ -119,24 +119,54 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.watchLaterBtn.setOnClickListener {
-            sendToCollectionActivity()
+            if (myApplication.isNetworkConnected()){
+                sendToCollectionActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.changelanguage.setOnClickListener {
-            showLanguageDialog()
+            if (myApplication.isNetworkConnected()){
+                sendToVerificationActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+
         }
 
         view.verify.setOnClickListener {
-            sendToVerificationActivity()
+            if (myApplication.isNetworkConnected()){
+                sendToVerificationActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.blockedUsers.setOnClickListener {
-            sendToBlockedUserActivity()
+            if (myApplication.isNetworkConnected()){
+                sendToBlockedUserActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+        }
+
+        view.chatUser.setOnClickListener {
+            if (myApplication.isNetworkConnected()){
+                sendToChatUserActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.privacysaftey.setOnClickListener {
-            val intent = Intent(contextFromActivity,PrivacyPolicyActivity::class.java)
-            startActivity(intent)
+            if (myApplication.isNetworkConnected()){
+                val intent = Intent(contextFromActivity,PrivacyPolicyActivity::class.java)
+                startActivity(intent)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+
 
            /* val url = "http://143.110.184.198/privacy-policy.html"
             val i = Intent(Intent.ACTION_VIEW)
@@ -145,59 +175,89 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.aboutUs.setOnClickListener {
-            val intent = Intent(contextFromActivity,AboutUsActivity::class.java)
-            startActivity(intent)
+            if (myApplication.isNetworkConnected()){
+                val intent = Intent(contextFromActivity,AboutUsActivity::class.java)
+                startActivity(intent)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+
         }
 
         view.termCondition.setOnClickListener {
-            val intent = Intent(contextFromActivity,TermsAndConditionActivity::class.java)
-            startActivity(intent)
+            if (myApplication.isNetworkConnected()){
+                val intent = Intent(contextFromActivity,TermsAndConditionActivity::class.java)
+                startActivity(intent)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
-
 
 
         view.followListBtn.setOnClickListener {
-            val userName = view.userName.text.toString()
-            view.followListBtn.isSelected = false
-            sendToFollowFollowingListActivity(0, userName)
+            if (myApplication.isNetworkConnected()){
+                val userName = view.userName.text.toString()
+                view.followListBtn.isSelected = false
+                sendToFollowFollowingListActivity(0, userName)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.followingListBtn.setOnClickListener {
-            val userName = view.userName.text.toString()
-            view.followingListBtn.isSelected = false
-            sendToFollowFollowingListActivity(1, userName)
+            if (myApplication.isNetworkConnected()){
+                val userName = view.userName.text.toString()
+                view.followingListBtn.isSelected = false
+                sendToFollowFollowingListActivity(1, userName)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.wallet.setOnClickListener {
-            view.wallet.isSelected = false
-            sendToWalletActivity()
+            if (myApplication.isNetworkConnected()){
+                view.wallet.isSelected = false
+                sendToWalletActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
+
         view.reward.setOnClickListener {
-            view.reward.isSelected = false
-            sendToWalletActivity()
+            if (myApplication.isNetworkConnected()){
+                view.reward.isSelected = false
+                sendToWalletActivity()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         view.copy.setOnClickListener {
-            val clipboard =
-                activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboard = activity?.getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("label", view.auditionID.text.toString())
             clipboard.setPrimaryClip(clip)
             Toast.makeText(contextFromActivity,"Id Copied..", Toast.LENGTH_SHORT).show()
         }
 
         view.logout.setOnClickListener {
-            val dialogBuilder = AlertDialog.Builder(contextFromActivity)
-            dialogBuilder.setTitle("Logout.")
-            dialogBuilder.setMessage("Are you sure you want to Logout?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, id ->
-                    logoutUser()
-                })
-                .setNegativeButton("NO", DialogInterface.OnClickListener { dialog, id ->
-                    dialog.cancel()
-                })
-            val alert = dialogBuilder.create()
-            alert.show()
+            if (myApplication.isNetworkConnected()){
+                val dialogBuilder = AlertDialog.Builder(contextFromActivity)
+                dialogBuilder.setTitle("Logout.")
+                dialogBuilder.setMessage("Are you sure you want to Logout?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, id ->
+                        dialog.dismiss()
+                        logoutUser()
+                    })
+                    .setNegativeButton("NO", DialogInterface.OnClickListener { dialog, id ->
+                        dialog.dismiss()
+                    })
+                val alert = dialogBuilder.create()
+                alert.show()
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+
 
         }
 
@@ -205,6 +265,11 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
     private fun sendToBlockedUserActivity() {
         val intent = Intent(contextFromActivity, BlockedUsersActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun sendToChatUserActivity() {
+        val intent = Intent(contextFromActivity, ChatUserActivity::class.java)
         startActivity(intent)
     }
 
@@ -292,6 +357,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                                     Log.d(TAG, "No Video Data")
                                     view.shimmerVideoView.stopShimmer()
                                     view.shimmerVideoView.hideShimmer()
+                                    view.shimmerVideoView.visibility = View.GONE
                                     noVideoImage.visibility = View.VISIBLE
                                 }
                             }
@@ -321,9 +387,9 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                             if (resources.data!!.success!!){
                                 val userData = resources.data.data
                                 if (userData != null) {
-                                    likeCount.text = userData.totalLike.toString()
-                                    followCount.text = userData.followersCount.toString()
-                                    followingCount.text = userData.followingCount.toString()
+                                    likeCount.text =  formatCount(userData.totalLike!!)
+                                    followCount.text = formatCount(userData.followersCount!!)
+                                    followingCount.text = formatCount(userData.followingCount!!)
                                     if (userData.image.toString().isNotEmpty()) {
                                         Glide.with(contextFromActivity).load(userData.image.toString())
                                             .placeholder(R.drawable.person_ic).into(userImageView)
@@ -361,6 +427,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
                                 startActivity(Intent(contextFromActivity, SplashActivity::class.java))
                                 requireActivity().finishAffinity()
                             }
+                            Log.e(TAG, "getUserSelfDetails: ${resources.message}" )
                             Log.d(TAG, resources.status.toString())
                         }
                     }
@@ -384,5 +451,27 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
         getView()?.destroyDrawingCache()
         super.onDestroyView()
+    }
+
+    private fun formatCount(count: Int): String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
     }
 }

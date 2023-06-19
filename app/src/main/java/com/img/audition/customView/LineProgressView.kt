@@ -125,7 +125,6 @@ class LineProgressView : View {
     companion object {
 
         private const val RADIUS = 4
-
         private const val DIVIDER_WIDTH = 2
 
         private val BACKGROUND_COLOR = Color.parseColor("#22000000")

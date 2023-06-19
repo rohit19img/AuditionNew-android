@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
+import cn.pedant.SweetAlert.SweetAlertDialog
 
 import com.android.volley.*
 import com.android.volley.toolbox.Volley
@@ -72,6 +73,10 @@ import java.util.*
     private lateinit var gender_botSheetBtn:TextView
 
      private lateinit var mainViewModel: MainViewModel
+
+     private val myApplication by lazy {
+         MyApplication(this@EditProfileActivity)
+     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
@@ -107,16 +112,26 @@ import java.util.*
             pickDate(viewBinding.dob)
         }
 
-        viewBinding.btnSave.setOnClickListener {
-            progressDialog.show()
-            val name = viewBinding.name.text.toString().trim()
-            val auditionID = viewBinding.auditionid.text.toString().trim()
-            val bio = viewBinding.bio.text.toString().trim()
-            val gender = viewBinding.gender.text.toString().trim()
-            val dob = viewBinding.dob.text.toString().trim()
-            editProfile(name,auditionID,bio,gender,dob,imagePath)
-            verifyUserDetails(name,auditionID,bio,gender,dob,imagePath)
+        if (myApplication.isNetworkConnected()){
+            getUserSelfDetails()
+        }else{
+            checkInternetDialog()
+        }
 
+
+        viewBinding.btnSave.setOnClickListener {
+            if (myApplication.isNetworkConnected()){
+                progressDialog.show()
+                val name = viewBinding.name.text.toString().trim()
+                val auditionID = viewBinding.auditionid.text.toString().trim()
+                val bio = viewBinding.bio.text.toString().trim()
+                val gender = viewBinding.gender.text.toString().trim()
+                val dob = viewBinding.dob.text.toString().trim()
+                editProfile(name,auditionID,bio,gender,dob,imagePath)
+                verifyUserDetails(name,auditionID,bio,gender,dob,imagePath)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
         }
 
         viewBinding.changePhoto.setOnClickListener {
@@ -160,47 +175,48 @@ import java.util.*
                 selectImage()
             }
         }
-        getUserSelfDetails()
     }
 
-     fun getUserSelfDetails(){
-         mainViewModel.getUserSelfDetails()
-             .observe(this){
-                 it.let {resources->
-                     when(resources.status){
-                         Status.SUCCESS ->{
-                             if (resources.data!!.success!!){
-                                 val userData = resources.data.data
-                                 if (userData != null) {
+     private fun getUserSelfDetails(){
+         if (myApplication.isNetworkConnected()){
+             mainViewModel.getUserSelfDetails()
+                 .observe(this){
+                     it.let {resources->
+                         when(resources.status){
+                             Status.SUCCESS ->{
+                                 if (resources.data!!.success!!){
+                                     val userData = resources.data.data
+                                     if (userData != null) {
 
-                                     Glide.with(this@EditProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into( viewBinding.userImage)
-                                     viewBinding.name.setText(userData.name.toString())
-                                     viewBinding.auditionid.setText(userData.auditionId.toString())
-                                     viewBinding.mobilenumber.setText(userData.mobile.toString())
-                                     viewBinding.bio.setText(userData.bio.toString())
-                                     viewBinding.gender.text = userData.gender.toString()
-                                     viewBinding.dob.text = userData.dob.toString()
-                                     gender = userData.gender.toString()
-                                 } else {
-                                     Log.e(TAG,  "Get Other User Self Data Response Failed")
+                                         Glide.with(this@EditProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into( viewBinding.userImage)
+                                         viewBinding.name.setText(userData.name.toString())
+                                         viewBinding.auditionid.setText(userData.auditionId.toString())
+                                         viewBinding.mobilenumber.setText(userData.mobile.toString())
+                                         viewBinding.bio.setText(userData.bio.toString())
+                                         viewBinding.gender.text = userData.gender.toString()
+                                         viewBinding.dob.text = userData.dob.toString()
+                                         gender = userData.gender.toString()
+                                     } else {
+                                         Log.e(TAG,  "Get Other User Self Data Response Failed")
+                                     }
+                                 }else{
+                                     Toast.makeText(this,"Something went wrong..",Toast.LENGTH_SHORT).show()
+
                                  }
-                             }else{
-                                 Toast.makeText(this,"Something went wrong..",Toast.LENGTH_SHORT).show()
+                             }
+                             Status.LOADING ->{
+                                 Log.d(TAG, "onResponse: ${resources.status.toString()}")
 
                              }
-                         }
-                         Status.LOADING ->{
-                             Log.d(TAG, "onResponse: ${resources.status.toString()}")
-
-                         }
-                         else->{
-                             Log.d(TAG, "onResponse: ${resources.status.toString()}")
+                             else->{
+                                 Log.d(TAG, "onResponse: ${resources.status.toString()}")
+                             }
                          }
                      }
                  }
-             }
-
-
+         }else{
+             checkInternetDialog()
+         }
      }
 
 
@@ -452,4 +468,15 @@ import java.util.*
          }
      }
 
+     private fun checkInternetDialog() {
+         val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+         sweetAlertDialog.titleText = "Internet"
+         sweetAlertDialog.contentText = ConstValFile.Check_Connection
+         sweetAlertDialog.confirmText = "Retry"
+         sweetAlertDialog.setConfirmClickListener {
+             sweetAlertDialog.dismiss()
+            getUserSelfDetails()
+         }
+         sweetAlertDialog.show()
+     }
 }

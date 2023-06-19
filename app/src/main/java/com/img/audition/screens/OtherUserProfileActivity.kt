@@ -39,11 +39,12 @@ import com.img.audition.viewModel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 import java.util.ArrayList
-
 
 @UnstableApi
 class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
+
     private val TAG = "OtherUserProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityOtherUserProfileBinding.inflate(layoutInflater)
@@ -64,11 +65,12 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
     private var followingCount = 0
 
     private lateinit var userID : String
+    private lateinit var auditionIID : String
     private lateinit var userimage : String
     private var followStatus: Boolean = false
     private var position  = 0
 
-     private lateinit var mainViewModel: MainViewModel
+    private lateinit var mainViewModel: MainViewModel
 
      override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +89,7 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
                     .putExtra("name",viewBinding.userName.text.toString())
                     .putExtra("userid",userID)
                     .putExtra("image",userimage)
+                    .putExtra("auditionID",auditionIID)
             )
         }
 
@@ -106,10 +109,7 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
         viewBinding.menuIcBtn.setOnClickListener {
             showReportAndBlockDialog()
         }
-
-
     }
-
 
 
     private fun showReportAndBlockDialog() {
@@ -176,6 +176,7 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
 
     override fun onStart() {
         userID = bundle!!.getString(ConstValFile.USER_IDFORIntent).toString()
+        auditionIID = bundle!!.getString("auditionID").toString()
         followStatus =  bundle!!.getBoolean(ConstValFile.UserFollowStatus,false)
 
         if (followStatus){
@@ -245,7 +246,6 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
                          }
                          else->{
                              Log.e(TAG, " ${videoResponse.status.toString()}")
-
                          }
                      }
                  }
@@ -265,9 +265,9 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
 
                         followCount = userData.followersCount!!
                         followingCount = userData.followingCount!!
-                        viewBinding.likeCount.text = userData.totalLike.toString()
-                        viewBinding.followCount.text = followCount.toString()
-                        viewBinding.followingCount.text = followingCount.toString()
+                        viewBinding.likeCount.text = formatCount(userData.totalLike!!)
+                        viewBinding.followCount.text = formatCount(followCount)
+                        viewBinding.followingCount.text = formatCount(followingCount)
 
                         if (userData.image.toString().isNotEmpty()){
                             userimage = userData.image.toString()
@@ -332,7 +332,6 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
             }
             override fun onFailure(call: Call<FollowFollowingResponse>, t: Throwable) {
                 t.printStackTrace()
-
             }
         })
     }
@@ -350,9 +349,7 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
                 sendToLoginScreen()
             }else {
                 try {
-                    val list : ArrayList<VideoData> = bundle!!.getSerializable("list") as ArrayList<VideoData>
                     if (!followStatus){
-                        list[position].followStatus = true
                         followStatus = true
                         followUserApi(userID, "followed")
                         followCount += 1
@@ -360,7 +357,6 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
                         viewBinding.followBtn.text = ConstValFile.Following
                         viewBinding.followBtn.setTypeface(viewBinding.followBtn.typeface, Typeface.ITALIC)
                     }else{
-                        list[position].followStatus = false
                         followStatus = false
                         if (followCount>0){
                             followCount -= 1
@@ -382,10 +378,11 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
 
 
      override fun onBackPressed() {
-        Log.d("onIntentReceived","Intent onBackPressed : $followStatus")
+
+       /* Log.d("onIntentReceived","Intent onBackPressed : $followStatus")
          Log.d("onIntentReceived","Intent onBackPressed : $userID")
          Log.d("onIntentReceived","Intent onBackPressed : $position")
-         this.onIntentReceived(followStatus,userID,position)
+         this.onIntentReceived(followStatus,userID,position)*/
 
         /* val backToIntent = Intent()
          backToIntent.putExtra(ConstValFile.VideoPosition,position)
@@ -406,12 +403,13 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
                          viewBinding.l1.hideShimmer()
                          val userData = response.body()!!.data[0]
                          userID = userData.Id.toString()
+                         auditionIID = userData.auditionId.toString()
                          getUserVideo(userID)
                          followCount = userData.followersCount!!
                          followingCount = userData.followingCount!!
-                         viewBinding.likeCount.text = userData.totalLike.toString()
-                         viewBinding.followCount.text = followCount.toString()
-                         viewBinding.followingCount.text = followingCount.toString()
+                         viewBinding.likeCount.text = formatCount(userData.totalLike!!)
+                         viewBinding.followCount.text = formatCount(followCount)
+                         viewBinding.followingCount.text = formatCount(followingCount)
 
                          if (userData.image.toString().isNotEmpty()){
                              userimage = userData.image.toString()
@@ -453,4 +451,26 @@ class OtherUserProfileActivity : AppCompatActivity(),FollowFollowingTrack {
              }
          })
      }
+
+    private fun formatCount(count: Int): String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
+    }
 }

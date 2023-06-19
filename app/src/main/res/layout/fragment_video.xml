@@ -4,184 +4,59 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/white"
+    android:background="@android:color/transparent"
     tools:context=".screens.fragment.VideoFragment">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <com.facebook.shimmer.ShimmerFrameLayout
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:id="@+id/showVideoShimmer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        >
-        <RelativeLayout
-            android:background="@color/white"
+        <FrameLayout
+            android:id="@+id/viewContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            />
+
+
+        <LinearLayout
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             >
-
-
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:orientation="vertical"
-                android:padding="100dp">
+                android:text="For You"
+                android:layout_weight="1"
+                android:id="@+id/forYou"
+                android:padding="4dp"
+                android:gravity="end"
+                android:layout_margin="4dp"
+                android:textColor="@color/textColorWhite"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                />
 
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp"/>
-
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/sideLayout"
-                android:layout_above="@id/bottomLayousaast"
+            <TextView
                 android:layout_width="wrap_content"
-                android:orientation="vertical"
-                android:layout_alignParentEnd="true"
-                android:layout_height="wrap_content">
-
-
-                <View
-                    android:background="@color/Gray"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp"
-
-                    />
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp" />
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="15dp"
-                    android:layout_margin="5dp"
-                    />
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp" />
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="15dp"
-                    android:layout_margin="5dp"/>
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp"  />
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="15dp"
-                    android:layout_margin="5dp"/>
-
-                <View
-                    android:layout_width="50dp"
-                    android:background="@color/Gray"
-                    android:layout_height="15dp"
-                    android:layout_margin="5dp" />
-
-            </LinearLayout>
-
-            <RelativeLayout
-                android:layout_marginStart="5dp"
-                android:id="@+id/bottomLayousaast"
-                android:layout_alignParentBottom="true"
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="Live Contest"
+                android:gravity="start"
+                android:id="@+id/liveContest"
+                android:layout_weight="1"
+                android:padding="4dp"
+                android:layout_margin="4dp"
+                android:textColor="@color/textColorWhite"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                />
 
-                >
+        </LinearLayout>
 
-                <View
-                    android:id="@+id/userNadssdsme"
-                    android:layout_width="100dp"
-                    android:layout_height="30dp"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginEnd="5dp"
-                    android:layout_marginBottom="5dp"
-                    android:background="@color/Gray" />
-
-                <View
-                    android:layout_toEndOf="@id/userNadssdsme"
-                    android:id="@+id/followButton"
-                    android:layout_width="100dp"
-                    android:layout_margin="5dp"
-                    android:layout_height="30dp"
-                    android:background="@color/Gray"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:textAlignment="center"
-                    android:paddingTop="2dp"
-                    android:paddingBottom="2dp"
-                    />
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_alignParentStart="true"
-                    android:layout_below="@id/userNadssdsme"
-                    >
-
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_margin="5dp"
-                        android:layout_height="20dp"
-                        android:background="@color/Gray"
-                        android:id="@+id/videdsdsoCaption"
-                        />
-
-                    <RelativeLayout
-                        android:layout_below="@id/videdsdsoCaption"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        >
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_margin="5dp"
-                            android:layout_height="20dp"
-                            android:background="@color/Gray"
-                            />
-                    </RelativeLayout>
-
-
-                </RelativeLayout>
-
-            </RelativeLayout>
-
-        </RelativeLayout>
-    </com.facebook.shimmer.ShimmerFrameLayout>
-
-
-    <androidx.viewpager2.widget.ViewPager2
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:id="@+id/videoViewpager2"/>
+    </RelativeLayout>
 
     <ImageButton
         app:layout_constraintEnd_toEndOf="parent"

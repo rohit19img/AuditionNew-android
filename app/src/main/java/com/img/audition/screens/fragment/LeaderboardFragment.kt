@@ -84,7 +84,6 @@ class LeaderboardFragment(val contestID: String, val contestStatus: String) : Fr
                 }else{
                     view.leaderboard.visibility = View.GONE
                     view.noDataView.visibility = View.VISIBLE
-                    Log.e(TAG, "onResponse33: $response")
                 }
             }
 

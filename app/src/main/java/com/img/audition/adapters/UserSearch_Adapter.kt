@@ -22,6 +22,7 @@ import com.img.audition.screens.OtherUserProfileActivity
 import com.img.audition.screens.UploadVideoActivity
 import com.img.audition.screens.fragment.ProfileFragment
 import java.lang.String
+import java.text.DecimalFormat
 import kotlin.Int
 
 @UnstableApi class UserSearch_Adapter(val list: ArrayList<SearchUserData>, val context: Context, val replacedText : kotlin.String) : RecyclerView.Adapter<UserSearch_Adapter.ViewHolder>(){
@@ -56,7 +57,7 @@ import kotlin.Int
             Glide.with(context).load(list[position].image).into(imageView1)
             username.text = list[position].name
             audiid.text = list[position].auditionId
-            follcount.text = String.valueOf(list[position].followersCount) + " Followers"
+            follcount.text =  formatCount(list[position].followersCount!!)+ " Followers"
 
 
                 itemView.setOnClickListener {
@@ -84,6 +85,7 @@ import kotlin.Int
                         if (!(list[position].isSelf!!)) {
                             val bundle = Bundle()
                             bundle.putString(ConstValFile.USER_IDFORIntent, list[position].Id)
+                            bundle.putString("auditionID", list[position].auditionId)
                             bundle.putBoolean(
                                 ConstValFile.UserFollowStatus,
                                 list[position].followStatus!!
@@ -105,6 +107,28 @@ import kotlin.Int
         val myFragment: Fragment = ProfileFragment(context)
         activity.supportFragmentManager.beginTransaction()
                 .replace(R.id.viewContainer, myFragment).addToBackStack(null).commit()
+    }
+
+    private fun formatCount(count: Int): kotlin.String {
+        val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+        val numValue: Long = count.toLong()
+        val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+        val base = value / 3
+        return if (value >= 3 && base < suffix.size) {
+            DecimalFormat("#0.0").format(
+                numValue / Math.pow(
+                    10.0,
+                    (base * 3).toDouble()
+                )
+            ) + suffix[base]
+        } else {
+            DecimalFormat("#,##0").format(numValue)
+        }
+        /*return when {
+            count < 1000 -> count.toString()
+            count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+            else -> (count / 1000).toString() + "k"
+        }*/
     }
 }
 

@@ -1,14 +1,19 @@
 package com.img.audition.adapters
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -25,16 +30,23 @@ import androidx.recyclerview.widget.RecyclerView
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.Glide
 import com.img.audition.R
+import com.img.audition.dataModel.JoinUsableBalanceResponse
 import com.img.audition.dataModel.LiveContestData
 import com.img.audition.databinding.LiveContestItemLayoutBinding
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
+import com.img.audition.network.ApiInterface
+import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.AddAmountActivity
 import com.img.audition.screens.ContestDetailsActivity
 import com.img.audition.screens.LoginActivity
 import com.img.audition.snapCameraKit.SnapCameraActivity
 import com.img.audition.videoWork.PlayPauseContestVideo
 import com.img.audition.videoWork.VideoCacheWork
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -43,6 +55,7 @@ import java.util.concurrent.TimeUnit
 
 @UnstableApi
 class ContestLiveAdapter(private val context: Context,private val contestList: ArrayList<LiveContestData>) : RecyclerView.Adapter<ContestLiveAdapter.MyViewHolder>() {
+
     private val TAG = "ContestLiveAdapter"
     private var cPos = 0
 
@@ -137,13 +150,15 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
 
             sDate = mYear1.toString() + "-" + (mMonth1 + 1) + "-" + mDay1 + " " + hour + ":" + minute + ":" + sec
             eDate = contest.startDate
-            Log.i("matchtime", contest.startDate)
+            Log.i("matchtime","Start "+ sDate)
+            Log.i("matchtime", "End "+eDate)
 
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             val dateFormat =  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             val dateFormat1 =  SimpleDateFormat("MMM dd  hh:mm a")
             try {
-                 startDate = dateFormat.parse(sDate)
-                 endDate = dateFormat.parse(eDate)
+                 startDate = sdf.parse(sDate)
+                 endDate =  dateFormat.parse(eDate)
             } catch (e: ParseException) {
                 e.printStackTrace()
             }
@@ -151,6 +166,7 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             var diffInMs : Long = 0
            try {
                diffInMs = endDate!!.time - startDate!!.time
+               Log.d("checkTimer", "onBindViewHolder: $diffInMs")
            }catch (e:Exception){
                e.printStackTrace()
            }
@@ -207,15 +223,14 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                 }
 
                 override fun onFinish() {
-                    if (contest.status == "started"){
+                    if (contest.status == "started" && contest.finalStatus == "pending"){
                         contestTimer.text = "Contest Started"
-
-                    }else if(contest.status == "completed"){
+                    } else if(contest.status == "completed" && contest.finalStatus == "IsReviewed"){
+                        contestTimer.text = "Under Review"
+                    } else if(contest.status == "completed" && contest.finalStatus == "winnerdeclared"){
                         contestTimer.text = "Contest Completed"
                     }
-
                     cT.cancel()
-
                 }
             }
             cT.start()
@@ -234,7 +249,6 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                Log.i("Exception"," ${ e.message}")
             }
 
-
             contestWinPrize.text = "₹ " + contest.winAmount.toString()
             contestJoinBtn.text = "₹ " + contest.entryfee.toString()
             contestProgressBar.max = contest.maximumUser!!
@@ -249,9 +263,7 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                     } else {
                         if (contest.status == "notstarted"){
                             if (!(contest.isJoined!!)) {
-                                sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
-                                Thread.sleep(300)
-                                sendForCreateVideo()
+                                getUsableBalance(contest)
                             } else {
                                 Toast.makeText(context,"You Already join this contest",Toast.LENGTH_SHORT).show()
                                 Log.d(TAG, "You Already join this contest")
@@ -261,11 +273,11 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                 }else{
                     checkInternetDialog()
                 }
-
             }
 
             itemView.setOnClickListener {
                 if (myApplication.isNetworkConnected()){
+                    Log.d("contestID", "onBindViewHolder: ${contest.Id}")
                     sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.ContestID,contest.Id)
@@ -279,9 +291,56 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                 }else{
                     checkInternetDialog()
                 }
-
             }
         }
+    }
+
+    private fun getUsableBalance(contest: LiveContestData) {
+
+        val apiInterface = RetrofitClient.getInstance().create(ApiInterface::class.java)
+
+        val voterListReq = apiInterface.getUsableBalance(SessionManager(context).getToken(),contest.Id)
+
+        voterListReq.enqueue(object : Callback<JoinUsableBalanceResponse> {
+            override fun onResponse(call: Call<JoinUsableBalanceResponse>, response: Response<JoinUsableBalanceResponse>) {
+                if (response.isSuccessful && response.body()?.success!!){
+
+                        val res = response.body()!!.data
+
+                        val dialog = Dialog(context)
+                        dialog.setContentView(R.layout.join_contest_dailog)
+                        val availableBalance: TextView = dialog.findViewById(R.id.availableBalance)
+                        val entryFee: TextView = dialog.findViewById(R.id.entryFee)
+                        val btnJoinContest: TextView = dialog.findViewById(R.id.btnJoinContest)
+                        val usableBalance: TextView = dialog.findViewById(R.id.usableBalance)
+                        val bonus_amount: TextView = dialog.findViewById(R.id.bonus_amount)
+
+                        availableBalance.text = "₹${res!!.usertotalbalance}"
+                        entryFee.text = "₹${res!!.entryfee}"
+                        usableBalance.text = "₹${res.usablebalance}"
+                        bonus_amount.text = "(Bonus :${res!!.bonus}%)"
+                        btnJoinContest.setOnClickListener {
+                            dialog.dismiss()
+                            if(res.usablebalance!!.toDouble() <  res.entryfee!!.toDouble()){
+//                                val amount : Double = res.entryfee!!.toDouble() - res.usablebalance!!.toDouble()
+                                sendToAddAmountActivity()
+                            } else{
+                                sessionManager.createContestSession(contest.entryfee!!, contest.Id, contest.fileType, contest.file, true)
+                                Thread.sleep(100)
+                                sendForCreateVideo()
+                            }
+                        }
+                        dialog.window!!.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                        dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                        dialog.show()
+                }else{
+                    Log.e(TAG, "onResponse: $response")
+                }
+            }
+            override fun onFailure(call: Call<JoinUsableBalanceResponse>, t: Throwable) {
+                Log.e(TAG, "onFailure: $t")
+            }
+        })
     }
 
 
@@ -298,8 +357,8 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             } else {
                 playerViewExo.visibility = View.VISIBLE
                 contestImage.visibility = View.GONE
-                Log.d("url", "contestVideo : ${"http://139.59.30.125:12345/" + contest.file.toString()}")
-                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
+                Log.d("url", "contestVideo : ${"http://139.59.4.142:12345/" + contest.file.toString()}")
+                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.4.142:12345/" + contest.file.toString()).build()
                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                 playerViewExo.player = exoPlayer
                 exoPlayer.setMediaSource(videoMediaSource)
@@ -333,7 +392,7 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                         super.onPlayerError(error)
                         when (error.errorCode) {
                             ExoPlaybackException.TYPE_SOURCE -> {
-                                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.30.125:12345/" + contest.file.toString()).build()
+                                val mediaItem = MediaItem.Builder().setMimeType("video/avc").setUri("http://139.59.4.142:12345/" + contest.file.toString()).build()
                                 val videoMediaSource = mediaSource.createMediaSource(mediaItem)
                                 playerViewExo.player = exoPlayer
                                 exoPlayer.setMediaSource(videoMediaSource)
@@ -341,15 +400,13 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                                 exoPlayer.play()
                             }
                             else -> {
-                                Log.e("currentState","http://139.59.30.125:12345/" + contest.file.toString())
+                                Log.e("currentState","http://139.59.4.142:12345/" + contest.file.toString())
 
                             }
-
                         }
                     }
                 })
             }
-
         }
         super.onViewAttachedToWindow(holder)
     }
@@ -370,12 +427,24 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                     }
                     exoPlayer.playWhenReady = false
                     exoPlayer.pause()
-
                 }
             }
 
             override fun onResume(holder: MyViewHolder, cPos: Int) {
-                Log.d("check 400", "onResume: Inside Adapter")
+                holder.apply {
+                    Log.d("check 400", "onResume: Inside Adapter")
+                    if (cPos >= 0) {
+                        if (cPos == position) {
+                            exoPlayer.prepare()
+                            exoPlayer.playWhenReady = true
+                            Log.d("check 400", "onResume: Inside Adapter 444")
+                        } else {
+                            exoPlayer.seekTo(0)
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.stop()
+                        }
+                    }
+                }
             }
 
             override fun onStop(holder: MyViewHolder, cPos: Int) {
@@ -386,33 +455,18 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
-                            exoPlayer.clearMediaItems()
-                            exoPlayer.release()
-                            playerViewExo.player!!.release()
-
                         } else {
                             exoPlayer.playWhenReady = false
                             exoPlayer.seekTo(0)
                             exoPlayer.stop()
-                            exoPlayer.clearMediaItems()
-                            exoPlayer.release()
-                            playerViewExo.player!!.release()
-
-
                         }
                     }
                     exoPlayer.playWhenReady = false
                     exoPlayer.seekTo(0)
                     exoPlayer.stop()
-                    exoPlayer.clearMediaItems()
-                    exoPlayer.release()
-                    playerViewExo.player!!.release()
-
                 }
             }
         }
-
-
     }
 
     override fun onViewDetachedFromWindow(holder: MyViewHolder) {
@@ -438,9 +492,7 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
     override fun onViewRecycled(holder: MyViewHolder) {
         super.onViewRecycled(holder)
         holder.cT.cancel()
-
     }
-
 
     private fun sendToLoginScreen() {
         val intent = Intent(context, LoginActivity::class.java)
@@ -473,5 +525,9 @@ class ContestLiveAdapter(private val context: Context,private val contestList: A
             sweetAlertDialog.dismiss()
         }
         sweetAlertDialog.show()
+    }
+    private fun sendToAddAmountActivity() {
+        val intent = Intent(context, AddAmountActivity::class.java)
+        context.startActivity(intent)
     }
 }

@@ -20,7 +20,13 @@ import retrofit2.Response
 
 class VoteAdapter(
     private val contextFromActivity: Context,
-    private val voteList: ArrayList<VoteData>, val id:String, val voteDialog:Dialog) : RecyclerView.Adapter<VoteAdapter.ViewHolder>()
+    private val voteList: ArrayList<VoteData>,
+    val id: String,
+    val voteDialog: Dialog,
+    val videoAdapter: VideoAdapter,
+    val position: Int
+
+) : RecyclerView.Adapter<VoteAdapter.ViewHolder>()
 {
     inner class ViewHolder(itemView: VoteItemHolderDesignBinding) : RecyclerView.ViewHolder(itemView.root){
         val voteEmoji = itemView.voteImage
@@ -61,6 +67,8 @@ class VoteAdapter(
                if (response.isSuccessful){
                    if (response.body()!!.success!!){
                        showToast(response.body()!!.message.toString())
+                       videoAdapter.videoList[position].voteStatus = true
+                       videoAdapter.notifyItemChanged(position)
                        voteDialog.dismiss()
                    }else{
                        showToast(response.body()!!.message.toString())

@@ -110,6 +110,7 @@ class HashtagVideoActivity : AppCompatActivity() {
                                 }else{
                                     viewBinding.shimmerVideoView.stopShimmer()
                                     viewBinding.shimmerVideoView.hideShimmer()
+                                    viewBinding.shimmerVideoView.visibility = View.GONE
                                     viewBinding.noVideo.visibility = View.VISIBLE
                                 }
                             }

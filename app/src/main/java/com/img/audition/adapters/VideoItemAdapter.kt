@@ -26,9 +26,10 @@ import com.img.audition.screens.CommanVideoPlayActivity
 import okhttp3.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.DecimalFormat
 
 
- @UnstableApi
+@UnstableApi
  class VideoItemAdapter(val context: Context,private val videoData : ArrayList<VideoData>) : RecyclerView.Adapter<VideoItemAdapter.VideoItemHolder>() {
     private val TAG = "VideoItemAdapter"
     private val sessionManager by lazy {
@@ -56,7 +57,7 @@ import retrofit2.Response
 
             Glide.with(context).load(list.file).placeholder(R.drawable.splash_icon).into(videoThumbnail)
 
-            videoViewCount.text = list.views.toString()
+            videoViewCount.text = formatCount(list.views!!)
 
 
             itemView.setOnClickListener {
@@ -118,4 +119,25 @@ import retrofit2.Response
         Toast.makeText(context.applicationContext,msg, Toast.LENGTH_SHORT).show()
     }
 
+     private fun formatCount(count: Int): String {
+         val suffix = charArrayOf(' ', 'k', 'M', 'B', 'T', 'P', 'E')
+         val numValue: Long = count.toLong()
+         val value = Math.floor(Math.log10(numValue.toDouble())).toInt()
+         val base = value / 3
+         return if (value >= 3 && base < suffix.size) {
+             DecimalFormat("#0.0").format(
+                 numValue / Math.pow(
+                     10.0,
+                     (base * 3).toDouble()
+                 )
+             ) + suffix[base]
+         } else {
+             DecimalFormat("#,##0").format(numValue)
+         }
+         /*return when {
+             count < 1000 -> count.toString()
+             count < 10000 -> String.format("%.1fk", Math.floor(count / 100.0) / 10)
+             else -> (count / 1000).toString() + "k"
+         }*/
+     }
 }

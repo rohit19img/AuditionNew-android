@@ -367,7 +367,7 @@
                                 android:id="@+id/dob"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/_10sdp"
+                                android:layout_marginStart="@dimen/_8sdp"
                                 android:layout_marginEnd="@dimen/_10sdp"
                                 android:layout_toEndOf="@id/ic_dob"
                                 android:background="@drawable/et_design"

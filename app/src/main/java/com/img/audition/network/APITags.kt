@@ -13,11 +13,12 @@ class APITags {
         //
 
 
-        const val APIBASEURL = "http://139.59.30.125:6060/api/"
+        const val APIBASEURL = "http://139.59.4.142:6060/api/"
         const val AUTHORIZATION = "Authorization"
         const val GuestLogin = "guest-login"
         const val GetChatHistory = "getChatHistory"
-        const val GetVideo = "get_video"
+        const val GetForYouVideo = "get_video"
+        const val GetLiveContestVideo = "contest_video"
         const val Login = "login"
         const val OTPLogin = "otp-login"
         const val likeUnlike = "likeUnlike"

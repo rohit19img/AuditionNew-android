@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="start">
+        <shape>
+            <solid android:color="@color/bgColorYellow"/>
+            <corners android:topLeftRadius="12dp"
+                android:bottomLeftRadius="12dp"/>
+            <size android:width="18dp" android:height="55dp"/>
+        </shape>
+    </item>
+    <item android:gravity="end">
+        <shape>
+            <solid android:color="@color/bgColorYellow"/>
+            <corners android:topRightRadius="12dp"
+                android:bottomRightRadius="12dp"/>
+            <size android:width="18dp" android:height="55dp"/>
+        </shape>
+    </item>
+    <item android:gravity="start" android:top="20dp" android:bottom="20dp" android:left="8dp">
+        <shape>
+            <solid android:color="#000000"/>
+            <corners android:radius="2dp"/>
+            <size android:width="4dp" android:height="20dp"/>
+        </shape>
+    </item>
+    <item android:gravity="end" android:top="20dp" android:bottom="20dp" android:right="8dp">
+        <shape>
+            <solid android:color="#000000"/>
+            <corners android:radius="2dp"/>
+            <size android:width="4dp" android:height="20dp"/>
+        </shape>
+    </item>
+
+    <item android:left="16dp" android:right="16dp">
+        <shape>
+            <stroke android:color="@color/bgColorYellow" android:width="2dp"/>
+            <size android:height="55dp"/>
+            <solid android:color="#11FFEB3B"/>
+        </shape>
+    </item>
+</layer-list>

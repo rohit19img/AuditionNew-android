@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="wrap_content">
+
+
+        <RelativeLayout
+            android:id="@+id/reportCard"
+            android:layout_margin="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/cardview_look">
+
+
+            <TextView
+                android:id="@+id/text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:padding="10dp"
+                android:text="items are here"
+                android:textColor="@color/textColorDarkRed"
+                android:textSize="15dp" />
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="22dp"
+                android:src="@drawable/arrow_right"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="20dp"
+                app:tint="@color/textColorDarkRed"/>
+
+        </RelativeLayout>
+
+
+</LinearLayout>

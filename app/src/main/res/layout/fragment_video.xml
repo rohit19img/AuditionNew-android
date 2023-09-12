@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/transparent"
+    tools:context=".screens.fragment.VideoFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:id="@+id/viewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
+
+        <RelativeLayout
+            android:layout_marginTop="15dp"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <TextView
+                android:id="@+id/forYou"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:background="@drawable/tab_selected"
+                android:gravity="end"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="6dp"
+                android:text="For You"
+                android:textColor="@color/textColorWhite"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Live Contest"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="6dp"
+                android:id="@+id/liveContest"
+                android:background="@drawable/tab_unselected"
+                android:layout_marginHorizontal="5dp"
+                android:layout_toEndOf="@id/forYou"
+                android:textColor="@color/textColorWhite"
+                android:textSize="14sp"
+
+                />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <ImageButton
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/notificationButton"
+        style="@style/imageButtonStyle"
+        android:elevation="2dp"
+
+        android:src="@drawable/notifications_ic"
+        android:contentDescription="Notification Icon" />
+
+    <ImageView
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        app:layout_constraintTop_toTopOf="@id/notificationButton"
+        app:layout_constraintEnd_toEndOf="@id/notificationButton"
+        android:elevation="2dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/notify_round_red_ic"
+        android:contentDescription="Notify icon" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

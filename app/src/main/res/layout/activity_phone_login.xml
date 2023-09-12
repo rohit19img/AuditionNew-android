@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@color/bgColorRed"
+    android:layout_height="match_parent"
+    tools:context=".screens.PhoneLoginActivity">
+
+
+    <ImageView
+        android:id="@+id/closeActivityButton"
+        style="@style/imageButtonStyle"
+        android:contentDescription="close ic"
+        android:src="@drawable/close_ic"/>
+
+    <RelativeLayout
+        android:id="@+id/topLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="60dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/t1"
+            style="@style/textViewStyle"
+            android:layout_alignParentStart="true"
+            android:text="@string/create_account_login"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:textSize="22sp" />
+
+        <TextView
+            android:id="@+id/t2"
+            android:layout_below="@id/t1"
+            style="@style/textViewStyle"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:text="@string/send_oto_verify_text"
+            android:textAlignment="center"
+            android:textSize="12sp" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/phNumLayout"
+        android:layout_marginVertical="15dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topLayout"
+        >
+
+        <com.hbb20.CountryCodePicker
+            android:focusableInTouchMode="false"
+            android:touchscreenBlocksFocus="false"
+            android:background="@drawable/bg_edittext"
+            android:id="@+id/countyCodePicker"
+            android:layout_marginHorizontal="10dp"
+            android:clickable="false"
+            app:ccp_clickable="false"
+            android:layout_width="wrap_content"
+            app:ccp_areaCodeDetectedCountry="true"
+            app:ccp_arrowColor="@color/textColorWhite"
+            app:ccp_contentColor="@color/textColorWhite"
+            app:ccp_showPhoneCode="true"
+            app:ccp_showNameCode="false"
+            app:ccpDialog_backgroundColor="@color/bgColorBlack"
+            app:ccpDialog_textColor="@color/textColorWhite"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/phoneNumberET"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:letterSpacing="0.1"
+            android:textColorHint="@color/textHintColor"
+            android:background="@drawable/bg_edittext"
+            android:layout_toEndOf="@id/countyCodePicker"
+            android:hint="Phone Number"
+            android:inputType="number"
+            android:maxLength="10"
+            android:padding="10dp"
+            android:textColor="@color/textColorWhite"
+            android:textSize="16sp" />
+
+
+    </RelativeLayout>
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/otpLayout"
+        android:visibility="gone"
+        android:layout_below="@id/phNumLayout"
+        android:layout_centerHorizontal="true"
+        style="@style/carViewStyle"
+        app:cardBackgroundColor="@color/bgColorDarkRed"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="20dp"
+        android:elevation="10dp"
+        >
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+            <TextView
+                android:id="@+id/t3"
+               style="@style/textViewStyle"
+                android:textSize="16sp"
+                android:layout_marginStart="0dp"
+                android:paddingStart="0dp"
+                android:layout_marginBottom="10dp"
+                android:text="Enter OTP"
+                tools:ignore="RtlSymmetry" />
+
+            <com.mukeshsolanki.OtpView
+                android:layout_below="@id/t3"
+                android:id="@+id/otpView"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@android:color/white"
+                app:OtpItemCount="4"
+                app:OtpItemSpacing="6dp"
+                app:OtpLineColor="@color/cardHintColor"
+                app:OtpState_filled="true"
+                app:OtpViewType="rectangle"
+                />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/otpLoginBtn"
+                android:layout_below="@id/otpView"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                style="@style/carViewStyle">
+                <TextView
+                    style="@style/textViewStyle"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    android:gravity="center"
+                    android:paddingVertical="5dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="Login with OTP"/>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/getOtpBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
+        android:backgroundTint="@color/textColorWhite"
+        android:contentDescription="get otp btn"
+        android:src="@drawable/arrow_right" />
+
+
+</RelativeLayout>

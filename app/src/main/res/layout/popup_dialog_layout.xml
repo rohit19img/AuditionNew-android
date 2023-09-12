@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageButton
+        android:id="@+id/dialogClose"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="-35dp"
+        android:layout_marginBottom="-35dp"
+        android:elevation="10dp"
+        android:background="@color/black"
+        android:layout_above="@+id/popupImage"
+        android:layout_toEndOf="@+id/popupImage"
+        android:src="@drawable/ic_cancel" />
+
+    <ImageView
+        android:id="@+id/popupImage"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        />
+
+</RelativeLayout>

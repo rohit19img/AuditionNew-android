@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:padding="@dimen/_2sdp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:padding="@dimen/_5sdp"
+        android:text="Choose Gender"
+        android:textColor="@color/textColorRed"
+        android:textSize="@dimen/_14sdp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:padding="@dimen/_2sdp"
+        android:text="This will help us to personalise content for you"
+        android:textColor="@color/textColorRed"
+        android:textSize="@dimen/_10sdp" />
+
+
+    <RadioGroup
+        android:id="@+id/genderRg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="18dp"
+        android:layout_marginRight="18dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/maleRb"
+            android:layout_marginTop="@dimen/_20sdp"
+            android:buttonTint="@color/bgColorRed"
+            android:layout_width="match_parent"
+            android:text="Male"
+            android:textColor="@color/textColorRed"
+            android:padding="@dimen/_10sdp"
+            android:textSize="@dimen/_13sdp"
+            android:background="@drawable/et_design"
+            android:layout_height="wrap_content"/>
+
+        <RadioButton
+            android:layout_marginTop="@dimen/_10sdp"
+            android:id="@+id/femaleRb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/bgColorRed"
+            android:background="@drawable/et_design"
+            android:padding="@dimen/_10sdp"
+            android:text="Female"
+            android:textColor="@color/textColorRed"
+            android:textSize="@dimen/_13sdp" />
+
+    </RadioGroup>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+        <TextView
+            android:id="@+id/cancel_genBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_15sdp"
+            android:layout_marginEnd="@dimen/_2sdp"
+            android:layout_weight="1"
+            android:background="@drawable/et_design"
+            android:text="Cancel"
+            android:textAlignment="center"
+            android:padding="@dimen/_10sdp"
+            android:textColor="@color/textColorRed"
+            android:textSize="13sp"
+            />
+
+        <TextView
+            android:id="@+id/done_genBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_15sdp"
+            android:layout_marginStart="@dimen/_2sdp"
+            android:layout_weight="1"
+            android:background="@drawable/et_design"
+            android:text="Done"
+            android:textAlignment="center"
+            android:padding="@dimen/_10sdp"
+            android:textColor="@color/textColorYellow"
+            android:textSize="13sp"
+            />
+    </LinearLayout>
+
+</LinearLayout>

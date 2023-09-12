@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:background="@android:color/transparent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+  <LinearLayout
+      android:background="@drawable/top_two_corner_round"
+      android:paddingVertical="30dp"
+      android:paddingHorizontal="10dp"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      >
+      <TextView
+          android:id="@+id/report"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Report"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="@color/textColorRed"
+          android:background="@drawable/cardview_look"
+          android:textAlignment="center"
+          android:padding="8dp"
+          android:layout_margin="6dp"/>
+
+      <TextView
+          android:id="@+id/block"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="Block"
+          android:textSize="16sp"
+          android:textStyle="bold"
+          android:textColor="@color/textColorRed"
+          android:background="@drawable/cardview_look"
+          android:textAlignment="center"
+          android:padding="8dp"
+          android:layout_margin="6dp"/>
+  </LinearLayout>
+</RelativeLayout>

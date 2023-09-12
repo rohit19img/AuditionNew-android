@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@drawable/new_background"
+    android:layout_height="match_parent"
+    tools:context=".screens.VoterListActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"      >
+
+        <ImageView
+            android:id="@+id/backPressIC"
+            style="@style/imageButtonStyle"
+            android:layout_gravity="start"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="0dp"
+            android:padding="5dp"
+            android:paddingStart="0dp"
+            android:src="@drawable/back_arrow_ic" />
+
+        <EditText
+            android:inputType="text"
+            android:id="@+id/searchET"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="5dp"
+            android:layout_toEndOf="@id/onBackPressBtn"
+            android:background="@color/bgColorWhite"
+            android:drawableStart="@drawable/search_ic"
+            android:drawablePadding="10dp"
+            android:hint="Search in voter list"
+            android:padding="8dp" />
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:visibility="gone"
+        android:id="@+id/voterListCycle"
+        android:orientation="vertical"
+        android:layout_below="@id/toolbar"
+        tools:listitem="@layout/leaderboardrecycledesign"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_below="@id/toolbar"
+        android:id="@+id/noDataView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:text="Vote List Empty"
+        android:textColor="@color/textColorWhite"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+</RelativeLayout>

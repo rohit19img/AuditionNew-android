@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/otpLayout"
+        android:layout_centerHorizontal="true"
+        style="@style/carViewStyle"
+        app:cardBackgroundColor="@color/bgColorDarkRed"
+        app:cardUseCompatPadding="true"
+        app:contentPadding="20dp"
+        android:elevation="10dp"
+        >
+
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+            <TextView
+                android:id="@+id/title"
+                style="@style/textViewStyle"
+                android:textSize="16sp"
+                android:layout_marginStart="0dp"
+                android:paddingStart="0dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                android:text="Verify Email"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/t3"
+                android:layout_below="@id/title"
+                style="@style/textViewStyle"
+                android:textSize="16sp"
+                android:layout_marginStart="0dp"
+                android:paddingStart="0dp"
+                android:layout_marginBottom="10dp"
+                android:text="Enter OTP"
+                tools:ignore="RtlSymmetry" />
+
+            <com.mukeshsolanki.OtpView
+                android:layout_below="@id/t3"
+                android:id="@+id/otpView"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:textColor="@android:color/white"
+                app:OtpItemCount="4"
+                app:OtpItemSpacing="6dp"
+                app:OtpLineColor="@color/cardHintColor"
+                app:OtpState_filled="true"
+                app:OtpViewType="rectangle"
+                />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/otpLoginBtn"
+                android:layout_below="@id/otpView"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                style="@style/carViewStyle">
+                <TextView
+                    style="@style/textViewStyle"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    android:gravity="center"
+                    android:paddingVertical="5dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="Verify OTP"/>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

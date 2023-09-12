@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.UserUploadedVideoActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bgColorDarkRed"
+        >
+
+        <ImageView
+            android:id="@+id/backPressIC"
+            style="@style/imageButtonStyle"
+            android:layout_gravity="start"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="0dp"
+            android:padding="5dp"
+            android:paddingStart="0dp"
+            android:src="@drawable/back_arrow_ic" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Video"
+            android:textColor="@color/textColorWhite"
+            android:textSize="16sp"/>
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar">
+
+        <include layout="@layout/user_videoitem_view_shimer" />
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <ImageView
+        android:layout_below="@id/toolbar"
+        android:id="@+id/noVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bgColorWhite"
+        android:src="@drawable/no_video"
+        android:visibility="gone"
+        app:tint="@color/bgColorDarkRed" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_below="@id/toolbar"
+        android:visibility="gone"
+        android:background="@color/bgColorWhite"
+        tools:listitem="@layout/user_upload_video_item_layout"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        android:id="@+id/userVideoRecycle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/uploadVideo"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_height="50dp"
+        android:layout_marginBottom="60dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="10dp"
+        style="@style/carViewStyle">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <ImageView
+                android:id="@+id/camIc"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/white"
+                android:src="@drawable/ic_videocam"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                app:tint="@color/black" />
+
+            <TextView
+                style="@style/textViewStyle"
+                android:layout_centerInParent="true"
+                android:layout_marginStart="0dp"
+                android:layout_toEndOf="@id/camIc"
+                android:text="Upload Video "
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/card_rummy_design">
+
+    <LinearLayout
+        android:id="@+id/design_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingVertical="8dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/view2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="10dp"
+            app:cardCornerRadius="70dp">
+            <ImageView
+                android:id="@+id/userImageView"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:background="@color/gray"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@drawable/person_ic" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="15dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
+
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               >
+               <ImageView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:src="@drawable/ic_msg_seen"
+                   android:id="@+id/icMsgSeen"
+                   app:tint="@color/gray"/>
+
+               <TextView
+                   android:id="@+id/lastMsg"
+                   android:padding="3dp"
+                   android:textStyle="bold"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:textColor="@color/white"
+                   android:textSize="12sp" />
+           </LinearLayout>
+            
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginRight="10dp"
+            app:cardBackgroundColor="@color/bgColorYellow"
+            app:cardCornerRadius="5dp">
+
+            <TextView
+                android:id="@+id/foll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Follwing"
+                android:textColor="@color/white"
+                android:textSize="12dp" />
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</LinearLayout>

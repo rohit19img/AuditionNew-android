@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bgColorWhite"
+    tools:context=".screens.MusicActivity">
+
+    <ImageView
+        android:id="@+id/onBackPressBtn"
+        style="@style/imageButtonStyle"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="0dp"
+        android:contentDescription="close ic"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:src="@drawable/back_arrow_ic"
+        app:tint="@color/bgColorBlack" />
+
+    <EditText
+        android:id="@+id/searchET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_toEndOf="@id/onBackPressBtn"
+        android:background="@color/bgColorWhite"
+        android:drawableStart="@drawable/search_ic"
+        android:drawablePadding="10dp"
+        android:hint="Search Music.."
+        android:inputType="text"
+        android:padding="8dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchET">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_centerHorizontal="true"
+            android:background="@android:color/transparent"
+            android:backgroundTint="@color/white"
+            app:tabIndicatorColor="@color/textColorRed"
+            app:tabIndicatorHeight="0dp"
+            app:tabMode="auto"
+            app:tabRippleColor="@color/textColorRed"
+            app:tabSelectedTextColor="@color/textColorRed"
+            app:tabTextAppearance="@style/TabText"
+            app:tabTextColor="@color/Gray">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:text="Library" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saved" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <FrameLayout
+            android:id="@+id/viewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/tabLayout" />
+
+
+    </RelativeLayout>
+</RelativeLayout>

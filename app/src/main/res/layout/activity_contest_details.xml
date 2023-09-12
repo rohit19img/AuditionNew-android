@@ -1,0 +1,1138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/new_background"
+    android:orientation="vertical"
+    tools:context=".screens.ContestDetailsActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/backPressIC"
+            style="@style/imageButtonStyle"
+            android:layout_gravity="start"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="0dp"
+            android:padding="5dp"
+            android:paddingStart="0dp"
+            android:src="@drawable/back_arrow_ic" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contest Details"
+            android:textColor="@color/textColorWhite"
+            android:textSize="16sp" />
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/showShimmer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_2sdp"
+                android:background="@color/black"
+                android:orientation="vertical">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="7dp"
+                        android:orientation="vertical">
+
+                        <RelativeLayout
+                            android:id="@+id/ll11"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="20dp"
+                                    android:orientation="horizontal"
+                                    android:padding="2dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <View
+                                            android:id="@+id/prizetxt2"
+                                            android:layout_width="250dp"
+                                            android:layout_height="15dp"
+                                            android:background="@color/gray" />
+
+                                        <View
+                                            android:id="@+id/priddzetxt22"
+                                            android:layout_width="250dp"
+                                            android:layout_height="15dp"
+                                            android:layout_margin="3dp"
+                                            android:background="@color/gray" />
+
+                                        <View
+                                            android:id="@+id/prizetxt22"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="15dp"
+                                            android:layout_margin="3dp"
+                                            android:background="@color/gray" />
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="0px"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="0.5"
+                                        android:gravity="center">
+
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical">
+
+
+                                    <ProgressBar
+                                        android:id="@+id/progress333"
+                                        style="?android:attr/progressBarStyleHorizontal"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="8dp"
+                                        android:layout_gravity="center"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginBottom="5dp"
+                                        android:progress="50"
+                                        android:progressDrawable="@drawable/custom_progressbar"
+                                        android:progressTint="@color/gray" />
+
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                        <View
+                                            android:id="@+id/prizetxts232"
+                                            android:layout_width="150dp"
+                                            android:layout_height="14dp"
+                                            android:background="@color/gray" />
+
+                                        <View
+                                            android:id="@+id/prizetxte232"
+                                            android:layout_width="150dp"
+                                            android:layout_height="14dp"
+                                            android:layout_gravity="end"
+                                            android:layout_marginStart="100dp"
+                                            android:background="@color/gray" />
+
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingLeft="10dp"
+                                android:paddingRight="10dp"
+                                android:paddingBottom="2dp">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical"
+                                    android:orientation="vertical">
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </RelativeLayout>
+
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLdsdayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:backgroundTint="@color/gray"
+                    android:elevation="6dp"
+                    app:tabMode="fixed"
+                    app:tabSelectedTextColor="@color/commanBackground"
+                    app:tabTextColor="@color/Gray" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_margin="10dp"
+                    android:background="@color/gray" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshData"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_2sdp"
+                android:background="@android:color/transparent"
+                android:orientation="vertical">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="7dp"
+                        android:orientation="vertical">
+
+                        <RelativeLayout
+                            android:id="@+id/ll"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/leaderboard"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerHorizontal="true"
+                                android:layout_gravity="center_horizontal"
+                                android:background="@drawable/green_button"
+                                android:fontFamily="sans-serif-medium"
+                                android:padding="2.5dp"
+                                android:text="Check PrizeCard"
+                                android:textColor="@color/textColorWhite"
+                                android:textSize="10sp"
+                                android:visibility="gone" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="8dp"
+                                    android:layout_marginRight="8dp"
+                                    android:orientation="horizontal"
+                                    android:padding="2dp">
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:id="@+id/prizetxt"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="Contest Prize"
+                                            android:textColor="@color/white"
+                                            android:textSize="14sp" />
+
+                                        <TextView
+
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center_vertical"
+                                            android:hint="₹ 1000"
+                                            android:textColor="@color/white"
+                                            android:textColorHint="@color/white"
+                                            android:textSize="16sp"
+                                            android:visibility="visible" />
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="0px"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="0.5"
+                                        android:gravity="center">
+
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:gravity="center"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:gravity="center"
+                                            android:text="Winners"
+                                            android:textColor="@color/white"
+                                            android:textSize="14sp"
+                                            android:textStyle="normal" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:gravity="center"
+                                            android:hint="1"
+                                            android:paddingTop="3dp"
+                                            android:paddingBottom="3dp"
+                                            android:textColor="@color/white"
+                                            android:textColorHint="@color/white"
+                                            android:textSize="16sp"
+                                            android:visibility="visible" />
+
+                                        <LinearLayout
+                                            android:id="@+id/joincontest"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center"
+                                            android:orientation="horizontal">
+
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:background="@drawable/green_button"
+                                                android:gravity="center"
+                                                android:hint="₹50"
+                                                android:paddingHorizontal="20dp"
+                                                android:paddingTop="3dp"
+                                                android:paddingBottom="3dp"
+                                                android:textColor="@color/textColorWhite"
+                                                android:textColorHint="@color/textColorWhite"
+                                                android:textSize="16sp" />
+
+                                        </LinearLayout>
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:paddingLeft="10dp"
+                                    android:paddingRight="10dp"
+                                    android:paddingBottom="2dp">
+
+
+                                    <ProgressBar
+                                        style="?android:attr/progressBarStyleHorizontal"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="8dp"
+                                        android:layout_gravity="center"
+                                        android:layout_marginTop="5dp"
+                                        android:layout_marginBottom="5dp"
+                                        android:progressDrawable="@drawable/custom_progressbar" />
+
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginBottom="5dp"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="start"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:hint="Joining User :"
+                                            android:textColor="@color/textColorYellow"
+                                            android:textColorHint="@color/textColorYellow"
+                                            android:textSize="12sp"
+                                            android:textStyle="normal" />
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center_vertical"
+                                            android:gravity="center_horizontal"
+                                            android:orientation="horizontal">
+
+                                            <TextView
+                                                android:layout_width="22sp"
+                                                android:layout_height="22sp"
+                                                android:background="@drawable/round_shape"
+                                                android:gravity="center"
+                                                android:text="B"
+                                                android:textColor="@color/textColorWhite"
+                                                android:textSize="10sp" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginStart="2dp"
+                                                android:fontFamily="sans-serif-medium"
+                                                android:text="bonus"
+                                                android:textAlignment="center"
+                                                android:textColor="@color/textColorWhite"
+                                                android:textSize="12sp" />
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="end"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="right"
+                                            android:hint="Max. joining :"
+                                            android:textColor="@color/textColorYellow"
+                                            android:textColorHint="@color/textColorYellow"
+                                            android:textSize="12sp"
+                                            android:textStyle="normal" />
+
+
+                                    </LinearLayout>
+
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="start"
+                                            android:hint="Start Date"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="10dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center_vertical"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="end"
+                                            android:hint="endDate"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="10sp" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginBottom="-5dp"
+                                    android:background="@drawable/et_design"
+                                    android:backgroundTint="@color/bgColorRed"
+                                    android:elevation="5dp"
+                                    android:orientation="horizontal"
+                                    android:paddingHorizontal="5dp"
+                                    android:paddingVertical="5dp"
+                                    android:visibility="visible">
+
+                                    <ImageView
+                                        android:layout_width="15dp"
+                                        android:layout_height="18dp"
+                                        android:layout_gravity="center"
+                                        android:layout_marginHorizontal="2dp"
+                                        android:src="@drawable/ic_trophy" />
+
+                                    <TextView
+                                        android:id="@+id/winamount"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginHorizontal="2dp"
+                                        android:layout_marginVertical="2dp"
+                                        android:fontFamily="@font/rubik_regular"
+                                        android:text="winners : "
+                                        android:textColor="@color/white"
+                                        android:textSize="15sp" />
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/view_layout"
+                                    android:layout_margin="2dp"
+                                    android:background="@drawable/card_rummy_design"
+                                    android:orientation="vertical"
+                                    android:padding="10dp"
+                                    android:visibility="gone">
+
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_gravity="start"
+                                        android:gravity="start"
+                                        android:paddingBottom="5dp"
+                                        android:textColor="@color/textColorWhite"
+                                        android:textSize="14sp" />
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:id="@+id/contest_wining_text"
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentStart="true"
+                                            android:layout_weight="1"
+                                            android:text="Winning Prize"
+                                            android:textColor="@color/textHintColor"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/contestTimer"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:paddingHorizontal="10dp"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/contest_enrtyFee_text"
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_alignParentEnd="true"
+                                            android:layout_weight="1"
+                                            android:gravity="right"
+                                            android:text="Entry Fee"
+                                            android:textColor="@color/textHintColor"
+                                            android:textSize="12sp" />
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:paddingVertical="3dp">
+
+                                        <TextView
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:hint="₹ 5000"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="16sp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:background="@drawable/green_button"
+                                            android:gravity="center"
+                                            android:hint="₹ 50"
+                                            android:paddingHorizontal="20dp"
+                                            android:paddingTop="3dp"
+                                            android:paddingBottom="3dp"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="16sp" />
+
+                                    </LinearLayout>
+
+                                    <ProgressBar
+                                        style="?android:attr/progressBarStyleHorizontal"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="6.8dp"
+                                        android:layout_marginVertical="3dp"
+                                        android:max="16"
+                                        android:progress="15"
+                                        android:progressDrawable="@drawable/custom_progressbar" />
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:gravity="center_vertical"
+                                        android:orientation="horizontal"
+                                        android:paddingVertical="3dp">
+
+                                        <TextView
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:text="Joined user"
+                                            android:textColor="@color/textColorYellow"
+                                            android:textSize="12sp" />
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:gravity="center_vertical"
+                                            android:orientation="horizontal">
+
+                                            <TextView
+                                                android:layout_width="22sp"
+                                                android:layout_height="22sp"
+                                                android:background="@drawable/round_shape"
+                                                android:gravity="center"
+                                                android:text="B"
+                                                android:textColor="@color/textColorWhite"
+                                                android:textSize="10sp" />
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_marginStart="2dp"
+                                                android:fontFamily="sans-serif-medium"
+                                                android:text="bonus"
+                                                android:textAlignment="center"
+                                                android:textColor="@color/textColorWhite"
+                                                android:textSize="12sp" />
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:layout_width="0px"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:gravity="right"
+                                            android:text="Max user"
+                                            android:textColor="@color/textColorYellow"
+                                            android:textSize="12sp" />
+
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="start"
+                                            android:hint="Start Date"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="10dp" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="center_vertical"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="end"
+                                            android:hint="endDate"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="10sp" />
+
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:id="@+id/contest_card"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/view_layout"
+                                    android:layout_marginHorizontal="5dp"
+                                    android:background="@drawable/bg_new"
+                                    android:orientation="vertical"
+                                    android:paddingHorizontal="5dp"
+                                    android:paddingVertical="@dimen/_5sdp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="5dp"
+                                        android:orientation="horizontal"
+                                        android:paddingHorizontal="3dp"
+                                        android:weightSum="4">
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1.1"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:fontFamily="@font/rubik_regular"
+                                                android:text="MAX USERS"
+                                                android:textColor="#9F0C05"
+                                                android:textSize="10sp" />
+
+                                            <TextView
+                                                android:id="@+id/maxuser"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:fontFamily="@font/rubik_regular"
+                                                android:gravity="right"
+                                                android:text="Max user"
+                                                android:textColor="@color/black"
+                                                android:textSize="12sp"
+                                                android:textStyle="bold" />
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:id="@+id/contest_name"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_gravity="start"
+                                            android:layout_weight="1.7"
+                                            android:fontFamily="@font/rubik_medium"
+                                            android:gravity="center"
+                                            android:maxEms="5"
+                                            android:maxLines="3"
+                                            android:paddingBottom="5dp"
+                                            android:text="qwertgfdgsfwfhwejfjfjwehfwjefhhfjwhhdgfjgdwyfygweydtt"
+                                            android:textColor="@color/black"
+                                            android:textSize="14sp"
+                                            android:textStyle="bold" />
+
+                                        <LinearLayout
+                                            android:layout_width="0dp"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1.2"
+                                            android:orientation="vertical">
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_gravity="end"
+                                                android:fontFamily="@font/rubik_regular"
+                                                android:maxLines="2"
+                                                android:text="USERS JOINED"
+                                                android:textColor="#9F0C05"
+                                                android:textSize="10sp" />
+
+                                            <TextView
+                                                android:id="@+id/joinuser"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_gravity="end"
+                                                android:fontFamily="@font/rubik_regular"
+                                                android:gravity="right"
+                                                android:text="Max user"
+                                                android:textColor="@color/black"
+                                                android:textSize="12sp"
+                                                android:textStyle="bold" />
+
+                                        </LinearLayout>
+
+
+                                    </LinearLayout>
+
+                                    <ProgressBar
+                                        android:id="@+id/progress"
+                                        style="?android:attr/progressBarStyleHorizontal"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="1.2dp"
+                                        android:layout_marginHorizontal="3dp"
+                                        android:layout_marginVertical="7dp"
+                                        android:max="16"
+                                        android:progress="15"
+                                        android:progressDrawable="@color/progressBar"
+
+                                        android:visibility="gone" />
+
+                                    <View
+                                        android:layout_width="match_parent"
+                                        android:layout_height="1dp"
+                                        android:layout_marginHorizontal="3dp"
+                                        android:layout_marginTop="8dp"
+                                        android:layout_marginBottom="3dp"
+                                        android:background="#d9d7d9" />
+
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:paddingVertical="5dp">
+
+                                        <LinearLayout
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal">
+
+                                            <ImageView
+                                                android:layout_width="15dp"
+                                                android:layout_height="15dp"
+                                                android:layout_marginHorizontal="2dp"
+                                                android:layout_marginTop="1dp"
+                                                android:src="@drawable/ic_flat" />
+
+                                            <TextView
+                                                android:id="@+id/winner"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_gravity="center"
+                                                android:fontFamily="@font/rubik_medium"
+                                                android:text="WINNERS : 3 "
+                                                android:textColor="@color/newGreen"
+                                                android:textSize="12sp" />
+
+                                        </LinearLayout>
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1" />
+
+                                        <LinearLayout
+                                            android:id="@+id/bonusLL"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:orientation="horizontal">
+
+                                            <ImageView
+                                                android:layout_width="15dp"
+                                                android:layout_height="15dp"
+                                                android:layout_marginHorizontal="5dp"
+                                                android:layout_marginTop="2dp"
+                                                android:src="@drawable/ic_money" />
+
+                                            <TextView
+                                                android:id="@+id/contestBonus"
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:layout_gravity="center"
+                                                android:fontFamily="@font/rubik_medium"
+                                                android:text="Bouns : 20%"
+                                                android:textColor="#7E0600"
+                                                android:textSize="12sp" />
+
+                                        </LinearLayout>
+
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginHorizontal="10dp"
+                                    android:background="@drawable/background_for_data_and_time"
+                                    android:orientation="horizontal"
+                                    android:paddingTop="15dp"
+                                    android:paddingBottom="20dp">
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:layout_marginTop="-1dp"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="start"
+                                            android:text="STARTS   "
+                                            android:textColor="#d23c36"
+                                            android:textSize="10dp" />
+
+                                        <TextView
+                                            android:id="@+id/contestStartDate"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="start"
+                                            android:text="Start Date"
+                                            android:textColor="@color/white"
+                                            android:textSize="11dp" />
+
+                                    </LinearLayout>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1" />
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="-1dp"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="center"
+                                            android:text="ENDS    "
+                                            android:textColor="#d23c36"
+                                            android:textSize="10dp" />
+
+                                        <TextView
+                                            android:id="@+id/contestEndDate"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginEnd="5dp"
+                                            android:layout_weight="1"
+                                            android:fontFamily="sans-serif-medium"
+                                            android:gravity="start"
+                                            android:hint="Start Date"
+                                            android:textColor="@color/textColorWhite"
+                                            android:textSize="11dp" />
+
+                                    </LinearLayout>
+
+
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:id="@+id/ContestJoinedLL"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:layout_marginTop="-18dp"
+                                    android:background="@drawable/green_button"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerInParent="true"
+                                        android:layout_gravity="center"
+                                        android:gravity="center"
+                                        android:paddingHorizontal="20dp"
+                                        android:paddingTop="3dp"
+                                        android:paddingBottom="3dp"
+                                        android:text="Entry Fee"
+                                        android:textColor="@color/white"
+                                        android:textSize="13sp"
+                                        android:visibility="gone" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerInParent="true"
+                                        android:layout_gravity="center"
+                                        android:gravity="center"
+                                        android:paddingHorizontal="15dp"
+                                        android:paddingTop="3dp"
+                                        android:text="Entry Fee"
+                                        android:textColor="@color/white"
+                                        android:textSize="11sp" />
+
+                                    <TextView
+                                        android:id="@+id/btnJoin"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerInParent="true"
+                                        android:layout_gravity="center"
+                                        android:gravity="center"
+                                        android:paddingHorizontal="20dp"
+                                        android:paddingBottom="3dp"
+                                        android:text="₹ 50"
+                                        android:textColor="@color/textColorWhite"
+                                        android:textSize="15sp" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingLeft="10dp"
+                                android:paddingRight="10dp"
+                                android:paddingBottom="2dp">
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical"
+                                    android:orientation="vertical">
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </RelativeLayout>
+
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!--
+                                <com.google.android.material.tabs.TabLayout
+                                    android:id="@+id/tabLayout"
+                                    style="@style/TabLayoutStyle"
+                                    android:layout_width="match_parent"
+                                    android:layout_marginBottom="@dimen/_5sdp"
+                                    android:layout_marginTop="@dimen/_10sdp"
+                                    android:layout_marginHorizontal="@dimen/_10sdp"
+                                    android:layout_height="@dimen/_30sdp"
+                                    android:layout_gravity="center_horizontal"
+                                    app:tabIndicatorFullWidth="true"
+                                    app:tabIndicatorHeight="0dp"
+                                    app:tabInlineLabel="true"
+                                    app:tabMode="fixed"
+                                    app:tabTextColor="@color/white" />
+                -->
+
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@android:color/transparent"
+                    android:backgroundTint="@color/white"
+                    app:tabBackground="@drawable/tablayout_background"
+                    app:tabIndicatorColor="@color/textColorRed"
+                    app:tabIndicatorHeight="0dp"
+                    app:tabMode="fixed"
+                    app:tabPadding="1dp"
+                    app:tabPaddingEnd="8dp"
+                    app:tabPaddingStart="8dp"
+                    app:tabRippleColor="@color/textColorRed"
+                    app:tabSelectedTextColor="@color/white"
+                    app:tabTextAppearance="@style/TabText"
+                    app:tabTextColor="@color/white">
+
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="5dp"
+                        android:text="Prize card" />
+
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="5dp"
+                        android:paddingVertical="5dp"
+                        android:text="Leaderboard" />
+
+                </com.google.android.material.tabs.TabLayout>
+
+                <!--<com.google.android.material.tabs.TabLayout
+
+                    android:id="@+id/tabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="@dimen/_10sdp"
+                    android:layout_marginHorizontal="40dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@null"
+                    android:elevation="6dp"
+                    app:tabBackground="@drawable/tablayout_background"
+                    app:tabIndicatorHeight="0dp"
+                    app:tabMode="auto"
+                    app:tabPadding="10dp"
+                    app:tabRippleColor="@color/textColorRed"
+                    app:tabTextAppearance="@style/TabText"
+                    app:tabTextColor="@color/white" />-->
+
+                <androidx.viewpager.widget.ViewPager
+                    android:id="@+id/viewpager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+</LinearLayout>

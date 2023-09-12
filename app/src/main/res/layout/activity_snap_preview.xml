@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:transitionName="@string/transition_shared_dummy"
+        />
+
+    <VideoView
+        android:visibility="gone"
+        android:id="@+id/videoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true" />
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/video_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:resize_mode="fill"
+        app:surface_type="texture_view"
+        app:keep_content_on_player_reset="true"
+        app:use_controller="false"
+        app:show_buffering="never"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/image_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/exit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@drawable/button_background"
+        android:fitsSystemWindows="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_close_new"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:visibility="gone"
+        android:id="@+id/export_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@drawable/button_background"
+        android:fitsSystemWindows="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/ic_export_32x32"
+        android:tint="@drawable/disabled_selector"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <TextView
+        style="@style/textViewStyle"
+        android:id="@+id/sendToUploadBtn"
+        android:layout_width="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:layout_marginTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Next Step"
+        android:textColor="@color/white"
+        android:background="@drawable/cardview_look"
+        android:backgroundTint="@color/commanBackground"
+        />
+
+
+    <LinearLayout
+        android:id="@+id/sideLayout"
+        android:layout_width="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sendToUploadBtn"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="5dp"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            style="@style/imageButtonStyle"
+            android:id="@+id/music"
+            android:src="@drawable/add_music_ic"
+            android:contentDescription="Add Music"/>
+
+        <ImageButton
+            android:visibility="gone"
+            android:id="@+id/addTextBtn"
+            style="@style/imageButtonStyle"
+            android:src="@drawable/add_text_ic"
+            app:tint="@color/bgColorWhite"
+            android:contentDescription="Add Text" />
+
+        <ImageButton
+            android:id="@+id/videoSpeed"
+            style="@style/imageButtonStyle"
+            android:src="@drawable/video_speed_ic"
+            app:tint="@color/bgColorWhite"
+            android:contentDescription="Video Speed" />
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/slowVideo"
+            style="@style/imageButtonStyle"
+            android:layout_height="35dp"
+            android:text="Slow"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/textColorWhite"/>
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/normalVideo"
+            style="@style/imageButtonStyle"
+            android:layout_height="35dp"
+            android:text="Normal"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/textColorWhite"/>
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/fastVideo"
+            style="@style/imageButtonStyle"
+            android:layout_height="35dp"
+            android:text="Fast"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/textColorWhite"/>
+
+        <ImageButton
+            android:visibility="gone"
+            android:id="@+id/addFilterBtn"
+            style="@style/imageButtonStyle"
+            android:src="@drawable/ic_flash_on"
+            app:tint="@color/bgColorWhite"
+            android:contentDescription="Add Text" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/videoSpeedState"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:animateLayoutChanges="true"
+        app:layout_constraintBottom_toBottomOf="@+id/sideLayout"
+        app:layout_constraintEnd_toStartOf="@+id/sideLayout">
+
+        <TextView
+            android:id="@+id/x.5Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text=".5x"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            app:tint="@color/bgColorWhite" />
+
+        <TextView
+            android:id="@+id/x1Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text="1x"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginEnd="3dp"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:tint="@color/bgColorWhite" />
+
+        <TextView
+            android:id="@+id/x2Speed"
+            style="@style/imageButtonStyle"
+            android:contentDescription="Video Speed"
+            android:background="@drawable/white_border"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/video_speed_ic"
+            android:text="2x"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_marginEnd="3dp"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            app:tint="@color/bgColorWhite" />
+
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

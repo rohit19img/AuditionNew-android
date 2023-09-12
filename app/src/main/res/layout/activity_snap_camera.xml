@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:fitsSystemWindows="true"
+    >
+
+    <com.snap.camerakit.support.widget.CameraLayout
+        android:id="@+id/camera_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="false"
+        android:splitMotionEvents="true"
+        app:lensesCarouselHeight="@dimen/lenses_carousel_height"
+        app:lensesCarouselMarginBottom="@dimen/lenses_carousel_margin_bottom"
+        app:lensesCarouselCloseButtonMarginBottom="@dimen/lenses_carousel_close_button_margin_bottom"
+        >
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/audioPlayerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:show_timeout="0"/>
+
+        <com.img.audition.customView.LineProgressView
+            android:id="@+id/line_view"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:pv_divider_width="1dp"
+            app:pv_radius="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:id="@+id/videoDuration"
+            android:textColor="@color/textColorWhite"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/videoDuration"
+            android:id="@+id/durationHint"
+            android:background="@drawable/cardview_look"
+            android:textColor="@color/textColorBlack"
+            app:layout_constraintTop_toTopOf="parent"
+            android:padding="8dp"
+            android:layout_marginTop="35dp"/>
+
+        <ImageButton
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            style="@style/imageButtonStyle"
+            android:id="@+id/music"
+            android:src="@drawable/add_music_ic"
+            android:contentDescription="Add Music"/>
+
+
+        <TextureView
+            android:id="@+id/mini_preview"
+            android:layout_width="126dp"
+            android:layout_height="224dp"
+            android:layout_gravity="bottom|end"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+
+
+        <RelativeLayout
+            android:visibility="gone"
+            android:id="@+id/progressLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_centerInParent="true"
+                android:indeterminate="true"
+                app:indicatorSize="64dp"
+                app:indicatorDirectionCircular="clockwise"
+                app:indicatorColor="#EC410E"
+                app:trackColor="#FF9800"
+                app:trackThickness="10dp"
+                android:id="@+id/progressCompile"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Please wait..."
+                android:textColor="@color/textColorWhite"
+                android:layout_below="@id/progressCompile"
+                android:layout_centerHorizontal="true"
+                android:layout_margin="10dp"
+                android:padding="5dp"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+        </RelativeLayout>
+        <ImageView
+            android:id="@+id/selectFromGallery"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/ic_photo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="15dp"
+            android:layout_marginStart="20dp"
+          />
+
+
+
+        <ImageView
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="15dp"
+            android:id="@+id/backPressIC"
+            style="@style/imageButtonStyle"
+            android:padding="15dp"
+            android:layout_gravity="start"
+            app:tint="@color/bgColorWhite"
+            android:src="@drawable/back_arrow_ic" />
+
+    </com.snap.camerakit.support.widget.CameraLayout>
+
+    <FrameLayout
+        android:id="@+id/viewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+</androidx.drawerlayout.widget.DrawerLayout>

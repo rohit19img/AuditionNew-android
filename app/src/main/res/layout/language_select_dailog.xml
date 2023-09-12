@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/top_two_corner_round">
+
+        <TextView
+            android:id="@+id/header_text"
+            style="@style/textViewStyle"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:text="Select your language"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/title_text"
+            style="@style/textViewStyle"
+            android:layout_below="@id/header_text"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"
+            android:text="See videos made in this language"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/langConfirmBtn"
+            style="@style/textViewStyle1"
+            android:layout_width="match_parent"
+            android:layout_below="@id/languageRecyclerView"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="1"
+            android:background="@drawable/cardview_look"
+            android:paddingStart="20dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="10dp"
+            android:text="Confirm"
+            android:textColor="@color/textColorBlack" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/languageRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/title_text"
+            android:layout_marginTop="5dp"
+            android:orientation="vertical"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="3"
+            tools:listitem="@layout/language_item" />
+    </RelativeLayout>
+
+
+</RelativeLayout>

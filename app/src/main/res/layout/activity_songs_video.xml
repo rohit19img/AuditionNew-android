@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.TryAudioActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:background="@color/bgColorDarkRed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+            <ImageView
+                android:id="@+id/backPressIC"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="0dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="0dp"
+                android:padding="5dp"
+                android:paddingStart="0dp"
+                android:src="@drawable/back_arrow_ic" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <RelativeLayout
+        android:paddingTop="10dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp"
+        android:id="@+id/hashView"
+        android:layout_below="@id/toolbar"
+        android:layout_width="match_parent"
+        android:background="@color/bgColorDarkRed"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/audioImageCard"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            app:cardBackgroundColor="@color/Gray"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="50dp">
+
+            <ImageView
+                android:id="@+id/audiImage"
+                android:src="@drawable/music_ic"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:scaleType="fitXY" />
+
+        </androidx.cardview.widget.CardView>
+
+
+        <RelativeLayout
+            android:layout_toEndOf="@id/audioImageCard"
+            android:id="@+id/soundDetailsLy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+           >
+
+            <ImageView
+                android:id="@+id/mIc"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:paddingBottom="15dp"
+                android:layout_marginEnd="2dp"
+                android:src="@drawable/song_lyrisc_ic"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Original Sound"
+                android:textStyle="bold"
+                android:layout_toEndOf="@id/mIc"
+                android:layout_marginTop="20dp"
+                android:letterSpacing="0.1"
+                android:textColor="@color/textColorWhite"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:id="@+id/subTitle"
+                android:layout_below="@id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Original creator @Biggee"
+                android:textColor="@color/textColorYellow"
+                android:layout_marginTop="6dp"
+                android:padding="5dp"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_below="@id/soundDetailsLy"
+            android:layout_toEndOf="@id/audioImageCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:id="@+id/play_pause_button"
+                android:padding="5dp"
+                android:src="@drawable/ic_play"
+                android:background="@null"
+                android:layout_marginEnd="0dp"
+                android:paddingEnd="0dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"/>
+
+
+            <SeekBar
+                android:id="@+id/seek_bar"
+                android:thumbTint="@color/bgColorWhite"
+                android:progressTint="@color/bgColorWhite"
+                android:progressBackgroundTint="@color/Gray"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/totalDuration"
+                android:layout_toEndOf="@id/play_pause_button"
+                android:layout_centerVertical="true"
+               />
+
+            <TextView
+                android:id="@+id/totalDuration"
+                android:layout_width="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:textColor="@color/textColorWhite"
+                />
+
+
+        </RelativeLayout>
+
+
+    </RelativeLayout>
+
+
+    <ImageView
+        android:id="@+id/noVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/hashView"
+        android:background="@color/bgColorWhite"
+        android:src="@drawable/no_video"
+        android:visibility="gone"
+        android:layout_marginTop="10dp"
+        app:tint="@color/bgColorDarkRed" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_below="@+id/hashView"
+        android:layout_margin="2dp"
+        android:visibility="gone"
+        android:background="@color/bgColorWhite"
+        tools:listitem="@layout/video_item_view"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3"
+        android:id="@+id/userVideoRecycle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/hashView">
+
+        <include layout="@layout/user_videoitem_view_shimer" />
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/createVideo"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_height="50dp"
+        android:layout_marginBottom="60dp"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="10dp"
+        style="@style/carViewStyle">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <ImageView
+                android:id="@+id/camIc"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_centerInParent="true"
+                android:background="@color/white"
+                android:src="@drawable/ic_videocam"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                app:tint="@color/black" />
+
+            <TextView
+                style="@style/textViewStyle"
+                android:layout_centerInParent="true"
+                android:layout_marginStart="0dp"
+                android:layout_toEndOf="@id/camIc"
+                android:text="Try Audio"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

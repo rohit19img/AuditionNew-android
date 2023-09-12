@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.SharedVideoPlayActivity">
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/showVideoShimmer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <RelativeLayout
+            android:background="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="vertical"
+                android:padding="100dp">
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="50dp"
+                    android:layout_margin="5dp"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/sideLayout"
+                android:layout_above="@id/bottomLayousaast"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:layout_alignParentEnd="true"
+                android:layout_height="wrap_content">
+
+
+                <View
+                    android:background="@color/Gray"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="5dp"
+
+                    />
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="50dp"
+                    android:layout_margin="5dp" />
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="15dp"
+                    android:layout_margin="5dp"
+                    />
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="50dp"
+                    android:layout_margin="5dp" />
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="15dp"
+                    android:layout_margin="5dp"/>
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="50dp"
+                    android:layout_margin="5dp"  />
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="15dp"
+                    android:layout_margin="5dp"/>
+
+                <View
+                    android:layout_width="50dp"
+                    android:background="@color/Gray"
+                    android:layout_height="15dp"
+                    android:layout_margin="5dp" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_marginStart="5dp"
+                android:id="@+id/bottomLayousaast"
+                android:layout_alignParentBottom="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                >
+
+                <View
+                    android:id="@+id/userNadssdsme"
+                    android:layout_width="100dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@color/Gray" />
+
+                <View
+                    android:layout_toEndOf="@id/userNadssdsme"
+                    android:id="@+id/followButton"
+                    android:layout_width="100dp"
+                    android:layout_margin="5dp"
+                    android:layout_height="30dp"
+                    android:background="@color/Gray"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:textAlignment="center"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    />
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/userNadssdsme"
+                    >
+
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_margin="5dp"
+                        android:layout_height="20dp"
+                        android:background="@color/Gray"
+                        android:id="@+id/videdsdsoCaption"
+                        />
+
+                    <RelativeLayout
+                        android:layout_below="@id/videdsdsoCaption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        >
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_margin="5dp"
+                            android:layout_height="20dp"
+                            android:background="@color/Gray"
+                            />
+                    </RelativeLayout>
+
+
+                </RelativeLayout>
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/videoCycle"/>
+
+</RelativeLayout>

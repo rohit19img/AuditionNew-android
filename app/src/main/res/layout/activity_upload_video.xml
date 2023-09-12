@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/new_background"
+    tools:context=".screens.UploadVideoActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/backPressIC"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="0dp"
+                android:padding="5dp"
+                android:paddingStart="0dp"
+                android:src="@drawable/ic_close_new" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="15dp"
+                android:layout_toEndOf="@id/backPressIC"
+                android:padding="1dp"
+                android:text="New Post"
+                android:textColor="@color/textColorWhite"
+                android:textSize="18sp" />
+
+
+            <TextView
+                android:id="@+id/uploadVideoBtn"
+                android:layout_width="80dp"
+                android:layout_height="45dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="15dp"
+                android:background="@drawable/post_video"
+                android:gravity="center"
+                android:src="@drawable/ic_check"
+                android:text="Post"
+                android:textColor="@color/white"
+                app:tint="@color/textColorYellow" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:id="@+id/l1"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="20dp"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/videoThumbnail"
+                    android:layout_width="130dp"
+                    android:layout_height="160dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@drawable/image_bg"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item2" />
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:id="@+id/cycleView"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_below="@id/captionForVideoET"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/userCycle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/userlistrecycledesign" />
+
+            </RelativeLayout>
+
+            <EditText
+                android:id="@+id/captionForVideoET"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_below="@id/l1"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/white_border"
+                android:backgroundTint="#E10F05"
+                android:gravity="left"
+                android:hint="Write @ for tagging friends and  # for hashtag"
+                android:inputType="textMultiLine"
+                android:maxLength="250"
+                android:maxLines="4"
+                android:minLines="3"
+                android:padding="10dp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white" />
+
+            <RelativeLayout
+                android:id="@+id/showBtnView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/captionForVideoET">
+
+                <TextView
+                    android:id="@+id/addLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_for_upload_activity"
+                    android:drawableStart="@drawable/ic_location"
+                    android:paddingVertical="14dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="  Add location"
+                    android:textColor="@color/textColorWhite"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/addHashtagBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/addLocation"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_for_upload_activity"
+                    android:drawableStart="@drawable/hashtag_svgrepo_com"
+                    android:paddingVertical="14dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="  Hashtags"
+                    android:textColor="@color/textColorWhite"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tagFriendBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/addHashtagBtn"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_for_upload_activity"
+                    android:drawableStart="@drawable/people_svgrepo_com"
+                    android:paddingVertical="14dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="   Friends"
+                    android:textColor="@color/textColorWhite"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/postSettingBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tagFriendBtn"
+                    android:layout_marginHorizontal="15dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_for_upload_activity"
+                    android:drawableStart="@drawable/group_857"
+                    android:paddingVertical="14dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="   Post Setting"
+                    android:textColor="@color/textColorWhite"
+                    android:textSize="16sp" />
+
+
+            </RelativeLayout>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/uploadVideoBtn3333"
+                style="@style/carViewStyle"
+                android:layout_width="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="15dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/bgColorYellow">
+
+                <TextView
+                    style="@style/textViewStyle"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:text="Upload Video"
+                    android:textAlignment="center"
+                    android:textColor="@color/textColorWhite"
+                    android:textStyle="bold" />
+
+            </androidx.cardview.widget.CardView>
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+
+</RelativeLayout>

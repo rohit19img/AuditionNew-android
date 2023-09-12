@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/tablayout_background"
+        android:state_selected="true" />
+    <item android:drawable="@drawable/tab_selected"
+        android:state_selected="false" />
+</selector>
+run kru
+&ndash;&gt;-->
+
+<!--
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <layer-list>
+            <item android:right="10dp" android:top="10dp"
+                android:bottom="10dp" android:left="10dp">
+<shape>
+    <solid android:color="@color/float_transparent" />
+</shape>
+            </item>
+
+        </layer-list>
+        <layer-list>
+            <item android:bottom="@dimen/_1sdp" android:left="@dimen/_1sdp" android:right="@dimen/_1sdp" android:top="@dimen/_1sdp">
+                <shape>
+                    <padding android:bottom="@dimen/_2sdp"
+                        android:top="@dimen/_2sdp"
+                        android:right="@dimen/_8sdp"
+                        android:left="@dimen/_8sdp"/>
+                    <solid android:color="#E10F05" />
+                    <corners android:radius="@dimen/_30sdp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item android:bottom="@dimen/_1sdp" android:left="@dimen/_5sdp" android:right="@dimen/_5sdp" android:top="@dimen/_1sdp">
+        <shape>
+            <padding android:bottom="@dimen/_2sdp"
+                android:top="@dimen/_2sdp"
+                android:right="@dimen/_8sdp"
+                android:left="@dimen/_8sdp"/>
+
+            <solid android:color="#8D0700" />
+            <corners android:radius="@dimen/_30sdp" />
+        </shape>
+    </item>
+
+</selector>-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <layer-list>
+            <item >
+                <shape>
+                    <solid android:color="@color/float_transparent" />
+                </shape>
+            </item>
+            <item android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp">
+                <shape>
+                    <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+                    <solid android:color="#E10F05" />
+                    <corners android:radius="@dimen/_30sdp" />
+                </shape>
+            </item>
+
+        </layer-list>
+    </item>
+
+    <item android:bottom="@dimen/_1sdp" android:left="@dimen/_5sdp" android:right="@dimen/_5sdp" android:top="@dimen/_1sdp">
+
+        <layer-list>
+            <item >
+                <shape>
+                    <solid android:color="@color/float_transparent" />
+                </shape>
+            </item>
+            <item android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp">
+                <shape>
+                    <padding android:bottom="10dp" android:left="@dimen/_10sdp" android:right="@dimen/_10sdp" android:top="@dimen/_10sdp" />
+
+                    <solid android:color="#8D0700" />
+                    <corners android:radius="@dimen/_30sdp" />
+                </shape>
+            </item>
+
+        </layer-list>
+    </item>
+
+</selector>

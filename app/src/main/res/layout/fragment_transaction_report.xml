@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_marginTop="20dp"
+    style="@style/CustomBottomSheetDialogTheme"
+    android:layout_height="match_parent"
+    android:background="@color/bgColorWhite"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".screens.fragment.TransactionReportFragment">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bgColorWhite">
+
+     <LinearLayout
+         android:layout_margin="0dp"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         >
+         <ImageView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/closeMusicSheetButton"
+             android:padding="8dp"
+             android:contentDescription="close ic"
+             app:tint="@color/bgColorRed"
+             android:src="@drawable/close_ic"/>
+
+         <TextView
+             android:layout_marginStart="5dp"
+             android:layout_gravity="center_vertical"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:text="Transaction Report"
+             android:textColor="@color/textColorRed"
+             android:textSize="18sp"
+             android:textStyle="bold"/>
+     </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <TextView
+        android:id="@+id/noTrans"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="5dp"
+        android:text="No Transaction"
+        android:textColor="@color/textColorDarkRed"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:visibility="gone"
+        android:background="@color/bgColorRed"
+        android:layout_below="@id/toolbar"
+        android:id="@+id/transReportCycle"
+        android:layout_width="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/transaction_report_layout"
+        android:layout_height="match_parent"/>
+
+
+</RelativeLayout>

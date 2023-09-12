@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:id="@+id/layout"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/contest_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="10dp"
+        android:fontFamily="sans-serif-medium"
+        android:padding="5dp"
+        android:hint="Image Contest"
+        android:textColorHint="@color/commanBackground"
+        android:visibility="gone"
+        android:textColor="@color/commanBackground"
+        android:textSize="16dp" />
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <RelativeLayout
+            android:id="@+id/view_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/contestImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/item2" />
+
+
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/contestVideo"
+                app:resize_mode="fill"
+                android:visibility="gone"
+                app:surface_type="texture_view"
+                app:keep_content_on_player_reset="true"
+                app:use_controller="false"
+                app:show_buffering="never"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+
+        </RelativeLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/_3sdp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="4dp"
+            app:cardElevation="4dp">
+
+            <RelativeLayout
+                android:id="@+id/ll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/card_rummy_design">
+
+                <TextView
+                    android:id="@+id/contestTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_gravity="center_horizontal"
+                    android:fontFamily="sans-serif-medium"
+                    android:padding="2.5dp"
+                    android:hint="Check PrizeCard"
+                    android:textColorHint="@color/white"
+                    android:textColor="@color/white"
+                    android:textSize="10dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginRight="8dp"
+                        android:layout_marginLeft="8dp"
+                        android:padding="2dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/prizetxt"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="Contest Prize"
+                                android:text="Contest Prize"
+                                android:textColor="@color/gray_btn_bg_color"
+                                android:textSize="13dp" />
+
+                            <TextView
+                                android:id="@+id/winamount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:hint="₹ 1000"
+                                android:text="₹ 1000"
+                                android:textColor="@color/white"
+                                android:textSize="16dp"
+                                android:visibility="visible" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0px"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:gravity="center">
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="right"
+                                android:gravity="right"
+                                android:text="Winners"
+                                android:textColor="@color/gray_btn_bg_color"
+                                android:textSize="12dp"
+                                android:textStyle="normal" />
+
+                            <LinearLayout
+                                android:id="@+id/joincontest"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/winner"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:paddingTop="3dp"
+                                    android:paddingBottom="3dp"
+                                    android:hint="1"
+                                    android:textColorHint="@color/white"
+                                    android:textColor="@color/white"
+                                    android:textSize="14dp"
+                                    android:visibility="visible" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:paddingLeft="10dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:visibility="gone"
+                                android:id="@+id/joinuser"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="left"
+                                android:layout_weight="1"
+                                android:hint="Joining User :"
+                                android:textColorHint="@color/gray_btn_bg_color"
+                                android:textColor="@color/gray_btn_bg_color"
+                                android:textSize="11dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textStyle="normal" />
+
+                            <TextView
+                                android:visibility="gone"
+                                android:id="@+id/maxuser"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="right"
+                                android:gravity="right"
+                                android:hint="Max. joining :"
+                                android:textColorHint="@color/gray_btn_bg_color"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/gray_btn_bg_color"
+                                android:textSize="11dp"
+                                android:textStyle="normal" />
+
+
+                        </LinearLayout>
+
+                        <ProgressBar
+                            android:id="@+id/teamEnteredPB"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_gravity="center"
+                            android:max="16"
+                            android:progress="15"
+                            android:progressDrawable="@drawable/custom_progressbar" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingTop="2dp"
+                            android:layout_gravity="end"
+                            android:layout_marginTop="2dp"
+                            android:paddingBottom="2dp">
+
+                            <TextView
+                                android:visibility="gone"
+                                android:id="@+id/start"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif-medium"
+                                android:hint="Time Left: 06:00"
+                                android:textColorHint="@color/textColorYellow"
+                                android:textColor="@color/textColorYellow"
+                                android:textSize="12dp" />
+
+                            <TextView
+                                android:id="@+id/enddate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:layout_gravity="end"
+                                android:gravity="end"
+                                android:hint="Total Joined : "
+                                android:textColorHint="@color/textColorYellow"
+                                android:textColor="@color/textColorYellow"
+                                android:textSize="12dp"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="2dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:orientation="vertical">
+
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+            </RelativeLayout>
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+</LinearLayout>
+

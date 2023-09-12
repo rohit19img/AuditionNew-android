@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "839125335573",
+    "project_id": "audition-887d5",
+    "storage_bucket": "audition-887d5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839125335573:android:5db4230311817375a8581c",
+        "android_client_info": {
+          "package_name": "com.img.audition"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839125335573-fr5id8lt5f8ot60dfjiht2th6imsbvjo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCW5hFK6VWvANyzehkkM-NYPEunOWMbQwI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839125335573-fr5id8lt5f8ot60dfjiht2th6imsbvjo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

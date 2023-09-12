@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AudioTrimmer.iml" filepath="$PROJECT_DIR$/.idea/modules/AudioTrimmer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AudioTrimmer.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/AudioTrimmer.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AudioTrimmer.main.iml" filepath="$PROJECT_DIR$/.idea/modules/AudioTrimmer.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AudioTrimmer.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/AudioTrimmer.unitTest.iml" />
+    </modules>
+  </component>
+</project>

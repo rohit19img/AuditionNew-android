@@ -40,6 +40,7 @@ import java.util.*
 
     private val mSocket by lazy {
         VideoCacheWork.mSocket!!
+
     }
 
     private val firebaseDB by lazy {

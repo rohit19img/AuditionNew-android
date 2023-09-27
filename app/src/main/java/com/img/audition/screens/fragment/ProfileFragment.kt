@@ -110,6 +110,12 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
         getUserVideo()
 
+        view.userName.setOnClickListener {
+            contextFromActivity.startActivity(
+                Intent(contextFromActivity,UpdatesActivity::class.java)
+            )
+        }
+
         view.editProfileBtn.setOnClickListener {
             senToEditProfile()
         }

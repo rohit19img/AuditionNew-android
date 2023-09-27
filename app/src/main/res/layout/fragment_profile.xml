@@ -133,6 +133,7 @@
                     android:background="@color/bgHintColor"
                     android:scaleType="fitXY"
                     android:src="@drawable/person_ic" />
+
             </androidx.cardview.widget.CardView>
 
             <LinearLayout

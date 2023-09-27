@@ -107,6 +107,7 @@ class HomeActivity : AppCompatActivity() {
 
         viewBinding.bottomNav.backgroundTintList =
             ContextCompat.getColorStateList(this, android.R.color.transparent)
+
         viewBinding.bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> {
@@ -175,6 +176,20 @@ class HomeActivity : AppCompatActivity() {
                         false
                     }
                 }
+//                R.id.updates -> {
+//                    clearTempSession()
+//                    if (myApplication.isNetworkConnected()) {
+//                        if (!(sessionManager.isUserLoggedIn())) {
+//                            sendToLoginScreen()
+//                        } else {
+//                            loadFragment(ProfileFragment(this@HomeActivity))
+//                        }
+//                        true
+//                    } else {
+//                        checkInternetDialog(R.id.profile)
+//                        false
+//                    }
+//                }
 
                 else -> {
                     clearTempSession()

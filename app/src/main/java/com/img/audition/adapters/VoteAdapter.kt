@@ -16,6 +16,7 @@ import com.google.gson.JsonObject
 import com.img.audition.R
 import com.img.audition.dataModel.CommanResponse
 import com.img.audition.dataModel.VoteData
+import com.img.audition.dataModel.Votes
 import com.img.audition.databinding.VoteItemHolderDesignBinding
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
@@ -36,13 +37,15 @@ class VoteAdapter(
     val id: String,
     val voteDialog: Dialog,
     val videoAdapter: VideoAdapter,
-    val position: Int
+    val position: Int,
+    val votes: ArrayList<Votes>
 
 ) : RecyclerView.Adapter<VoteAdapter.ViewHolder>()
 {
     inner class ViewHolder(itemView: VoteItemHolderDesignBinding) : RecyclerView.ViewHolder(itemView.root){
         val voteEmoji = itemView.voteImage
         val voteText = itemView.voteText
+        val voteCount = itemView.voteCount
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemBinding = VoteItemHolderDesignBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -54,7 +57,8 @@ class VoteAdapter(
             try {
                 val data = voteList[position]
                 voteEmoji.text = data.emoji
-                voteText.text = data.vote + "Vote"
+                voteText.text = "${data.vote} Votes"
+                voteCount.text = votes[position].uservotes
 
 
                 itemView.setOnClickListener {

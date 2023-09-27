@@ -127,7 +127,9 @@ import java.util.*
                 val bio = viewBinding.bio.text.toString().trim()
                 val gender = viewBinding.gender.text.toString().trim()
                 val dob = viewBinding.dob.text.toString().trim()
-                editProfile(name,auditionID,bio,gender,dob,imagePath)
+                val city = viewBinding.city.text.toString().trim()
+                val state = viewBinding.state.text.toString().trim()
+                editProfile(name,auditionID,bio,gender,dob,imagePath,city,state)
                 verifyUserDetails(name,auditionID,bio,gender,dob,imagePath)
             }else{
                 myApplication.showToast(ConstValFile.Check_Connection)
@@ -195,6 +197,8 @@ import java.util.*
                                          viewBinding.bio.setText(userData.bio.toString())
                                          viewBinding.gender.text = userData.gender.toString()
                                          viewBinding.dob.text = userData.dob.toString()
+                                         viewBinding.city.setText(userData.city.toString())
+                                         viewBinding.state.setText(userData.state.toString())
                                          gender = userData.gender.toString()
                                      } else {
                                          Log.e(TAG,  "Get Other User Self Data Response Failed")
@@ -319,7 +323,9 @@ import java.util.*
         bio: String,
         gender: String,
         dob: String,
-        imagePath: String
+        imagePath: String,
+        city: String,
+        state: String
     ) {
         try {
             val editProfileApiUrl: String = APITags.APIBASEURL +"editProfile"
@@ -345,6 +351,8 @@ import java.util.*
                     map["bio"] = bio
                     map["gender"] = gender
                     map["dob"] = dob
+                    map["city"] = city
+                    map["state"] = state
                     Log.i("params", map.toString())
                     return map
                 }
@@ -372,7 +380,7 @@ import java.util.*
             d.setMessage("Something went wrong, Please try again")
             d.setPositiveButton(
                 "Retry"
-            ) { dialog, which -> editProfile(name, auditionID, bio, gender, dob, this.imagePath) }
+            ) { dialog, which -> editProfile(name, auditionID, bio, gender, dob, this.imagePath,city,state) }
             d.setNegativeButton(
                 "Cancel"
             ) { dialog, which -> (this@EditProfileActivity as Activity).finishAffinity() }

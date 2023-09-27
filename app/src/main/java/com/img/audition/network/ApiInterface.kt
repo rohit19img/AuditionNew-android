@@ -353,4 +353,12 @@ interface ApiInterface {
         @Header("Authorization") Auth: String?,
         @Query("id") contestID: String?
     ): Call<JoinUsableBalanceResponse>
+
+    @Multipart
+    @POST(APITags.UploadStatus)
+    fun UploadStatus(
+        @Header(APITags.AUTHORIZATION) auth: String?,
+        @Part image: MultipartBody.Part?
+    ): Call<CommanResponse>
+
 }

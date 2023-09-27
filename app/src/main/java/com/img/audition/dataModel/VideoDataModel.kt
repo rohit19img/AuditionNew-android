@@ -28,6 +28,7 @@ data class VideoData(
     @SerializedName("checked"        ) var checked       : Boolean?          = null,
     @SerializedName("wrongContent"   ) var wrongContent  : Boolean?          = null,
     @SerializedName("comment"        ) var comment       : ArrayList<Comment> = arrayListOf(),
+    @SerializedName("votes"        ) var votes       : ArrayList<Votes> = arrayListOf(),
     @SerializedName("private"        ) var private       : Boolean?          = false,
     @SerializedName("shares"         ) var shares        : Int?              = null,
     @SerializedName("postId"         ) var postId        : String?           = null,
@@ -55,6 +56,14 @@ data class VideoData(
 
     ) : java.io.Serializable
 
+data class Votes(
+    @SerializedName("uservotes"     ) var uservotes    : String? = null,
+    @SerializedName("_id"           ) var Id           : String? = null,
+    @SerializedName("like_category" ) var likeCategory : String? = null,
+    @SerializedName("vote"          ) var vote         : String? = null,
+    @SerializedName("__v"           ) var _v           : Int?    = null,
+    @SerializedName("emoji"         ) var emoji        : String? = null
+) : java.io.Serializable
 
 data class VoteDataResponse(
     @SerializedName("success" ) var success : Boolean?        = null,

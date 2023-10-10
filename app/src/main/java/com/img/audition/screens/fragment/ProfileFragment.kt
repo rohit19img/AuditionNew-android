@@ -39,6 +39,7 @@ import com.img.audition.screens.*
 import com.img.audition.viewModel.MainViewModel
 import com.img.audition.viewModel.Status
 import com.img.audition.viewModel.ViewModelFactory
+import de.hdodenhof.circleimageview.CircleImageView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -73,7 +74,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     lateinit var followingCount: TextView
     lateinit var userBio: TextView
     lateinit var userVideoRecycle: RecyclerView
-    lateinit var userImageView: ImageView
+    lateinit var userImageView: CircleImageView
     lateinit var noVideoImage: ImageView
     lateinit var menuButton: ImageView
     lateinit var drawerLayout: DrawerLayout
@@ -110,7 +111,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
         getUserVideo()
 
-        view.userName.setOnClickListener {
+        view.userImageView.setOnClickListener {
             contextFromActivity.startActivity(
                 Intent(contextFromActivity,UpdatesActivity::class.java)
             )
@@ -144,8 +145,17 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.refer.setOnClickListener {
-            val referMessage = "Hey!  I Found a very exciting app  to create videos Biggee, Use my referral code $referCode to get started"
+            val referMessage = "Hey!  I Found a very exciting app  to create videos Biggee, Use my referral code $referCode to get started\nDownload app from https://play.google.com/store/apps/details?id=com.img.audition"
             shareDialog(referMessage)
+        }
+
+        view.shareProfile.setOnClickListener {
+            val referMessage = "Hey! Follow my profile on biggee search ${sessionManager.getUserAuditionID()} or Click https://biggee.com/profile/${sessionManager.getUserAuditionID()} \n Download App from https://play.google.com/store/apps/details?id=com.img.audition"
+            shareDialog(referMessage)
+        }
+
+        view.howToWin.setOnClickListener {
+            //todo content needed
         }
 
         view.help.setOnClickListener {

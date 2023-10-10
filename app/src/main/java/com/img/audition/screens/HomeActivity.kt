@@ -194,15 +194,16 @@ class HomeActivity : AppCompatActivity() {
                 else -> {
                     clearTempSession()
                     if (myApplication.isNetworkConnected()) {
-                        val videoFragment = VideoFragment(this)
-                        val bundle = Bundle()
-                        bundle.putSerializable(ConstValFile.ForYouVideoList, forYouVideoList)
-                        bundle.putSerializable(
-                            ConstValFile.LiveContestVideoList,
-                            liveContestVideoList
-                        )
-                        videoFragment.arguments = bundle
-                        loadFragment(videoFragment)
+//                        val videoFragment = VideoFragment(this)
+//                        val bundle = Bundle()
+//                        bundle.putSerializable(ConstValFile.ForYouVideoList, forYouVideoList)
+//                        bundle.putSerializable(
+//                            ConstValFile.LiveContestVideoList,
+//                            liveContestVideoList
+//                        )
+//                        videoFragment.arguments = bundle
+//                        loadFragment(videoFragment)
+
                         true
                     } else {
                         checkInternetDialog(R.id.home)

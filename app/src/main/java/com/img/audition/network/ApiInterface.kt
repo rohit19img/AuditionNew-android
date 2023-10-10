@@ -4,6 +4,7 @@ import com.google.gson.JsonObject
 import com.img.audition.dataModel.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -34,8 +35,15 @@ interface ApiInterface {
         @Header(APITags.AUTHORIZATION) Auth: String,
         @Query("language") language: String?,
         @Query("lat") lat: Double?,
-        @Query("long") lang: Double?
+        @Query("long") lang: Double?,
+        @Query("contestId") _id: String?
     ): VideoResponse
+
+    @GET("get_live_contest")
+    suspend fun getLiveContestReelsCategories(
+        @Header(APITags.AUTHORIZATION) Auth: String,
+        @Query("language") language: String?
+    ): VideoContestsResponse
 
     @GET(APITags.GetUserVideo)
     suspend fun getUserVideo(
@@ -354,11 +362,15 @@ interface ApiInterface {
         @Query("id") contestID: String?
     ): Call<JoinUsableBalanceResponse>
 
-    @Multipart
     @POST(APITags.UploadStatus)
     fun UploadStatus(
         @Header(APITags.AUTHORIZATION) auth: String?,
-        @Part image: MultipartBody.Part?
+        @Body jsonObject: JsonObject
     ): Call<CommanResponse>
+
+    @GET("get-status")
+    fun GetStatus(
+        @Header(APITags.AUTHORIZATION) auth: String?
+    ): Call<StatusGetSet>
 
 }

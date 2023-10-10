@@ -158,7 +158,7 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
 
         if (!(isFromContest)) {
             sessionManager.clearContestSession()
-            findViewById<ImageView>(R.id.selectFromGallery).visibility = View.GONE
+            findViewById<ImageView>(R.id.selectFromGallery).visibility = View.VISIBLE
             myApplication.printLogD("$isFromContest onStart1", " isFromContest + $TAG")
         } else {
             findViewById<ImageView>(R.id.selectFromGallery).visibility = View.VISIBLE
@@ -167,8 +167,10 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
 
 
         findViewById<ImageView>(R.id.selectFromGallery).setOnClickListener {
-//            selectVideoFromDevice()
-            selectVideoFromProfile()
+            if (isFromContest)
+                selectVideoFromProfile()
+            else
+                selectVideoFromDevice()
         }
 
         findViewById<ImageView>(R.id.backPressIC).setOnClickListener {
@@ -204,6 +206,9 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
                 retriever.release()
                 myApplication.printLogD("selectVideoDuration : $time", TAG)
                 val selectVideoDuration = time!!.toLong()
+
+                Log.i("videoUri","Uri : "+videoUri.toString())
+                Log.i("videoUri","Path : "+videoUri!!.path.toString())
 
                 if (selectVideoDuration <= maxVideoDuration) {
                     sendToVideoPreview(videoUri.toString(), selectVideoDuration)

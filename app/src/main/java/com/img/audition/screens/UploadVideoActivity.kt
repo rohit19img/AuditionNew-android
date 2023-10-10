@@ -161,8 +161,6 @@ class UploadVideoActivity : AppCompatActivity() {
         progressDialog.setTitle("Uploading..")
         progressDialog.setMessage("Please wait..")
 
-
-
         viewBinding.backPressIC.setOnClickListener {
             onBackPressed()
         }

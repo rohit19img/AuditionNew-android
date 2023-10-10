@@ -103,9 +103,6 @@ class VideoFragment(private val contextFromActivity: Context) : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _viewBinding = FragmentVideoBinding.inflate(inflater, container, false)
-
-
-
         return _viewBinding.root
     }
 

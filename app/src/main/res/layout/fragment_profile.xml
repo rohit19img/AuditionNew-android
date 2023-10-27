@@ -738,7 +738,7 @@
                                 android:layout_height="35dp"
                                 android:layout_gravity="center"
                                 android:padding="7dp"
-                                android:src="@drawable/share_ic"
+                                android:src="@drawable/clipboard"
                                 app:tint="@color/bgColorRed" />
 
                         </LinearLayout>
@@ -754,7 +754,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
-                                android:text="Share My Profile"
+                                android:text="How to win"
                                 android:textColor="@color/textColorRed"
                                 android:textSize="14dp" />
 

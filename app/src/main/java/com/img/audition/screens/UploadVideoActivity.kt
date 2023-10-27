@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.loader.content.CursorLoader
 import androidx.media3.common.util.UnstableApi
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.amazonaws.auth.BasicAWSCredentials
@@ -388,23 +389,20 @@ class UploadVideoActivity : AppCompatActivity() {
 
 
 
-    private fun getOriginalPathFromUri(context: Context, uri: Uri): String {
-        var filePath = ""
-        val scheme = uri.scheme
-        if (scheme == ContentResolver.SCHEME_CONTENT) {
-            val cursor = context.contentResolver.query(uri, null, null, null, null)
-            if (cursor != null && cursor.moveToFirst()) {
-                val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-                filePath = cursor.getString(columnIndex)
-                cursor.close()
-            }
-        } else if (scheme == ContentResolver.SCHEME_FILE) {
-            filePath = uri.path!!
+    private fun getOriginalPathFromUri(context: Context, uri: Uri): String? {
+        val projection = arrayOf(MediaStore.Video.Media.DATA)
+        val cursorLoader = CursorLoader(context, uri, projection, null, null, null)
+        val cursor = cursorLoader.loadInBackground()
+
+        cursor?.use {
+            val columnIndex = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+            it.moveToFirst()
+            Log.d("check900", "getOriginalPathFromUri: $it")
+            return it.getString(columnIndex)
         }
-        return filePath
+
+        return null
     }
-
-
 
     private fun createFileAndFolder():String{
         val timestamp = System.currentTimeMillis()
@@ -664,8 +662,11 @@ class UploadVideoActivity : AppCompatActivity() {
 
         myApplication.printLogD("$isFromContest onStart"," isFromContest")
         myApplication.printLogD(videoUri!!, "videoUri")
-//        videoOriginalPath = getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri))
-        videoOriginalPath = videoUri
+        videoOriginalPath = if (sessionManager.getIsVideoFromGallery()){
+            getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri)).toString()
+        }else {
+            videoUri
+        }
         myApplication.printLogD(videoOriginalPath, "videoPath")
 
         //

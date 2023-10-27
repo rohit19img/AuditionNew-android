@@ -187,7 +187,7 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
     private fun selectVideoFromDevice() {
         val intent = Intent()
         intent.type = "video/*"
-        intent.action = Intent.ACTION_GET_CONTENT
+        intent.action = Intent.ACTION_PICK
         startActivityForResult(
             Intent.createChooser(intent, "Select Video"),
             REQUEST_TAKE_GALLERY_VIDEO

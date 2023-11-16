@@ -53,20 +53,19 @@ class VoteAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val data = voteList[position]
         holder.apply {
             try {
-                val data = voteList[position]
                 voteEmoji.text = data.emoji
                 voteText.text = "${data.vote} Votes"
                 voteCount.text = votes[position].uservotes
-
-
-                itemView.setOnClickListener {
-                    vote(id, data.likeCategory)
-                }
             }catch (e:java.lang.Exception){
                 Log.e("VoteAdapter", "onBindViewHolder: ", e.cause)
             }
+        }
+
+        holder.itemView.setOnClickListener {
+            vote(id, data.likeCategory)
         }
     }
 

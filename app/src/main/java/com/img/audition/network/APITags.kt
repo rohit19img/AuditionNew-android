@@ -14,7 +14,8 @@ class APITags {
         const val bucketName =  "biggee"
         //
 
-//        const val APIBASEURL = "http://64.227.182.208:6060/api/"
+//        const val APIBASEURL = "http://64.227.157.121:6060/api/"
+//        const val ADMINBASEURL = "http://64.227.157.121:12345/admin/"
         const val APIBASEURL = "https://api.biggee.in/api/"
         const val ADMINBASEURL = "http://admin.biggee.in/"
         const val AUTHORIZATION = "Authorization"
@@ -58,6 +59,7 @@ class APITags {
         const val blockUnblock = "userBlockUnblock"
         const val GetAddCashOffer = "getOffers"
         const val EditUserProfile = "editProfile"
+        const val UploadStatus = "upload-status"
         const val GetUserTransactions = "getTransactions"
         const val UploadNormalVideoToServer = "upload_video"
         const val UploadContestVideoToServer = "join_contest"

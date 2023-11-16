@@ -46,6 +46,18 @@
            android:layout_below="@+id/voteImage"
            android:textColorHint="@color/Gray"/>
 
+       <TextView
+           android:id="@+id/voteCount"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:hint="1"
+           android:textSize="14sp"
+           android:layout_centerHorizontal="true"
+           android:layout_marginHorizontal="2dp"
+           android:textColor="@color/textColorWhite"
+           android:layout_below="@id/voteText"
+           android:textColorHint="@color/Gray"/>
+
 
    </RelativeLayout>
 

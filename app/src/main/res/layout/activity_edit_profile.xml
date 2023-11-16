@@ -19,11 +19,9 @@
             android:layout_height="wrap_content"
             android:background="@color/bgColorDarkRed">
 
-
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
+                android:layout_height="wrap_content">
 
                 <ImageView
                     android:id="@+id/backPressIC"
@@ -363,6 +361,64 @@
                                 app:drawableTint="@color/bgColorRed"
 
                                 />
+
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_marginVertical="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            >
+
+                            <ImageView
+                                android:id="@+id/ic_city"
+                                android:layout_width="wrap_content"
+                                android:padding="5dp"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/city_svgrepo_com"
+                                app:tint="@color/bgColorRed" />
+
+                            <EditText
+                                android:id="@+id/city"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_toEndOf="@id/ic_city"
+                                android:layout_marginStart="5dp"
+                                android:background="@drawable/et_design"
+                                android:hint="City"
+                                android:padding="10dp"
+                                android:textColor="@color/textColorBlack"
+                                android:textColorHint="@color/textColorGray"
+                                android:textSize="13sp" />
+
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_marginVertical="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            >
+
+                            <ImageView
+                                android:id="@+id/ic_state"
+                                android:layout_width="wrap_content"
+                                android:padding="5dp"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/state_svgrepo_com"
+                                app:tint="@color/bgColorRed" />
+
+                            <EditText
+                                android:id="@+id/state"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_toEndOf="@id/ic_state"
+                                android:layout_marginStart="5dp"
+                                android:background="@drawable/et_design"
+                                android:hint="State Name"
+                                android:padding="10dp"
+                                android:textColor="@color/textColorBlack"
+                                android:textColorHint="@color/textColorGray"
+                                android:textSize="13sp" />
 
                         </RelativeLayout>
 

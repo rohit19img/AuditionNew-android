@@ -155,6 +155,8 @@ dependencies {
     //button animation
     implementation "com.airbnb.android:lottie:6.0.0"
 
+    implementation 'com.github.OMARIHAMZA:StoryView:1.0.2-alpha'
+
     //leakcanary
     //debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.11'
 

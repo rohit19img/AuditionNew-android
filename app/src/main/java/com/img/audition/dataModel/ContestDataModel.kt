@@ -8,6 +8,20 @@ data class GetLiveContestDataResponse(
     @SerializedName("data"    ) var data    : ArrayList<LiveContestData> = arrayListOf()
 )
 
+
+data class VideoContestsResponse(
+    @SerializedName("message") var message: String? = null,
+    @SerializedName("success") var success: Boolean? = null,
+    @SerializedName("data") var data: ArrayList<VideoCategorisData> = arrayListOf()
+) : java.io.Serializable
+
+data class VideoCategorisData(
+    @SerializedName("_id") var _id : String? = null,
+    @SerializedName("contest_name") var contest_name : String? = null,
+    @SerializedName("file") var file : String? = null,
+    @SerializedName("contest_type") var contest_type : String? = null
+) : java.io.Serializable
+
 data class LiveContestData(
     @SerializedName("_id"                  ) var Id                 : String?           = null,
     @SerializedName("mega_status"          ) var megaStatus         : Int?              = null,

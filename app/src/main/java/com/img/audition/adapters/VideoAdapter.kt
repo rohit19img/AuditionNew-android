@@ -71,6 +71,7 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.ArrayList
 
 @UnstableApi
 class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), FollowFollowingTrack {
@@ -246,7 +247,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
                             if (list.voteStatus!!){
                                 Toast.makeText(contextFromActivity,"You already vote this video",Toast.LENGTH_SHORT).show()
                             }else{
-                                showVoteDialog(list.Id,position)
+                                showVoteDialog(list.Id,position, list.votes)
                             }
                         }
                     }else{
@@ -1286,7 +1287,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
     }
 
 
-    private fun showVoteDialog(id: String?, position: Int) {
+    private fun showVoteDialog(id: String?, position: Int, votes : ArrayList<Votes>) {
         val voteDialog = Dialog(contextFromActivity)
         voteDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         voteDialog.setContentView(R.layout.vote_dialog_sheet)
@@ -1299,7 +1300,6 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
         voteDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         voteDialog.window!!.setGravity(Gravity.END)
 
-
         val voteCatReq = apiInterface.getVoteCategory(sessionManager.getToken())
 
         voteCatReq.enqueue(object : Callback<VoteDataResponse> {
@@ -1309,7 +1309,7 @@ class VideoAdapter() : RecyclerView.Adapter<VideoAdapter.VideoViewHolder>(), Fol
             ) {
                 if (response.isSuccessful && response.body()!!.success!!) {
                     val data = response.body()!!.data
-                    voteCycle.adapter = VoteAdapter(contextFromActivity, data, id!!, voteDialog,this@VideoAdapter,position)
+                    voteCycle.adapter = VoteAdapter(contextFromActivity, data, id!!, voteDialog,this@VideoAdapter,position,votes)
                     /*if (!(videoList[position].voteStatus!!)) {
                         for (uList in videoList) {
                             if (uList.userId.equals(videoList[position].userId)) {

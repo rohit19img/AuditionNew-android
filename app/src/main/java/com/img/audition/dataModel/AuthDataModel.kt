@@ -70,3 +70,29 @@ data class TransactionData(
     @SerializedName("paymentstatus"  ) var paymentstatus : String? = null
 )
 
+data class StatusGetSet(
+    @SerializedName("success") var success : Boolean ?= null,
+    @SerializedName("message") var message : String ?= null,
+    @SerializedName("data") var data : ArrayList<StatusData> ?= null
+) : java.io.Serializable
+
+data class StatusData(
+    @SerializedName("_id") var _id : String ?= null,
+    @SerializedName("isSelf") var isSelf : Boolean ?= null,
+    @SerializedName("name") var name : String ?= null,
+    @SerializedName("image") var image : String ?= null,
+    @SerializedName("audition_id") var audition_id : String ?= null,
+    @SerializedName("status") var status : ArrayList<Status_statusData> ?= null
+) : java.io.Serializable
+
+data class Status_statusData(
+    @SerializedName("_id") var _id : String ?= null,
+    @SerializedName("userId") var userId : String ?= null,
+    @SerializedName("text") var text : String ?= null,
+    @SerializedName("media") var media : String ?= null,
+    @SerializedName("is_deleted") var is_deleted : Boolean ?= null,
+    @SerializedName("isSeen") var isSeen : Boolean ?= null,
+    @SerializedName("seenBy") var seenBy : ArrayList<String> ?= null,
+    @SerializedName("createdAt") var createdAt : String ?= null,
+    @SerializedName("updatedAt") var updatedAt : String ?= null,
+) : java.io.Serializable

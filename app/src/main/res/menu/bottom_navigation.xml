@@ -24,4 +24,5 @@
         android:id="@+id/profile"
         android:icon="@drawable/ic_profile_new"
         android:title="" />
+
 </menu>

@@ -39,6 +39,7 @@ import com.img.audition.screens.*
 import com.img.audition.viewModel.MainViewModel
 import com.img.audition.viewModel.Status
 import com.img.audition.viewModel.ViewModelFactory
+import de.hdodenhof.circleimageview.CircleImageView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -73,7 +74,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
     lateinit var followingCount: TextView
     lateinit var userBio: TextView
     lateinit var userVideoRecycle: RecyclerView
-    lateinit var userImageView: ImageView
+    lateinit var userImageView: CircleImageView
     lateinit var noVideoImage: ImageView
     lateinit var menuButton: ImageView
     lateinit var drawerLayout: DrawerLayout
@@ -110,6 +111,12 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
         getUserVideo()
 
+        view.userImageView.setOnClickListener {
+            contextFromActivity.startActivity(
+                Intent(contextFromActivity,UpdatesActivity::class.java)
+            )
+        }
+
         view.editProfileBtn.setOnClickListener {
             senToEditProfile()
         }
@@ -130,6 +137,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.changelanguage.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 showLanguageDialog()
             }else{
@@ -138,11 +146,30 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.refer.setOnClickListener {
-            val referMessage = "Hey!  I Found a very exciting app  to create videos Biggee, Use my referral code $referCode to get started"
+            drawerLayout.closeDrawer(GravityCompat.END)
+            val referMessage = "Explore the world of short videos and turn your creativity into cash! Join our exciting contests, showcase your talent, and win amazing prizes. Download now and be a part of the Biggee"
             shareDialog(referMessage)
         }
 
+        view.shareProfile.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
+            val referMessage = "Hey! Follow my profile on biggee search @${sessionManager.getUserAuditionID()} or Click https://biggee.in/profile/@${sessionManager.getUserAuditionID()} \n" +
+                    " Download App from https://play.google.com/store/apps/details?id=com.img.audition "
+            shareDialog(referMessage)
+        }
+
+        view.howToWin.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
+            if (myApplication.isNetworkConnected()){
+                val intent = Intent(contextFromActivity,HowtoWinActivity::class.java)
+                startActivity(intent)
+            }else{
+                myApplication.showToast(ConstValFile.Check_Connection)
+            }
+        }
+
         view.help.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 val intent = Intent(contextFromActivity,HelpAndSupportActivity::class.java)
                 startActivity(intent)
@@ -152,6 +179,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.verify.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 sendToVerificationActivity()
             }else{
@@ -176,6 +204,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.privacysaftey.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 val intent = Intent(contextFromActivity,PrivacyPolicyActivity::class.java)
                 startActivity(intent)
@@ -192,6 +221,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
 
 
         view.aboutUs.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 val intent = Intent(contextFromActivity,AboutUsActivity::class.java)
                 startActivity(intent)
@@ -202,6 +232,7 @@ class ProfileFragment(val contextFromActivity: Context) : Fragment() {
         }
 
         view.termCondition.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.END)
             if (myApplication.isNetworkConnected()){
                 val intent = Intent(contextFromActivity,TermsAndConditionActivity::class.java)
                 startActivity(intent)

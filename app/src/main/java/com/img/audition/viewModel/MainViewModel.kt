@@ -1,6 +1,7 @@
 package com.img.audition.viewModel
 
 
+    import android.util.Log
     import androidx.lifecycle.ViewModel
     import androidx.lifecycle.liveData
 import com.google.gson.JsonObject
@@ -30,10 +31,19 @@ class MainViewModel(private val token: String?,private val apiInterface: ApiInte
         }
     }
 
-    fun getLiveContestReelsVideo(language: String?,lat:Double?,long:Double?) = liveData(Dispatchers.IO) {
+    fun getLiveContestReelsVideo(language: String?,lat:Double?,long:Double?, _id : String?) = liveData(Dispatchers.IO) {
         emit(Resource.loading(data = null))
         try {
-            emit(Resource.success(data = apiInterface.getLiveContestReelsVideo(token!!,language,lat,long)))
+            emit(Resource.success(data = apiInterface.getLiveContestReelsVideo(token!!,language,lat,long,_id)))
+        } catch (exception: Exception) {
+            emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
+        }
+    }
+
+    fun getLiveContestReelsCategories(language: String?) = liveData(Dispatchers.IO) {
+        emit(Resource.loading(data = null))
+        try {
+            emit(Resource.success(data = apiInterface.getLiveContestReelsCategories(token!!,language)))
         } catch (exception: Exception) {
             emit(Resource.error(data = null, message = exception.message ?: "Error occurred"))
         }

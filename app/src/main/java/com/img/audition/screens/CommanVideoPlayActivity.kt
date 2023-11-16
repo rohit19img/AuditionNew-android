@@ -139,8 +139,8 @@ import retrofit2.Response
      }
 
     private fun getContestVideo(userID: String,contestID:String){
+        Log.i("token",userID)
         mainViewModel.getContestVideo(userID,contestID)
-
             .observe(this){
                 it.let {videoResponse->
                     when(videoResponse.status){

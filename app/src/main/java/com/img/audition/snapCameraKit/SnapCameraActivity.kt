@@ -81,7 +81,7 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
     private var isTimerPaused = false
     private lateinit var countDownTimer: CountDownTimer
     private var isStartTime = false
-    private var maxVideoDuration: Long = 25000
+    private var maxVideoDuration: Long = 35000
     private var minVideoDuration: Long = 5 * 1000
     private lateinit var mLineView: LineProgressView
     private var videoFilePath = ""

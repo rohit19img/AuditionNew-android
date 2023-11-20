@@ -25,6 +25,9 @@ import com.android.volley.*
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.img.audition.R
@@ -48,6 +51,20 @@ import java.io.File
 import java.util.*
 
  @UnstableApi class EditProfileActivity : AppCompatActivity() {
+
+     private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+         if (result.isSuccessful) {
+             // Use the returned uri.
+             imagePath = result!!.getUriFilePath(this@EditProfileActivity, true).toString()
+             Log.e("Check file", imagePath)
+             viewBinding.userImage.setImageURI(Uri.parse(imagePath))
+         } else {
+             // An error occurred.
+             val exception = result.error
+             Log.e(TAG, "Select Image: ", exception)
+         }
+     }
+
     private val TAG = "EditProfileActivity"
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityEditProfileBinding.inflate(layoutInflater)
@@ -250,7 +267,7 @@ import java.util.*
                 selectImage()
         }
 
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+       /* if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = CropImage.getActivityResult(data)
             try {
                 imagePath = result!!.getUriFilePath(this@EditProfileActivity, true).toString()
@@ -259,7 +276,7 @@ import java.util.*
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
+        }*/
     }
 
 
@@ -307,13 +324,21 @@ import java.util.*
     }
 
     private fun selectImage() {
-        CropImage.activity()
+        cropImage.launch(
+            CropImageContractOptions(
+                uri = null,
+                cropImageOptions = CropImageOptions(
+                    imageSourceIncludeGallery = true,
+                    imageSourceIncludeCamera = true
+                ),),
+        )
+        /*CropImage.activity()
             .setScaleType(CropImageView.ScaleType.FIT_CENTER)
             .setGuidelines(CropImageView.Guidelines.ON)
             .setCropMenuCropButtonTitle("Next")
             .setCropShape(CropImageView.CropShape.OVAL)
             .setAspectRatio(1,1)
-            .start(this@EditProfileActivity)
+            .start(this@EditProfileActivity)*/
     }
 
 

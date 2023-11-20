@@ -130,7 +130,7 @@ class UpdatesActivity : AppCompatActivity() {
             selectImage()
         }
 
-        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+       /* if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = CropImage.getActivityResult(data)
             try {
                 imagePath = result!!.getUriFilePath(this, true).toString()
@@ -142,16 +142,16 @@ class UpdatesActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
+        }*/
     }
 
     private fun selectImage() {
-        CropImage.activity()
+       /* CropImage.activity()
             .setScaleType(CropImageView.ScaleType.FIT_CENTER)
             .setGuidelines(CropImageView.Guidelines.ON)
             .setCropMenuCropButtonTitle("Next")
             .setAspectRatio(1, 1)
-            .start(this)
+            .start(this)*/
     }
 
     private fun uploadVideoToS3(imagePath : String) {

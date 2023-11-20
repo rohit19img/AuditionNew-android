@@ -14,10 +14,10 @@ class APITags {
         const val bucketName =  "biggee"
         //
 
-//        const val APIBASEURL = "http://64.227.157.121:6060/api/"
-//        const val ADMINBASEURL = "http://64.227.157.121:12345/admin/"
-        const val APIBASEURL = "https://api.biggee.in/api/"
-        const val ADMINBASEURL = "http://admin.biggee.in/"
+        const val APIBASEURL = "http://64.227.157.121:6060/api/"
+        const val ADMINBASEURL = "http://64.227.157.121:12345/admin/"
+//        const val APIBASEURL = "https://api.biggee.in/api/"
+//        const val ADMINBASEURL = "http://admin.biggee.in/"
         const val AUTHORIZATION = "Authorization"
         const val GuestLogin = "guest-login"
         const val GetChatHistory = "getChatHistory"

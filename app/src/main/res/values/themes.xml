@@ -37,11 +37,6 @@
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:textSize">22sp</item>
     </style>
-    <style name="NavigationTheme" parent="AppTheme">
-        <item name="itemIconTint">@android:color/white</item>
-        <item name="itemTextColor">@android:color/white</item>
-        <item name="android:background">#00ffffff</item>
-    </style>
 
     <style name="imageview_share">
         <item name="android:layout_height">@dimen/_45sdp</item>

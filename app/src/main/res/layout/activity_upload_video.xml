@@ -51,7 +51,6 @@
                 android:layout_marginEnd="15dp"
                 android:background="@drawable/post_video"
                 android:gravity="center"
-                android:src="@drawable/ic_check"
                 android:text="Post"
                 android:textColor="@color/white"
                 app:tint="@color/textColorYellow" />

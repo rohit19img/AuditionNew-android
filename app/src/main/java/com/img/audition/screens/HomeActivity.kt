@@ -244,9 +244,10 @@ class HomeActivity : AppCompatActivity() {
             override fun onResponse(
                 call: Call<WebSliderResponse>, response: Response<WebSliderResponse>
             ) {
+                Log.d(TAG, "onResponse: ${response.body()}")
                 if (response.isSuccessful && response.body()!!.success!!) {
-                    val banner = response.body()!!.data?.image.toString()
-                    if (banner.isEmpty() || banner.isBlank()) {
+                    val banner = response.body()!!.data?.image
+                    if (banner.isNullOrEmpty() || banner.isBlank()) {
                         popupDialog.dismiss()
                     } else {
                         Glide.with(this@HomeActivity).load(banner).into(popupImage)

@@ -1,12 +1,14 @@
 package com.img.audition.screens.fragment
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
@@ -21,6 +23,7 @@ import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
 import com.img.audition.network.RetrofitClient
 import com.img.audition.network.SessionManager
+import com.img.audition.screens.ContestConditionActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,6 +39,7 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
 
     lateinit var tabLayout: TabLayout
     lateinit var viewContainer: FrameLayout
+    lateinit var contestConditionBtn:ImageButton
 
     private val myApplication by lazy {
         MyApplication(contextFromHome)
@@ -50,6 +54,7 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
         val view= FragmentContestBinding.inflate(inflater,container,false)
         tabLayout = view.tabLayout
         viewContainer = view.viewContainer
+        contestConditionBtn = view.contestConditionBtn
         return view.root
     }
 
@@ -97,6 +102,12 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
 
         })
+
+
+        contestConditionBtn.setOnClickListener {
+            val intent = Intent(requireContext(),ContestConditionActivity::class.java)
+            startActivity(intent)
+        }
 
     }
 

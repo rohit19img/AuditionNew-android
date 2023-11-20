@@ -19,6 +19,19 @@
             android:text="@string/challenges"
             android:textColor="@color/textColorWhite"
             android:textSize="16sp" />
+
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/term_and_c"
+            android:background="@null"
+            app:tint="@color/bgColorWhite"
+            android:layout_gravity="end"
+            android:padding="6dp"
+            android:id="@+id/contestConditionBtn"
+            />
+
     </androidx.appcompat.widget.Toolbar>
 
     <RelativeLayout

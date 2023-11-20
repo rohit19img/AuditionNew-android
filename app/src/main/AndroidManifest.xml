@@ -32,6 +32,12 @@
         tools:node="merge"
         tools:targetApi="31">
         <activity
+            android:name=".screens.VideoTrimActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.ContestConditionActivity"
+            android:exported="false" />
+        <activity
             android:name=".screens.HowtoWinActivity"
             android:exported="false" />
         <activity

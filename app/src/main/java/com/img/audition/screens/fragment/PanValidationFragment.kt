@@ -23,9 +23,6 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
-import com.canhub.cropper.CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE
-import com.canhub.cropper.CropImage.activity
-import com.canhub.cropper.CropImage.getActivityResult
 import com.canhub.cropper.CropImageView
 import com.canhub.cropper.CropImageView.Guidelines
 import com.img.audition.R
@@ -158,18 +155,18 @@ class PanValidationFragment : Fragment() {
 
 
     private fun selectImage() {
-        activity()
+       /* activity()
             .setScaleType(CropImageView.ScaleType.FIT_CENTER)
             .setGuidelines(Guidelines.ON)
             .setAspectRatio(16, 9)
             .setCropMenuCropButtonTitle("Next")
-            .start(requireContext(), this)
+            .start(requireContext(), this)*/
     }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+        /*if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = getActivityResult(data)
             try {
                 imagepath = result!!.getUriFilePath(requireContext(), true).toString()
@@ -178,7 +175,7 @@ class PanValidationFragment : Fragment() {
             } catch (e: Exception) {
                e.printStackTrace()
             }
-        }
+        }*/
     }
 
     @SuppressLint("SimpleDateFormat", "SetTextI18n")

@@ -116,6 +116,7 @@
             app:tint="@color/bgColorWhite"
             android:contentDescription="Video Speed" />
 
+
         <TextView
             android:visibility="gone"
             android:id="@+id/slowVideo"
@@ -154,6 +155,13 @@
             android:id="@+id/addFilterBtn"
             style="@style/imageButtonStyle"
             android:src="@drawable/ic_flash_on"
+            app:tint="@color/bgColorWhite"
+            android:contentDescription="Add Text" />
+
+        <ImageButton
+            android:id="@+id/trimVideoBtn"
+            style="@style/imageButtonStyle"
+            android:src="@drawable/video_trim_icon"
             app:tint="@color/bgColorWhite"
             android:contentDescription="Add Text" />
 

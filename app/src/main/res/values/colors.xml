@@ -39,8 +39,10 @@
     <color name="cardHintColor">#88FFFFFF</color>
     <color name="textHintColor">#88FFFFFF</color>
     <color name="Gray">#FFAAAAAA</color>
+    <color name="gray">#FFAAAAAA</color>
     <color name="bgGreenColor">#FF109E38</color>
     <color name="textGreenColor">#FF109E38</color>
+    <color name="green_variant">#FF109E38</color>
     <color name="cardGreenColor">#FF109E38</color>
     <color name="newGreen">#109E38</color>
 

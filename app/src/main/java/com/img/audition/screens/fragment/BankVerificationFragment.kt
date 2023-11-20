@@ -21,8 +21,6 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
-import com.canhub.cropper.CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE
-import com.canhub.cropper.CropImage.getActivityResult
 import com.canhub.cropper.CropImageView
 import com.img.audition.R
 import com.img.audition.adapters.StateListAdapter
@@ -97,12 +95,12 @@ class BankVerificationFragment() : Fragment() {
     }
 
     private fun selectImage() {
-        CropImage.activity()
+       /* CropImage.activity()
             .setScaleType(CropImageView.ScaleType.FIT_CENTER)
             .setGuidelines(CropImageView.Guidelines.ON)
             .setAspectRatio(16, 9)
             .setCropMenuCropButtonTitle("Next")
-            .start(requireContext(), this)
+            .start(requireContext(), this)*/
     }
 
     fun validate(): Boolean {
@@ -366,7 +364,7 @@ class BankVerificationFragment() : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+       /* if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = getActivityResult(data)
             try {
                 image_path = result!!.getUriFilePath(requireContext(), true).toString()
@@ -375,7 +373,7 @@ class BankVerificationFragment() : Fragment() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
+        }*/
     }
 
     private fun AllVerify(context: Context) {

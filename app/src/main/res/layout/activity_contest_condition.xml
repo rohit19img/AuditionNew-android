@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/new_background"
+    tools:context=".screens.ContestConditionActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bgColorDarkRed">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/backPressIC"
+                style="@style/imageButtonStyle"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="0dp"
+                android:padding="5dp"
+                android:paddingStart="0dp"
+                android:src="@drawable/back_arrow_ic" />
+
+            <TextView
+                android:layout_toEndOf="@id/backPressIC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Contest Term &amp; Condition"
+                android:textColor="@color/textColorWhite"
+                android:textSize="18sp" />
+
+        </RelativeLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_below="@id/toolbar"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="About the Contest"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:text="Biggee aims to help users to gain popularity through their skills by participating in competitions and earn money based on their skills. Biggee offers the competitions in dance, acting, comedy, group dance and many more. The user can select any competition as per his interest and participate in it. In which some competitions will be free and some competitions will be paid. After collecting these fees, we declare the winners based on the total votes received by the participants based on their skills. And from this we take some fees for our platform. This prize is made available to the winners in the form of money in their wallet. The winner can transfer this amount to his/her bank account after completing the EKYC. Many contests may have more than 1 winner. Read details about the contest below or watch the video on our YouTube channel."
+                    android:padding="2dp"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="Eligibility And Jurisdiction"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:text="Our competitions are open to every Indian above 18 years of age. And children aged 13 to 18 are only eligible to post videos. Children under 18 years of age are not eligible to participate in the Contest. Contests are open to residents of India only. Every person wishing to participate in the contest must have a valid email address, PAN card and bank account. Only those participants will be eligible to participate who have successfully registered on biggee.in as well as registered for the Contest as per the above rules before each round."
+                    android:padding="2dp"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="Contest's, Participation"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:text="@string/contest_participant_content"
+                    android:padding="2dp"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="Contestants Instructions For Contest"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:padding="2dp"
+                    android:text="@string/contest_instruction_content"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="Contents Responsibility Factor"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:padding="2dp"
+                    android:text="@string/contest_responsibility_content"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/textColorWhite"
+                    android:text="Selection and Verification of Winners and Conditions relating to the Prizes"
+                    android:padding="4dp"
+                    android:layout_margin="2dp"
+                    android:textFontWeight="700"
+                    />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/waveformUnselectedBackground"
+                    android:padding="2dp"
+                    android:text="@string/selection_verification_content"
+                    android:layout_margin="4dp"
+                    android:textFontWeight="400"
+                    />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</RelativeLayout>

@@ -1,11 +1,16 @@
 package com.img.audition.screens
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.loader.content.CursorLoader
 import androidx.media3.common.util.UnstableApi
 import com.img.audition.databinding.ActivityVideoTrimBinding
 import com.img.audition.network.SessionManager
@@ -27,6 +32,8 @@ class VideoTrimActivity : AppCompatActivity(), OnTrimVideoListener {
     }
     lateinit var progressDialog: ProgressDialog
 
+    private var maxVideoDuration: Long = 35000
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -34,7 +41,6 @@ class VideoTrimActivity : AppCompatActivity(), OnTrimVideoListener {
         progressDialog =  ProgressDialog(this)
         progressDialog.setMessage("Please wait...")
         progressDialog.setCancelable(false)
-
 
         binding.videoTrimmer.apply {
             setVideoURI(Uri.parse(session.getCreateVideoPath()))
@@ -69,22 +75,40 @@ class VideoTrimActivity : AppCompatActivity(), OnTrimVideoListener {
     }
 
     override fun getResult(uri: Uri?) {
-        session.setCreateVideoPath(uri?.path)
         progressDialog.dismiss()
         Log.d(TAG, "getResult: $uri")
-        val intent = Intent(this,SnapPreviewActivity::class.java)
-        startActivity(intent)
+
+        val videoUri: Uri? = uri
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(this@VideoTrimActivity, videoUri)
+        val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        retriever.release()
+        val selectVideoDuration = time!!.toLong()
+
+        Log.i("videoUri","Path : "+videoUri!!.path.toString())
+        Log.i("videoUri","Time : $time")
+
+        if (selectVideoDuration <= maxVideoDuration) {
+            session.setCreateVideoPath(uri.path)
+            val intent = Intent(this,SnapPreviewActivity::class.java)
+            startActivity(intent)
+        } else {
+            runOnUiThread {
+                Toast.makeText(this@VideoTrimActivity,"Please select ${maxVideoDuration / 1000} second video",Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun cancelAction() {
         Log.d(TAG, "cancelAction: ")
-        val intent = Intent(this,SnapPreviewActivity::class.java)
-        startActivity(intent)
+        finish()
     }
 
     override fun onError(message: String?) {
         progressDialog.dismiss()
         Log.e(TAG, "onError: $message")
     }
+
+
 
 }

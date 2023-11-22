@@ -10,12 +10,14 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.provider.MediaStore
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.loader.content.CursorLoader
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -32,6 +34,7 @@ import com.img.audition.network.SessionManager
 import com.img.audition.screens.CompilerActivity
 import com.img.audition.screens.MusicActivity
 import com.img.audition.screens.UserUploadedVideoActivity
+import com.img.audition.screens.VideoTrimActivity
 import com.img.audition.videoWork.VideoCacheWork
 import com.snap.camerakit.ImageProcessor
 import com.snap.camerakit.Session
@@ -198,25 +201,77 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_TAKE_GALLERY_VIDEO) {
-                val videoUri: Uri? = data!!.data
+                try {
+                    val videoUri: Uri? = data!!.data
+                    val retriever = MediaMetadataRetriever()
+                    retriever.setDataSource(this@SnapCameraActivity, videoUri)
+                    val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    retriever.release()
+                    myApplication.printLogD("selectVideoDuration : $time", TAG)
+                    val selectVideoDuration = time!!.toLong()
 
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(this@SnapCameraActivity, videoUri)
-                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                retriever.release()
-                myApplication.printLogD("selectVideoDuration : $time", TAG)
-                val selectVideoDuration = time!!.toLong()
+                    Log.i("videoUri","Uri : "+videoUri.toString())
+                    val galleryVidePath = getOriginalPathFromUri(videoUri!!)
+                    Log.i("videoUri", "Path : $galleryVidePath")
+                    sessionManager.setIsVideoFromGallery(true)
+                    sendToVideoTrimActivity(galleryVidePath!!, selectVideoDuration)
+                }catch (e:Exception){
+                    e.printStackTrace()
+                    Toast.makeText(this@SnapCameraActivity,"Try Again..",Toast.LENGTH_SHORT).show()
+                }
 
-                Log.i("videoUri","Uri : "+videoUri.toString())
-                Log.i("videoUri","Path : "+videoUri!!.path.toString())
 
-                if (selectVideoDuration <= maxVideoDuration) {
+                /*if (selectVideoDuration <= maxVideoDuration) {
                     sendToVideoPreview(videoUri.toString(), selectVideoDuration)
                     sessionManager.setIsVideoFromGallery(true)
                 } else {
                     myApplication.showToast("Please select ${maxVideoDuration / 1000} second video")
-                }
+                }*/
             }
+        }
+    }
+
+    private fun sendToVideoTrimActivity(videoUri: String, videoDuration: Long) {
+        myApplication.printLogD("sendToVideoPreview Call", "TrimAudio")
+        recordingCloseable?.close()
+        cameraSession.close()
+
+        mediaCaptureExecutor.shutdown()
+        audioProcessorExecutor.shutdown()
+        if (sessionManager.getVideoSongUrl().toString().isNotEmpty()) {
+            if (sessionManager.getIsFromTryAudio() || sessionManager.getIsAppAudio()) {
+                sessionManager.setCreateVideoSession(videoUri, "", videoDuration)
+                runOnUiThread {
+                    progressLayout.visibility = View.VISIBLE
+                    try {
+                        if (playerExo.isPlaying) {
+                            playerExo.stop()
+                            playerExo.release()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                if (sessionManager.getIsFromTryAudio()) {
+                    TrimAudio(
+                        APITags.ADMINBASEURL + sessionManager.getVideoSongUrl().toString(),
+                        0,
+                        videoDuration
+                    )
+                } else {
+                    TrimAudio(appSongUrl, 0, videoDuration)
+                }
+
+            }
+        } else {
+            progressLayout.visibility = View.GONE
+            myApplication.printLogD("selectVideoDuration : $videoUri", TAG)
+            sessionManager.setCreateVideoSession(videoUri, "", videoDuration)
+            sessionManager.setVideoHashTag(hashTag)
+            Log.d("hashTrack", "SnapCameraActivity: $hashTag")
+            val intent = Intent(this@SnapCameraActivity, VideoTrimActivity::class.java)
+            startActivity(intent)
         }
     }
 
@@ -442,10 +497,6 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
         if (sessionManager.getVideoSongUrl().toString().isNotEmpty()) {
             if (sessionManager.getIsFromTryAudio() || sessionManager.getIsAppAudio()) {
                 sessionManager.setCreateVideoSession(videoUri, "", videoDuration)
-                myApplication.printLogD(
-                    "sendToVideoPreview audioURl ${sessionManager.getVideoSongUrl()}",
-                    "audioUrl"
-                )
                 runOnUiThread {
                     progressLayout.visibility = View.VISIBLE
                     try {
@@ -475,18 +526,6 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
             sessionManager.setCreateVideoSession(videoUri, "", videoDuration)
             sessionManager.setVideoHashTag(hashTag)
             Log.d("hashTrack", "SnapCameraActivity: $hashTag")
-            myApplication.printLogD(
-                isFromContest.toString() + "sendToVideoPreview 1",
-                "isFromContest"
-            )
-            myApplication.printLogD(
-                sessionManager.getIsFromContest().toString() + "sendToVideoPreview 2",
-                "isFromContest"
-            )
-            myApplication.printLogD(
-                sessionManager.getContestEntryFee().toString() + "sendToVideoPreview 2",
-                "contestCheck"
-            )
             val intent = Intent(this@SnapCameraActivity, SnapPreviewActivity::class.java)
             startActivity(intent)
         }
@@ -654,6 +693,21 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
 
     override fun onStop() {
         super.onStop()
+    }
+
+    private fun getOriginalPathFromUri(uri: Uri): String? {
+        val projection = arrayOf(MediaStore.Video.Media.DATA)
+        val cursorLoader = CursorLoader(this@SnapCameraActivity, uri, projection, null, null, null)
+        val cursor = cursorLoader.loadInBackground()
+
+        cursor?.use {
+            val columnIndex = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
+            it.moveToFirst()
+            Log.d("check900", "getOriginalPathFromUri: $it")
+            return it.getString(columnIndex)
+        }
+
+        return null
     }
 
 }

@@ -662,11 +662,12 @@ class UploadVideoActivity : AppCompatActivity() {
 
         myApplication.printLogD("$isFromContest onStart"," isFromContest")
         myApplication.printLogD(videoUri!!, "videoUri")
-        videoOriginalPath = if (sessionManager.getIsVideoFromGallery()){
+        /*videoOriginalPath = if (sessionManager.getIsVideoFromGallery()){
             getOriginalPathFromUri(this@UploadVideoActivity, Uri.parse(videoUri)).toString()
         }else {
             videoUri
-        }
+        }*/
+        videoOriginalPath = videoUri
         myApplication.printLogD(videoOriginalPath, "videoPath")
 
         //

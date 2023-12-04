@@ -1,20 +1,28 @@
 package com.img.audition.screens
 
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
+import com.img.audition.BuildConfig
 import cn.pedant.SweetAlert.SweetAlertDialog
 
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.JsonObject
 import com.img.audition.dataModel.GuestLoginRequest
 import com.img.audition.dataModel.LoginResponse
+import com.img.audition.dataModel.RootResponse
+import com.img.audition.dataModel.VersionInfo
 import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.ApiInterface
@@ -41,8 +49,15 @@ class SplashActivity : AppCompatActivity() {
      }
 
      private lateinit var mainViewModel: MainViewModel
+
+     private val progressDialog by lazy {
+         ProgressDialog(this@SplashActivity)
+     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        progressDialog.setCancelable(false)
+        progressDialog.setMessage("Loading..")
         sessionManager = SessionManager(this@SplashActivity)
         myApplication  = MyApplication(this@SplashActivity)
 
@@ -50,7 +65,8 @@ class SplashActivity : AppCompatActivity() {
         mainViewModel = ViewModelProvider(this, ViewModelFactory(sessionManager.getToken(),apiInterface))[MainViewModel::class.java]
 
         if (myApplication.isNetworkConnected()){
-            decideToWhereSend()
+//            decideWhereSend()
+            getAppVersion()
 
         }else{
             showRetryDialog()
@@ -64,12 +80,33 @@ class SplashActivity : AppCompatActivity() {
          sweetAlertDialog.confirmText = "Retry"
          sweetAlertDialog.setConfirmClickListener {
              sweetAlertDialog.dismiss()
-             decideToWhereSend()
+             decideWhereSend()
          }
          sweetAlertDialog.show()
      }
 
-     private fun decideToWhereSend() {
+     private fun updateAppDialog() {
+         val sweetAlertDialog = SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+         sweetAlertDialog.titleText = "App Update"
+         sweetAlertDialog.contentText = "Please update app with latest version"
+         sweetAlertDialog.confirmText = "Update"
+         sweetAlertDialog.cancelText = "Cancel"
+         sweetAlertDialog.setCancelable(false)
+         sweetAlertDialog.setConfirmClickListener {
+             sweetAlertDialog.dismiss()
+             //send to playStore
+             val intent = Intent(Intent.ACTION_VIEW)
+             intent.data = Uri.parse("https://play.google.com/store/apps/details?id=com.img.audition")
+             startActivity(intent)
+         }
+         sweetAlertDialog.setCancelClickListener {
+             sweetAlertDialog.dismiss()
+             finish()
+         }
+         sweetAlertDialog.show()
+     }
+
+     private fun decideWhereSend() {
          if (myApplication.isNetworkConnected()){
              FirebaseMessaging.getInstance().subscribeToTopic("Audition-All")
              if (!(sessionManager.isUserLoggedIn())){
@@ -207,5 +244,47 @@ class SplashActivity : AppCompatActivity() {
          }else{
              myApplication.showToast("Try Again..")
          }
+     }
+
+     private fun getAppVersion(){
+         val appVersion = BuildConfig.VERSION_CODE
+         mainViewModel.getVersion()
+             .observe(this){
+                 it.let {resource ->
+                     when(resource.status){
+                         Status.SUCCESS ->{
+                             progressDialog.dismiss()
+                             val data = resource.data as VersionInfo
+                             Log.d(TAG, "getAppVersion: web Version - ${data.version}")
+                             Log.d(TAG, "getAppVersion: app Version - $appVersion")
+                             val webVersion = data.version
+                             if (appVersion==webVersion){
+                                 decideWhereSend()
+                             }else{
+                                 updateAppDialog()
+                             }
+                         }
+                         Status.LOADING->{
+                             progressDialog.show()
+                             Log.d(TAG, "getAppVersion: loading")
+                         }
+                         Status.ERROR ->{
+                             progressDialog.dismiss()
+                             Log.d(TAG, "getAppVersion: error")
+                             myApplication.printLogD(resource.message.toString(),"apiCall 4")
+                             if (resource.message!!.contains("401")){
+                                 sessionManager.clearLogoutSession()
+                                 startActivity(Intent(this, SplashActivity::class.java))
+                                 finishAffinity()
+                             }
+                             if (resource.message.contains("400")){
+                                 val data = resource.data as JsonObject
+                                 val msg = data.get("message")?.asString
+                                 Toast.makeText(this, msg!!, Toast.LENGTH_SHORT).show()
+                             }
+                         }
+                     }
+                 }
+             }
      }
 }

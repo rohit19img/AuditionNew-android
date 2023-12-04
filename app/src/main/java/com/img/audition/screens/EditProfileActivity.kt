@@ -367,7 +367,7 @@ import java.util.*
                     progressDialog.dismiss()
                 })
             {
-                override fun getParams(): MutableMap<String, String>? {
+                override fun getParams(): MutableMap<String, String> {
                     val map = HashMap<String, String>()
                     map["typename"] = "user-profiles"
                     map["name"] = name

@@ -6,18 +6,25 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.json.JSONObject
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiInterface {
+
+    @GET(APITags.GetVersion)
+    suspend fun getVersion(): Response<RootResponse<VersionInfo>>
 
     @POST(APITags.GuestLogin)
     suspend fun guestLogin(@Body guestRequest: GuestLoginRequest): LoginResponse
 
     @POST(APITags.Login)
-    suspend fun userLogin(@Body loginRequest: NumLoginRequest): CommanResponse
+    suspend fun userLogin(@Body loginRequest: NumLoginRequest): Response<CommanResponse>
+
+    @POST(APITags.LoginDefaultUser)
+    suspend fun defaultLogin(@Body loginRequest: NumLoginRequest): Response<LoginResponse>
 
     @POST(APITags.OTPLogin)
-    suspend fun userOtpVerify(@Body otpRequest: OTPRequest): LoginResponse
+    suspend fun userOtpVerify(@Body otpRequest: OTPRequest): Response<LoginResponse>
 
     @GET(APITags.GetForYouVideo)
     suspend fun getForYouReelsVideo(

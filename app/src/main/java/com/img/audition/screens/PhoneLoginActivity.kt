@@ -1,16 +1,20 @@
 package com.img.audition.screens
 
+import android.app.ProgressDialog
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
-
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.JsonObject
+import com.img.audition.dataModel.CommanResponse
+import com.img.audition.dataModel.LoginResponse
 import com.img.audition.dataModel.NumLoginRequest
 import com.img.audition.dataModel.OTPRequest
 import com.img.audition.databinding.ActivityPhoneLoginBinding
@@ -45,9 +49,17 @@ import com.img.audition.viewModel.ViewModelFactory
 
      private lateinit var mainViewModel: MainViewModel
 
+     private val progressDialog by lazy {
+         ProgressDialog(this@PhoneLoginActivity)
+     }
+
      override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+
+
+         progressDialog.setMessage("Please wait.")
+         progressDialog.setCancelable(false)
 
         viewBinding.closeActivityButton.setOnClickListener {
             onBackPressed()
@@ -67,6 +79,7 @@ import com.img.audition.viewModel.ViewModelFactory
             number = viewBinding.phoneNumberET.text.toString().trim()
             if (number.isNotEmpty() && number.length==10){
                 getOTP(number,referCode)
+//                defaultLogin(number,referCode)
             }else{
                 viewBinding.phoneNumberET.error = "Enter valid number"
                 myApplication.showToast("Enter valid number")
@@ -94,37 +107,47 @@ import com.img.audition.viewModel.ViewModelFactory
                      myApplication.printLogD(response.message.toString(),"apiCall 1")
                      when(response.status){
                          Status.SUCCESS ->{
+                             progressDialog.dismiss()
                              sessionManager.clearLogoutSession()
-                             myApplication.printLogI("${response.data!!.data!!.id}","login userID")
-                             val userToken = response.data.data!!.token.toString()
-                             val userID = response.data.data!!.id.toString()
-                             val auditionID = response.data.data!!.auditionID.toString()
-                             myApplication.printLogD(userToken, ConstValFile.TOKEN)
-                             myApplication.printLogD(userID, ConstValFile.USER_ID)
-                             sessionManager.setGuestLogin(false)
-                             sessionManager.setMobileVerified(true)
-                             sessionManager.createUserLoginSession(true,userToken,userID)
-                             sessionManager.setUserSelfID(userID)
-                             sessionManager.setUserAuditionID(auditionID)
-                             sessionManager.setUserName(auditionID)
-                             sessionManager.setToken(userToken)
-                             Thread.sleep(500)
-                             myApplication.showToast("Login Successfully..")
-
-                             sendToHomeActivity()
+                             val data = response.data as LoginResponse
+                             myApplication.printLogI("${data.data!!.id}","login userID")
+                             if (response.data.success!!){
+                                     val userToken = response.data.data!!.token.toString()
+                                     val userID = response.data.data!!.id.toString()
+                                     val auditionID = response.data.data!!.auditionID.toString()
+                                     myApplication.printLogD(userToken, ConstValFile.TOKEN)
+                                     myApplication.printLogD(userID, ConstValFile.USER_ID)
+                                     sessionManager.setGuestLogin(false)
+                                     sessionManager.setMobileVerified(true)
+                                     sessionManager.createUserLoginSession(true,userToken,userID)
+                                     sessionManager.setUserSelfID(userID)
+                                     sessionManager.setUserAuditionID(auditionID)
+                                     sessionManager.setUserName(auditionID)
+                                     sessionManager.setToken(userToken)
+                                     Thread.sleep(500)
+                                     myApplication.showToast("Login Successfully..")
+                                    sendToHomeActivity()
+                             }else{
+                                 myApplication.showToast(response.data.message.toString())
+                             }
                          }
                          Status.LOADING ->{
+                             progressDialog.show()
                              myApplication.printLogD(response.status.toString(),"apiCall 3")
                          }
                          else->{
+                             progressDialog.dismiss()
+                             myApplication.printLogD(response.message.toString(),"apiCall 4")
                              if (response.message!!.contains("401")){
-                                 myApplication.printLogD(response.message.toString(),"apiCall 4")
                                  sessionManager.clearLogoutSession()
                                  startActivity(Intent(this, SplashActivity::class.java))
                                  finishAffinity()
                              }
-                             myApplication.printLogD(response.status.toString(),"apiCall 5")
-
+                             if (response.message.contains("400")){
+                                 val data = response.data as JsonObject
+                                 val msg = data.get("message")?.asString
+                                 Toast.makeText(this, msg!!, Toast.LENGTH_SHORT).show()
+                             }
                          }
                      }
                  }
@@ -133,6 +156,7 @@ import com.img.audition.viewModel.ViewModelFactory
 
 
      private fun getOTP(number: String, referCode: String?){
+         progressDialog.show()
          val numLoginRequest = NumLoginRequest(number,referCode)
          Log.d("check200", "userLogin: $numLoginRequest")
 
@@ -143,8 +167,10 @@ import com.img.audition.viewModel.ViewModelFactory
                      myApplication.printLogD(response.message.toString(),"apiCall 1")
                      when(response.status){
                          Status.SUCCESS ->{
-                             myApplication.printLogD(response.data!!.message.toString(),"apiCall 2")
-                             if (response.data.success!!){
+                             progressDialog.dismiss()
+                             val data = response.data as CommanResponse
+                             myApplication.printLogD(data.message.toString(),"apiCall 2")
+                             if (data.success!!){
                                  viewBinding.phoneNumberET.isEnabled = false
                                  viewBinding.otpLayout.visibility = View.VISIBLE
                                  viewBinding.getOtpBtn.visibility = View.GONE
@@ -159,19 +185,83 @@ import com.img.audition.viewModel.ViewModelFactory
                              myApplication.printLogD(response.status.toString(),"apiCall 3")
                          }
                          else->{
+                             progressDialog.dismiss()
+                             myApplication.printLogD(response.message.toString(),"apiCall 4")
                              if (response.message!!.contains("401")){
-                                 myApplication.printLogD(response.message.toString(),"apiCall 4")
                                  sessionManager.clearLogoutSession()
                                  startActivity(Intent(this, SplashActivity::class.java))
                                  finishAffinity()
                              }
-                             myApplication.printLogD(response.status.toString(),"apiCall 5")
+                             if (response.message.contains("400")){
+                                 val data = response.data as JsonObject
+                                 val msg = data.get("message")?.asString
+                                 Toast.makeText(this, msg!!, Toast.LENGTH_SHORT).show()
+                             }
 
                          }
                      }
                  }
              }
      }
+
+    private fun defaultLogin(number: String, referCode: String?){
+        progressDialog.show()
+        val numLoginRequest = NumLoginRequest(number,referCode)
+        Log.d("check200", "userLogin: $numLoginRequest")
+
+        myApplication.printLogD(number,TAG)
+        mainViewModel.defaultLogin(numLoginRequest)
+            .observe(this){
+                it.let {response->
+                    myApplication.printLogD(response.message.toString(),"apiCall 1")
+                    when(response.status){
+                        Status.SUCCESS ->{
+                            progressDialog.dismiss()
+                            sessionManager.clearLogoutSession()
+                            val data = response.data as LoginResponse
+                            myApplication.printLogI("${data.data!!.id}","login userID")
+                            if (response.data.success!!){
+                                val userToken = response.data.data!!.token.toString()
+                                val userID = response.data.data!!.id.toString()
+                                val auditionID = response.data.data!!.auditionID.toString()
+                                myApplication.printLogD(userToken, ConstValFile.TOKEN)
+                                myApplication.printLogD(userID, ConstValFile.USER_ID)
+                                sessionManager.setGuestLogin(false)
+                                sessionManager.setMobileVerified(true)
+                                sessionManager.createUserLoginSession(true,userToken,userID)
+                                sessionManager.setUserSelfID(userID)
+                                sessionManager.setUserAuditionID(auditionID)
+                                sessionManager.setUserName(auditionID)
+                                sessionManager.setToken(userToken)
+                                Thread.sleep(500)
+                                myApplication.showToast("Login Successfully..")
+                                sendToHomeActivity()
+                            }else{
+                                myApplication.showToast(response.data.message.toString())
+                            }
+                        }
+                        Status.LOADING ->{
+                            myApplication.printLogD(response.status.toString(),"apiCall 3")
+                        }
+                        else->{
+                            progressDialog.dismiss()
+                            myApplication.printLogD(response.message.toString(),"apiCall 4")
+                            if (response.message!!.contains("401")){
+                                sessionManager.clearLogoutSession()
+                                startActivity(Intent(this, SplashActivity::class.java))
+                                finishAffinity()
+                            }
+                            if (response.message.contains("400")){
+                                val data = response.data as JsonObject
+                                val msg = data.get("message")?.asString
+                                Toast.makeText(this, msg!!, Toast.LENGTH_SHORT).show()
+                            }
+
+                        }
+                    }
+                }
+            }
+    }
 
     fun sendToHomeActivity(){
         val homeIntent = Intent(this@PhoneLoginActivity,HomeActivity::class.java)

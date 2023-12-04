@@ -145,7 +145,6 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
             cameraSession = it
             cameraLayout.captureButton.onCaptureRequestListener = this@SnapCameraActivity
         }
-
     }
 
 
@@ -170,10 +169,12 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
 
 
         findViewById<ImageView>(R.id.selectFromGallery).setOnClickListener {
-            if (isFromContest)
+           /* if (isFromContest)
                 selectVideoFromProfile()
             else
-                selectVideoFromDevice()
+                selectVideoFromDevice()*/
+
+            selectVideoFromDevice()
         }
 
         findViewById<ImageView>(R.id.backPressIC).setOnClickListener {

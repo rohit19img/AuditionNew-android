@@ -2,6 +2,17 @@ package com.img.audition.dataModel
 
 import com.google.gson.annotations.SerializedName
 
+data class RootResponse<T>(
+    @SerializedName("success" ) var success : Boolean? = null,
+    @SerializedName("message" ) var message : String?  = null,
+    @SerializedName("data"    ) var data    : T?    = null
+)
+
+data class VersionInfo(
+    @SerializedName("version" ) var version : Int?    = null,
+    @SerializedName("point"   ) var point   : String? = null
+)
+
 data class GuestLoginRequest(
     @SerializedName("deviceId" ) var deviceId : String? = null,
     @SerializedName("appId"    ) var fcmToken : String? = null

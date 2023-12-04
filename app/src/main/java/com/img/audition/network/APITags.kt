@@ -25,6 +25,8 @@ class APITags {
         const val GetVideoByID = "video/{videoID}"
         const val GetLiveContestVideo = "contest_video"
         const val Login = "login"
+        const val LoginDefaultUser = "loginDefaultUser"
+        const val GetVersion = "getVersion"
         const val OTPLogin = "otp-login"
         const val likeUnlike = "likeUnlike"
         const val FollowUnfollow = "followUnfollow"

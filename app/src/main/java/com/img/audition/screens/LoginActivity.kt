@@ -1,11 +1,13 @@
 package com.img.audition.screens
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.util.UnstableApi
@@ -13,10 +15,14 @@ import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.Auth
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInResult
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.Scopes
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.OnCompleteListener
@@ -56,8 +62,7 @@ import java.util.*
         R.drawable.item4
     )
 
-    lateinit var google_id : String
-    lateinit var access_token : String
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
 
     private var isReferChecked = false
 
@@ -65,7 +70,6 @@ import java.util.*
         MyApplication(this@LoginActivity)
     }
     val TAG = "LoginActivity"
-    private lateinit var mGoogleApiClient : GoogleApiClient
     val timer = Timer()
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityLoginBinding.inflate(layoutInflater)
@@ -81,6 +85,9 @@ import java.util.*
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
+    private val progressDialog by lazy {
+        ProgressDialog(this@LoginActivity)
+    }
 
     val serverClientId = "839125335573-j2o78oa5mgjllcj9ppfacmis3nnid52b.apps.googleusercontent.com"
     val client_secret = "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"
@@ -89,17 +96,16 @@ import java.util.*
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+
+        progressDialog.setCancelable(false)
+        progressDialog.setMessage("Please wait.")
+
+        onTokenRefresh()
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(serverClientId)
             .requestEmail()
-            .requestServerAuthCode(serverClientId)
-            .requestScopes(Scope(Scopes.PLUS_LOGIN))
             .build()
-
-
-        mGoogleApiClient = GoogleApiClient.Builder(this)
-            .enableAutoManage(this,  this )
-            .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-            .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
 
         val imagSlider = ImageSlider(this@LoginActivity,imageList)
         viewBinding.imageSlidePager.adapter = imagSlider
@@ -115,11 +121,8 @@ import java.util.*
             sendToPhoneLoginActivity(referCode)
         }
         viewBinding.googleLogin.setOnClickListener {
-            try {
-                signIn()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            progressDialog.show()
+            signIn()
         }
 
         FacebookSdk.sdkInitialize(this@LoginActivity)
@@ -178,21 +181,18 @@ import java.util.*
         })*/
     }
 
+    private fun signIn() {
+        mGoogleSignInClient.signOut()
+        val signInIntent = mGoogleSignInClient.signInIntent
+        startActivityForResult(signInIntent, 1002)
+    }
+
     private fun sendToPhoneLoginActivity(referCode: String?) {
         val homeIntent = Intent(this@LoginActivity,PhoneLoginActivity::class.java)
         homeIntent.putExtra("ReferCode",referCode)
         startActivity(homeIntent)
     }
 
-    private fun signIn() {
-        if (myApplication.isNetworkConnected()){
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient)
-            val signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient)
-            startActivityForResult(signInIntent, 1)
-        }else{
-            myApplication.showToast(ConstValFile.Check_Connection)
-        }
-    }
 
     inner class SlideTimer : TimerTask(){
         override fun run() {
@@ -209,104 +209,40 @@ import java.util.*
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
         fbCallbackManager.onActivityResult(requestCode,resultCode,data)
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == -1){
-            if (requestCode == 1) {
-                val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data!!)
-                handleSignInResult(result!!)
-            }
-        }
 
+        if (requestCode == 1002) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            handleSignInResult(task)
+        }
+        progressDialog.dismiss()
     }
 
-    private fun handleSignInResult(result: GoogleSignInResult) {
-        myApplication.printLogE( "handleSignInResult:$result",TAG)
-        if (result.isSuccess) {
-            // Signed in successfully, show authenticated UI.
-            val acct = result.signInAccount
-
-            google_id = acct!!.id!!
-            val toekn = acct!!.serverAuthCode
-            access_token = requestToken(toekn!!)
-            Log.i("AccessToken","AccessToken123 : $access_token")
-
-
-            runGoogle()
-
-
-//            if (acct!!.email == "") {
-//                Toast.makeText(this@LoginActivity, "Email id not found,please try manually.",Toast.LENGTH_SHORT).show()
-//            } else {
-//
-//                val FGemail = acct.email.toString()
-//                val FGname = acct.displayName
-//                val FGimage = acct.photoUrl.toString()
-//                Log.i("Email", FGemail + "nothing")
-//                Log.i("name", FGname!!)
-//                Log.i("image", FGimage)
-//                onTokenRefresh(FGemail,FGname)
-//
-//            }
-        } else {
-            Log.i("where", "else")
-        }
-    }
-
-    fun runGoogle() {
+    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
-            sleep(1000)
-            if (access_token != "") {
-                onTokenRefresh(access_token)
-            } else runGoogle()
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
+            val account = completedTask.getResult(ApiException::class.java)
+
+            // Signed in successfully, show authenticated UI.
+            Log.d(TAG, "signIn success: ${completedTask.isSuccessful}")
+            Log.d(TAG, "emailToken: ${account.idToken}")
+            Log.d(TAG, "email: ${account.email}")
+            Log.d(TAG, "name: ${account.displayName}")
+            Log.d(TAG, "picture: ${account.photoUrl}")
+            val email = account.email
+            val name = account.displayName
+            val picture = account.photoUrl
+            val bundle = Bundle()
+            bundle.putString("name",name)
+            bundle.putString("email",email)
+            bundle.putString("picture", picture.toString())
+
+            socialLoginApi(account.idToken!!)
+
+        } catch (e: Exception) {
+            Toast.makeText(this,"Failed,Try Again", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "signInResult:failed ${e.message}")
         }
-    }
-
-    fun requestToken(token: String): String {
-        val client = OkHttpClient()
-
-        val requestBody: RequestBody = FormBody.Builder()
-            .add("grant_type", "authorization_code")
-            .add("client_id", serverClientId)
-            .add("client_secret", client_secret)
-            .add("redirect_uri", "")
-            .add("code", token)
-            .build()
-        val request: Request = Request.Builder()
-            .url("https://www.googleapis.com/oauth2/v4/token")
-            .post(requestBody)
-            .build()
-        val token1 = arrayOf("")
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.i("AccessToken","Failure : ${e.toString()}")
-                Log.i("AccessToken","Failure : ${e.message}")
-            }
-
-            @Throws(IOException::class)
-            override fun onResponse(
-                @NonNull call: okhttp3.Call,
-                @NonNull response: okhttp3.Response
-            ) {
-                try {
-                    val jsonObject = JSONObject(response.body!!.string())
-                    token1[0] = jsonObject.getString("id_token")
-//                    token1[0] = jsonObject.getString("access_token")
-                    access_token = token1[0]
-
-//                    Log.i("AccessToken","AccessToken : $access_token")
-//                    Log.i("AccessToken","jsonObject : $jsonObject")
-
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-            }
-        })
-        return token1[0]
     }
 
     private fun socialLoginApi(googleToken:String) {
@@ -316,9 +252,8 @@ import java.util.*
             obj.addProperty("refer_code", viewBinding.referCodeET.text.toString())
         }
         obj.addProperty("appid", sessionManager.getNotificationToken())
+        Log.d("check200", "reqBody : $obj")
         val socialReq = apiInterface.socialLogin(obj)
-
-        Log.d("check200", "socialLoginApi: $obj")
         socialReq.enqueue(object : Callback<LoginResponse>{
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful && response.body()!!.success!!){
@@ -355,10 +290,9 @@ import java.util.*
         finish()
     }
 
-    fun onTokenRefresh(googleToken: String) {
+    private fun onTokenRefresh() {
         val refreshedToken = arrayOf("")
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(object :
-            OnCompleteListener<String?> {
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(object : OnCompleteListener<String?> {
             override fun onComplete(task: Task<String?>) {
                 if (!task.isSuccessful()) {
                     myApplication.printLogE(task.exception.toString(),TAG);
@@ -368,7 +302,6 @@ import java.util.*
                 myApplication.printLogD(token.toString(),"Firebase Token")
                 refreshedToken[0] = token.toString()
                 sessionManager.setNotificationToken(refreshedToken[0])
-                socialLoginApi(googleToken)
             }
         })
         FirebaseMessaging.getInstance().subscribeToTopic("All-user")
@@ -396,7 +329,6 @@ import java.util.*
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
         }
-
     }
 
 

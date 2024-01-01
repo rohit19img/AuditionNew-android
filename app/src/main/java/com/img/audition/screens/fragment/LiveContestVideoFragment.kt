@@ -73,14 +73,14 @@ class LiveContestVideoFragment(private val contextFromActivity:Context) : Fragme
             ViewModelFactory(sessionManager.getToken(),apiInterface)
         )[MainViewModel::class.java]
 
-        val selectedLanguage = sessionManager.getSelectedLanguage()
-        if (selectedLanguage.equals("")){
-            myApplication.printLogI("Show Language Dialog",TAG)
-            val showLangDialog = LanguageSelecteDialog()
-            showLangDialog.show(parentFragmentManager,showLangDialog.tag)
-        }else{
-
-        }
+//        val selectedLanguage = sessionManager.getSelectedLanguage()
+//        if (selectedLanguage.equals("")){
+//            myApplication.printLogI("Show Language Dialog",TAG)
+//            val showLangDialog = LanguageSelecteDialog()
+//            showLangDialog.show(parentFragmentManager,showLangDialog.tag)
+//        }else{
+//
+//        }
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _viewBinding = FragmentLiveContestVideoBinding.inflate(inflater,container,false)

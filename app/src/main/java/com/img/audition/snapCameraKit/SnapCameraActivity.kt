@@ -495,7 +495,7 @@ SnapCameraActivity : AppCompatActivity(), MediaCapture.MediaCaptureCallback,
 
         mediaCaptureExecutor.shutdown()
         audioProcessorExecutor.shutdown()
-        if (sessionManager.getVideoSongUrl().toString().isNotEmpty()) {
+        if (sessionManager.getVideoSongUrl().toString().isNotEmpty() || appSongUrl.isNotEmpty()) {
             if (sessionManager.getIsFromTryAudio() || sessionManager.getIsAppAudio()) {
                 sessionManager.setCreateVideoSession(videoUri, "", videoDuration)
                 runOnUiThread {

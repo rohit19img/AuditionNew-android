@@ -71,8 +71,7 @@ class CategoryMusicAdapter(val contextFromActivity: Context, private var musicLi
                 .setCache(VideoCacheWork.simpleCache)
                 .setUpstreamDataSourceFactory(
                     DefaultHttpDataSource.Factory()
-                        .setUserAgent("ExoPlayer").setAllowCrossProtocolRedirects(true)
-                )
+                        .setUserAgent("ExoPlayer").setAllowCrossProtocolRedirects(true))
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
         )
     }
@@ -370,7 +369,7 @@ class CategoryMusicAdapter(val contextFromActivity: Context, private var musicLi
                     Log.d(TAG, "onProgressChanged: isAppAudio ${sessionManager.getIsAppAudio()}")
 
                     if (sessionManager.getIsAppAudio()){
-                        val toTrimDuration = "${getTimeString(25000L)}"
+                        val toTrimDuration = "${getTimeString(35000L)}"
                         trimTo!!.text = toTrimDuration
                     }else{
                         val toTrimDuration = "${getTimeString(sessionManager.getCreateVideoDuration())}"
@@ -414,14 +413,14 @@ class CategoryMusicAdapter(val contextFromActivity: Context, private var musicLi
             val totalAudioDuration = audioPlayer.duration
             var toTrimDuration = sessionManager.getCreateVideoDuration()
             if (sessionManager.getIsAppAudio()){
-                toTrimDuration =  25000L
+                toTrimDuration =  35000L
             }
 
             if (toTrimDuration > totalAudioDuration) {
                 Toast.makeText(contextFromActivity, "Reselect Audio Trim Position", Toast.LENGTH_SHORT).show()
             } else {
                 progressTrimMusic!!.visibility = View.VISIBLE
-                TrimAudio(audioFile, fromTrimDuration.toLong(), toTrimDuration, songID)
+                trimAudio(audioFile, fromTrimDuration.toLong(), toTrimDuration, songID)
                 audioPlayer.pause()
                 audioPlayer.stop()
                 songTimeHandler.removeCallbacksAndMessages(null)
@@ -444,7 +443,7 @@ class CategoryMusicAdapter(val contextFromActivity: Context, private var musicLi
         return buf.toString()
     }
 
-    private fun TrimAudio(
+    private fun trimAudio(
         audioFile: String,
         audioTrimFromSec: Long,
         toTrimDuration: Long,
@@ -468,8 +467,7 @@ class CategoryMusicAdapter(val contextFromActivity: Context, private var musicLi
                     bundle.putString(ConstValFile.AppAudio,trimFilePath)
                     contextFromActivity.startActivity(
                         Intent(contextFromActivity.applicationContext, SnapCameraActivity::class.java)
-                            .putExtra(ConstValFile.Bundle, bundle).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    )
+                            .putExtra(ConstValFile.Bundle, bundle).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
                 }else{
                     val bundle = Bundle()
                     bundle.putString(ConstValFile.CompileTask, ConstValFile.TaskMuxing)

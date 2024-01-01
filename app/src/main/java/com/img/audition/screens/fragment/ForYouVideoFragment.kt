@@ -92,17 +92,18 @@ class ForYouVideoFragment(private val contextFromActivity:Context) : Fragment() 
         myApplication.printLogD(userLatLang?.lat.toString(),"lat $TAG")
         myApplication.printLogD(userLatLang?.long.toString(),"long $TAG")
 
-        val selectedLanguage = sessionManager.getSelectedLanguage()
+       /* val selectedLanguage = sessionManager.getSelectedLanguage()
         if (selectedLanguage.equals("")){
             myApplication.printLogI("Show Language Dialog",TAG)
             val showLangDialog = LanguageSelecteDialog()
             showLangDialog.show(parentFragmentManager,showLangDialog.tag)
         }else{
-            if (myApplication.isNetworkConnected()) {
-                askForLocation()
-            }else{
-                myApplication.showToast(ConstValFile.Check_Connection)
-            }
+
+        }*/
+        if (myApplication.isNetworkConnected()) {
+            askForLocation()
+        }else{
+            myApplication.showToast(ConstValFile.Check_Connection)
         }
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

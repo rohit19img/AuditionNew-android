@@ -34,6 +34,15 @@ class SessionManager(context: Context) {
         prefEditorMain.commit()
     }
 
+    fun setMobileNumber(number:String){
+        prefEditorMain.putString(ConstValFile.NUMBER,number)
+        prefEditorMain.commit()
+    }
+
+    fun getMobileNumber():String?{
+       return sharedPrefMain.getString(ConstValFile.NUMBER,"")
+    }
+
     fun getUserSelfID():String?{
        return sharedPrefMain.getString(ConstValFile.USER_ID,"");
     }

@@ -67,7 +67,6 @@ class SplashActivity : AppCompatActivity() {
         if (myApplication.isNetworkConnected()){
 //            decideWhereSend()
             getAppVersion()
-
         }else{
             showRetryDialog()
         }

@@ -73,8 +73,6 @@ import java.util.*
     private val sessionManager by lazy {
         SessionManager(this@EditProfileActivity)
     }
-
-
     private val apiInterface by lazy{
         RetrofitClient.getInstance().create(ApiInterface::class.java)
     }
@@ -116,7 +114,6 @@ import java.util.*
         appPermission =  AppPermission(this@EditProfileActivity,
             ConstValFile.PERMISSION_LIST,
             ConstValFile.REQUEST_PERMISSION_CODE_STORAGE)
-
 
         viewBinding.mobilenumber.isEnabled = false
 
@@ -206,10 +203,10 @@ import java.util.*
                                  if (resources.data!!.success!!){
                                      val userData = resources.data.data
                                      if (userData != null) {
-
                                          Glide.with(this@EditProfileActivity).load(userData.image.toString()).placeholder(R.drawable.person_ic).into( viewBinding.userImage)
                                          viewBinding.name.setText(userData.name.toString())
                                          viewBinding.auditionid.setText(userData.auditionId.toString())
+                                         sessionManager.setMobileNumber(userData.mobile.toString())
                                          viewBinding.mobilenumber.setText(userData.mobile.toString())
                                          viewBinding.bio.setText(userData.bio.toString())
                                          viewBinding.gender.text = userData.gender.toString()
@@ -222,7 +219,6 @@ import java.util.*
                                      }
                                  }else{
                                      Toast.makeText(this,"Something went wrong..",Toast.LENGTH_SHORT).show()
-
                                  }
                              }
                              Status.LOADING ->{
@@ -260,7 +256,6 @@ import java.util.*
         mDatePicker.show()
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ConstValFile.REQUEST_PERMISSION_CODE_STORAGE) {

@@ -15,46 +15,9 @@ android {
         applicationId "com.img.audition"
         minSdk 24
         targetSdk 33
-        versionCode 3
-        versionName "1.2"
+        versionCode 6
+        versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    packagingOptions {
-        pickFirst 'values/values.xml'
-        pickFirst 'lib/arm64-v8a/libavcodec.so'
-        pickFirst 'lib/arm64-v8a/libavdevice.so'
-        pickFirst 'lib/arm64-v8a/libavfilter.so'
-        pickFirst 'lib/arm64-v8a/libavformat.so'
-        pickFirst 'lib/arm64-v8a/libavutil.so'
-        pickFirst 'lib/arm64-v8a/libswresample.so'
-        pickFirst 'lib/arm64-v8a/libswscale.so'
-
-        pickFirst 'lib/x86_64/libavcodec.so'
-        pickFirst 'lib/x86_64/libavdevice.so'
-        pickFirst 'lib/x86_64/libavfilter.so'
-        pickFirst 'lib/x86_64/libavformat.so'
-        pickFirst 'lib/x86_64/libavutil.so'
-        pickFirst 'lib/x86_64/libswresample.so'
-        pickFirst 'lib/x86_64/libswscale.so'
-
-        pickFirst 'lib/armeabi-v7a/libavcodec.so'
-        pickFirst 'lib/armeabi-v7a/libavdevice.so'
-        pickFirst 'lib/armeabi-v7a/libavfilter.so'
-        pickFirst 'lib/armeabi-v7a/libavformat.so'
-        pickFirst 'lib/armeabi-v7a/libavutil.so'
-        pickFirst 'lib/armeabi-v7a/libswresample.so'
-        pickFirst 'lib/armeabi-v7a/libswscale.so'
-
-    }
-
-
-
-    sourceSets {
-        main {
-            assets.srcDirs = ['src/main/assets', 'src/main/assets/']
-            res.srcDirs = ['src/main/res', 'src/main/res/drawable']
-        }
     }
 
     buildTypes {
@@ -73,9 +36,6 @@ android {
     viewBinding {
         enabled = true
     }
-
-
-
 }
 
 
@@ -202,4 +162,6 @@ dependencies {
     implementation 'life.knowledge4:k4l-video-trimmer:1.1.3-SNAPSHOT'
 
 
+    //PhonePe
+    implementation 'phonepe.intentsdk.android.release:IntentSDK:2.3.0'
 }

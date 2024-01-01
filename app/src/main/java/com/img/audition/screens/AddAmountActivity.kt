@@ -2,6 +2,7 @@ package com.img.audition.screens
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,6 +13,7 @@ import com.android.volley.DefaultRetryPolicy
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.google.gson.JsonObject
 import com.img.audition.adapters.AddCashOfferAdapter
 import com.img.audition.cashfree.PaymentActivity
 import com.img.audition.dataModel.OfferData
@@ -30,6 +32,7 @@ import retrofit2.Response
 import java.util.ArrayList
 
 class AddAmountActivity : AppCompatActivity() {
+    private val merchantID = "M1QITG824ENR"
     private  var adapter: AddCashOfferAdapter? = null
     private lateinit var data: ArrayList<OfferData>
     private val TAG = "AddAmountActivity"
@@ -251,5 +254,38 @@ class AddAmountActivity : AppCompatActivity() {
         }
 
         super.onStop()
+    }
+
+    private fun addCash(amount: Int) {
+        Log.d("check200", "addCash: In Api : $amount")
+        val paymentJson = JsonObject()
+        val paymentInstrument = JsonObject()
+        val deviceContext = JsonObject()
+        val txnId = System.currentTimeMillis().toString()
+        paymentJson.addProperty("merchantId",merchantID)
+        paymentJson.addProperty("merchantTransactionId",txnId)
+        paymentJson.addProperty("merchantUserId",sessionManager.getUserSelfID())
+        paymentJson.addProperty("amount",amount)
+        paymentJson.addProperty("mobileNumber",sessionManager.getMobileNumber())
+        paymentInstrument.addProperty("type","UPI_INTENT")
+        paymentInstrument.addProperty("targetApp","com.phonepe.app")
+        paymentJson.add("paymentInstrument",paymentInstrument)
+        deviceContext.addProperty("deviceOS","ANDROID")
+        paymentJson.add("deviceContext",deviceContext)
+
+        /*progressDialog.dismiss()
+        //
+        ("check100", "Success")
+        val data = apiResponse.data as RootResponse<AddCashResponse>
+        AppUtils.logD("check100", "Success ${data.message}")
+        val intentUrl = data.data?.intentUrl.toString()
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse(intentUrl)
+        startActivity(intent)
+        *//*if (session.getCallState() == AppUtils.ActionCallConnected){
+            setCallTalkTime()
+        }else{
+            finish()
+        }*/
     }
 }

@@ -120,6 +120,7 @@ import com.img.audition.viewModel.ViewModelFactory
                                      sessionManager.setGuestLogin(false)
                                      sessionManager.setMobileVerified(true)
                                      sessionManager.createUserLoginSession(true,userToken,userID)
+                                     sessionManager.setMobileNumber(number)
                                      sessionManager.setUserSelfID(userID)
                                      sessionManager.setUserAuditionID(auditionID)
                                      sessionManager.setUserName(auditionID)

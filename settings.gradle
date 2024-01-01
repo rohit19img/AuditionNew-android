@@ -21,6 +21,8 @@ dependencyResolutionManagement {
         maven {
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        maven {url  "https://phonepe.mycloudrepo.io/public/repositories/phonepe-intentsdk-android"}
+
     }
 }
 rootProject.name = "Audition"

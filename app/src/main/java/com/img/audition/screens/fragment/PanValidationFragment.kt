@@ -1,11 +1,13 @@
 package com.img.audition.screens.fragment
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.android.volley.*
@@ -23,11 +26,15 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.canhub.cropper.CropImageView.Guidelines
 import com.img.audition.R
 import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentPanValidationBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.network.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -44,6 +51,19 @@ import java.util.*
 
 
 class PanValidationFragment : Fragment() {
+
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            // Use the returned uri.
+            imagepath = result!!.getUriFilePath(requireContext(), true).toString()
+            Log.e("Check file", imagepath)
+            view.img.setImageURI(Uri.parse(imagepath))
+        } else {
+            // An error occurred.
+            val exception = result.error
+            Log.e(TAG, "Select Image: ", exception)
+        }
+    }
 
     val TAG = "PanValidationFragment"
     var imagepath = ""
@@ -81,7 +101,23 @@ class PanValidationFragment : Fragment() {
         }
 
         view.btnUpload.setOnClickListener {
-            selectImage()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(
+                        requireActivity(),
+                        arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                        ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                    )
+                }
+            } else if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                )
+            }else{
+                selectImage()
+            }
         }
     }
 
@@ -155,17 +191,26 @@ class PanValidationFragment : Fragment() {
 
 
     private fun selectImage() {
-       /* activity()
-            .setScaleType(CropImageView.ScaleType.FIT_CENTER)
-            .setGuidelines(Guidelines.ON)
-            .setAspectRatio(16, 9)
-            .setCropMenuCropButtonTitle("Next")
-            .start(requireContext(), this)*/
+        cropImage.launch(
+            CropImageContractOptions(
+                uri = null,
+                cropImageOptions = CropImageOptions(
+                    imageSourceIncludeGallery = true,
+                    imageSourceIncludeCamera = true,
+                    aspectRatioX = 16,
+                    aspectRatioY = 9
+                ),),
+        )
+
+
     }
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ConstValFile.REQUEST_PERMISSION_CODE_STORAGE) {
+            selectImage()
+        }
         /*if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = getActivityResult(data)
             try {

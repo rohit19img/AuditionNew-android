@@ -338,7 +338,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
                     Log.d(TAG, "onProgressChanged: isAppAudio ${sessionManager.getIsAppAudio()}")
 
                     if (sessionManager.getIsAppAudio()){
-                        val toTrimDuration = "${getTimeString(25000L)}"
+                        val toTrimDuration = "${getTimeString(35000L)}"
                         trimTo!!.text = toTrimDuration
                     }else{
                         val toTrimDuration = "${getTimeString(sessionManager.getCreateVideoDuration())}"
@@ -382,7 +382,7 @@ class MusicAdapter(val contextFromActivity: Context, private var musicList: Arra
             val totalAudioDuration = audioPlayer.duration
             var toTrimDuration = sessionManager.getCreateVideoDuration()
             if (sessionManager.getIsAppAudio()){
-                toTrimDuration =  25000L
+                toTrimDuration =  35000L
             }
 
             if (toTrimDuration > totalAudioDuration) {

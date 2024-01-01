@@ -98,6 +98,8 @@ class ConstValFile {
         const val AllUserID = "userid"
         const val VideoID = "vId"
         const val PostID = "postId"
+        const val Amount = "Amount"
+        const val TransactionId =  "TransactionId"
         const val CommentList = "comment"
         const val ContestType = "imageOrVideo"
         const val ContestFile = "contestFile"
@@ -131,5 +133,6 @@ class ConstValFile {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
+
 
 }

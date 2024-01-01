@@ -1,11 +1,14 @@
 package com.img.audition.screens.fragment
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.android.volley.*
@@ -21,11 +25,15 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.canhub.cropper.CropImage
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.img.audition.R
 import com.img.audition.adapters.StateListAdapter
 import com.img.audition.dataModel.UserVerificationResponse
 import com.img.audition.databinding.FragmentBankVerificationBinding
+import com.img.audition.globalAccess.ConstValFile
 import com.img.audition.globalAccess.MyApplication
 import com.img.audition.network.*
 import org.json.JSONException
@@ -36,6 +44,19 @@ import java.io.*
 
 
 class BankVerificationFragment() : Fragment() {
+
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            // Use the returned uri.
+            image_path = result!!.getUriFilePath(requireContext(), true).toString()
+            Log.e("Check file", image_path)
+            view.img.setImageURI(Uri.parse(image_path))
+        } else {
+            // An error occurred.
+            val exception = result.error
+            Log.e(TAG, "Select Image: ", exception)
+        }
+    }
 
     private lateinit var stateAr: Array<String>
     private val TAG = "BankVerificationFragment"
@@ -85,7 +106,23 @@ class BankVerificationFragment() : Fragment() {
         }
 
         view.btnUpload.setOnClickListener {
-            selectImage()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(
+                        requireActivity(),
+                        arrayOf<String>(Manifest.permission.READ_MEDIA_IMAGES),
+                        ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                    )
+                }
+            } else if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf<String>(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    ConstValFile.REQUEST_PERMISSION_CODE_STORAGE
+                )
+            }else{
+                selectImage()
+            }
         }
 
         view.btnSubmit.setOnClickListener {
@@ -95,12 +132,16 @@ class BankVerificationFragment() : Fragment() {
     }
 
     private fun selectImage() {
-       /* CropImage.activity()
-            .setScaleType(CropImageView.ScaleType.FIT_CENTER)
-            .setGuidelines(CropImageView.Guidelines.ON)
-            .setAspectRatio(16, 9)
-            .setCropMenuCropButtonTitle("Next")
-            .start(requireContext(), this)*/
+        cropImage.launch(
+            CropImageContractOptions(
+                uri = null,
+                cropImageOptions = CropImageOptions(
+                    imageSourceIncludeGallery = true,
+                    imageSourceIncludeCamera = true,
+                    aspectRatioX = 16,
+                    aspectRatioY = 9
+                ),),
+        )
     }
 
     fun validate(): Boolean {
@@ -364,6 +405,9 @@ class BankVerificationFragment() : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ConstValFile.REQUEST_PERMISSION_CODE_STORAGE) {
+            selectImage()
+        }
        /* if (requestCode == CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result: CropImage.ActivityResult? = getActivityResult(data)
             try {

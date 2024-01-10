@@ -94,6 +94,7 @@
                 android:layout_width="match_parent"
                 app:cardCornerRadius="8dp"
                 app:contentPadding="5dp"
+                android:visibility="gone"
                 android:layout_marginHorizontal="20dp"
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="@color/fbBlueColor">

@@ -80,7 +80,7 @@ class MessageActivity : AppCompatActivity() {
                         jsonObject.put("receiverId", userid)
                         jsonObject.put("message", messageText)
 
-                        mSocket.emit("message", jsonObject)
+                        mSocket.emit("message", jsonObject.toString())
                     } catch (e: JSONException) {
                         e.printStackTrace()
                     }

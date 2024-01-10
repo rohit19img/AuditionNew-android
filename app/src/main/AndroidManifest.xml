@@ -300,6 +300,39 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
+
+        <activity
+            android:name="com.razorpay.CheckoutActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/CheckoutTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <data
+                    android:host="rzp.io"
+                    android:scheme="io.rzp" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".paymentGateway.RozorPayPayMentGateWay"
+            android:configChanges="density|orientation"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <receiver
+            android:name="com.razorpay.RzpTokenReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="rzp.device_token.share" />
+            </intent-filter>
+        </receiver>
+
+        <meta-data
+            android:name="com.razorpay.ApiKey"
+            android:value="rzp_live_O132Kc36sIYE3I" />
+
     </application>
 
 </manifest>

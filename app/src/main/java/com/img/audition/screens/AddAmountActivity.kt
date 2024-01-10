@@ -27,6 +27,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
 import com.img.audition.databinding.ActivityAddAmountBinding
+import com.img.audition.paymentGateway.RozorPayPayMentGateWay
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.ArrayList
@@ -59,7 +60,6 @@ class AddAmountActivity : AppCompatActivity() {
         }
 
         requestQueue = Volley.newRequestQueue(this)
-
 
         getOfferDetails()
         viewBinding.add100.setOnClickListener {
@@ -106,7 +106,7 @@ class AddAmountActivity : AppCompatActivity() {
                         ).show()
                     } else {
                         if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
-                            AddAmount(amount, "Cashfree")
+                            AddAmount(amount, "RazorPay")
                         }else{
                             Toast.makeText(this@AddAmountActivity,"Please Verify Mobile & Email", Toast.LENGTH_SHORT).show()
 
@@ -116,7 +116,7 @@ class AddAmountActivity : AppCompatActivity() {
                     }
                 } else {
                     if (sessionManager.getEmailVerified() && sessionManager.getMobileVerified()){
-                        AddAmount(amount, "Cashfree")
+                        AddAmount(amount, "RazorPay")
                     }else{
                         Toast.makeText(this@AddAmountActivity,"Please Verify Mobile & Email", Toast.LENGTH_SHORT).show()
                         sendToVerficationActivity()
@@ -165,6 +165,7 @@ class AddAmountActivity : AppCompatActivity() {
         })
     }
     private fun AddAmount(Amount: String, from: String) {
+
         try {
             val url = APITags.APIBASEURL+ "requestAddCash"
             Log.i("url", url)
@@ -174,15 +175,18 @@ class AddAmountActivity : AppCompatActivity() {
                     try {
                         Log.i("Response is", response)
                         val jsonObject = JSONObject(response)
-                        if (jsonObject.getBoolean("success")) {
+                        if (jsonObject.getBoolean("status")) {
                             val data = jsonObject.getJSONObject("data")
-                            val txnid = data.getString("txnid")
+                            val txnid = data.getString("translationId")
+                            val orderid = data.getString("orderid")
 
                             // add Payment gateway hare
-                            val i = Intent(this@AddAmountActivity, PaymentActivity::class.java)
-                            i.putExtra("price", Amount)
-                            i.putExtra("orderid", txnid)
-                            startActivity(i)
+                            startActivity(
+                                Intent(this@AddAmountActivity, RozorPayPayMentGateWay::class.java)
+                                    .putExtra("price",Amount)
+                                    .putExtra("orderid", txnid)
+                                    .putExtra("razorpayid", orderid)
+                            )
                             finish()
                         } else {
                             Toast.makeText(

@@ -67,6 +67,7 @@ class ChatsAdapter(var context: Context, var list: ArrayList<ChatsGetSet>) :
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("yyyy MMMM dd hh:mm a", Locale.getDefault())
 
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
         // Set the timezone to IST
         outputFormat.timeZone = TimeZone.getTimeZone("Asia/Kolkata")
 

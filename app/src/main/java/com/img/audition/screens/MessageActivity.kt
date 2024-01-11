@@ -302,8 +302,9 @@ class MessageActivity : AppCompatActivity() {
     }
 
     fun getCurrentTime(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        dateFormat.timeZone = TimeZone.getTimeZone("Asia/Kolkata") // Set the timezone to IST
-        return dateFormat.format(Date())
+        val outputFormat = SimpleDateFormat("yyyy MMMM dd hh:mm a", Locale.getDefault())
+        Log.i("timeCheck",outputFormat.format(Date()))
+        Log.i("timeCheck",Date().toString())
+        return outputFormat.format(Date())
     }
 }

@@ -15,15 +15,25 @@ android {
         applicationId "com.img.audition"
         minSdk 24
         targetSdk 33
-        versionCode 7
-        versionName "1.7"
+        versionCode 9
+        versionName "1.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("D:\\Android Code\\AuditionNew-android\\key\\audition.jks")
+            storePassword "audition"
+            keyAlias "keyaudition"
+            keyPassword "audition"
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

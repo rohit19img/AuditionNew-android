@@ -86,14 +86,18 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
 
             voteCountBtn.setOnClickListener {
                 if (myApplication.isNetworkConnected()){
-                    val videoID = list[position].videoId.toString()
-                    Log.d("videoId", "onBindViewHolder: ${list[position].videoId.toString()}")
-                    val bundle = Bundle()
-                    bundle.putString(ConstValFile.VideoID,videoID)
-                    bundle.putString("Rank" ,"No")
-                    val intent = Intent(context, VoterListActivity::class.java)
-                    intent.putExtra(ConstValFile.Bundle,bundle)
-                    context.startActivity(intent)
+                    if (list[position].status == "notstarted" || list[position].status == "closed"){
+                        Toast.makeText(it.context,"Contest Not Started Yet.", Toast.LENGTH_SHORT).show()
+                    }else {
+                        val videoID = list[position].videoId.toString()
+                        Log.d("videoId", "onBindViewHolder: ${list[position].videoId.toString()}")
+                        val bundle = Bundle()
+                        bundle.putString(ConstValFile.VideoID, videoID)
+                        bundle.putString("Rank", "No")
+                        val intent = Intent(context, VoterListActivity::class.java)
+                        intent.putExtra(ConstValFile.Bundle, bundle)
+                        context.startActivity(intent)
+                    }
                 }else{
                     Toast.makeText(context,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
                 }
@@ -101,7 +105,7 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
 
             itemView.setOnClickListener {
                 if (myApplication.isNetworkConnected()){
-                    if (list[position].status == "notstarted"){
+                    if (list[position].status == "notstarted" || list[position].status == "closed"){
                         Toast.makeText(it.context,"Contest Not Started Yet.", Toast.LENGTH_SHORT).show()
                     }else{
                         val bundle = Bundle()
@@ -114,6 +118,7 @@ class LiveRankLeaderboardAdapter(val context: Context, val list: ArrayList<Joint
                         intent.putExtra(ConstValFile.Bundle, bundle)
                         context.startActivity(intent)
                     }
+
                 }else{
                     Toast.makeText(context,ConstValFile.Check_Connection,Toast.LENGTH_SHORT).show()
                 }

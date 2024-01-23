@@ -138,7 +138,7 @@ class ContestFragment(val contextFromHome : Context) : Fragment() {
                             list_completed = ArrayList()
 
                             for(zz in contestData) {
-                                if(zz.status == "notstarted")
+                                if(zz.status == "notstarted" || zz.status == "closed")
                                     list_upcoming.add(zz)
                                 else if(zz.finalStatus.equals("IsReviewed",true) || zz.finalStatus.equals("pending",true))
                                     list_live.add(zz)

@@ -69,9 +69,8 @@ class LeaderboardAdapter(
                 e.printStackTrace()
             }
 
-
             voteCountBtn.setOnClickListener {
-                if (list[position].status == "notstarted") {
+                if (list[position].status == "notstarted" || list[position].status == "closed") {
                     Toast.makeText(it.context, "Contest Not Started Yet.", Toast.LENGTH_SHORT)
                         .show()
                 } else {
@@ -86,7 +85,8 @@ class LeaderboardAdapter(
             }
 
             itemView.setOnClickListener {
-                if (list[position].status == "notstarted") {
+                Log.i("RohitTest",list[position].status!!)
+                if (list[position].status == "notstarted"|| list[position].status == "closed") {
                     Toast.makeText(it.context, "Contest Not Started Yet.", Toast.LENGTH_SHORT)
                         .show()
                 } else {
